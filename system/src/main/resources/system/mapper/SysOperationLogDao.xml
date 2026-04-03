@@ -1,0 +1,32 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.dafuweng.system.dao.SysOperationLogDao">
+
+    <resultMap id="sysOperationLogMap" type="com.dafuweng.system.entity.SysOperationLogEntity">
+        <result property="id" column="id"/>
+        <result property="userId" column="user_id"/>
+        <result property="username" column="username"/>
+        <result property="module" column="module"/>
+        <result property="action" column="action"/>
+        <result property="requestMethod" column="request_method"/>
+        <result property="requestUrl" column="request_url"/>
+        <result property="requestParams" column="request_params"/>
+        <result property="responseCode" column="response_code"/>
+        <result property="errorMsg" column="error_msg"/>
+        <result property="ip" column="ip"/>
+        <result property="userAgent" column="user_agent"/>
+        <result property="costTimeMs" column="cost_time_ms"/>
+        <result property="createdAt" column="created_at"/>
+    </resultMap>
+
+    <!-- 分页查询操作日志 -->
+    <select id="selectPage" resultMap="sysOperationLogMap">
+        SELECT id, user_id, username, module, action, request_method, request_url,
+               request_params, response_code, error_msg, ip, user_agent, cost_time_ms, created_at
+        FROM sys_operation_log
+        WHERE deleted = 0
+        ORDER BY created_at DESC
+        LIMIT #{size} OFFSET #{current}
+    </select>
+
+</mapper>

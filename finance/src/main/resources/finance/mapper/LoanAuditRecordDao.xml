@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.dafuweng.finance.dao.LoanAuditRecordDao">
+
+    <resultMap id="loanAuditRecordMap" type="com.dafuweng.finance.entity.LoanAuditRecordEntity">
+        <result property="id" column="id"/>
+        <result property="loanAuditId" column="loan_audit_id"/>
+        <result property="operatorId" column="operator_id"/>
+        <result property="operatorName" column="operator_name"/>
+        <result property="operatorRole" column="operator_role"/>
+        <result property="action" column="action"/>
+        <result property="content" column="content"/>
+        <result property="attachmentUrls" column="attachment_urls"/>
+        <result property="createdAt" column="created_at"/>
+    </resultMap>
+
+    <select id="selectByLoanAuditId" resultMap="loanAuditRecordMap">
+        SELECT id, loan_audit_id, operator_id, operator_name, operator_role,
+               action, content, attachment_urls, created_at
+        FROM loan_audit_record
+        WHERE loan_audit_id = #{loanAuditId}
+        ORDER BY created_at ASC
+    </select>
+
+</mapper>

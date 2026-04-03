@@ -1,0 +1,28 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.dafuweng.auth.dao.SysUserRoleDao">
+
+    <resultMap id="sysUserRoleMap" type="com.dafuweng.auth.entity.SysUserRoleEntity">
+        <result property="id" column="id"/>
+        <result property="userId" column="user_id"/>
+        <result property="roleId" column="role_id"/>
+        <result property="createdAt" column="created_at"/>
+    </resultMap>
+
+    <select id="selectRoleIdsByUserId" resultType="java.lang.Long">
+        SELECT role_id FROM sys_user_role WHERE user_id = #{userId}
+    </select>
+
+    <delete id="deleteByUserId">
+        DELETE FROM sys_user_role WHERE user_id = #{userId}
+    </delete>
+
+    <insert id="insertBatch">
+        INSERT INTO sys_user_role (user_id, role_id, created_at) VALUES
+        <foreach collection="list" item="item" separator=",">
+            (#{item.userId}, #{item.roleId}, NOW())
+        </foreach>
+    </insert>
+
+</mapper>

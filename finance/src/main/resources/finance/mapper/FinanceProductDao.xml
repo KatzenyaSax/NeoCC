@@ -1,0 +1,41 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.dafuweng.finance.dao.FinanceProductDao">
+
+    <resultMap id="financeProductMap" type="com.dafuweng.finance.entity.FinanceProductEntity">
+        <result property="id" column="id"/>
+        <result property="productCode" column="product_code"/>
+        <result property="productName" column="product_name"/>
+        <result property="bankId" column="bank_id"/>
+        <result property="minAmount" column="min_amount"/>
+        <result property="maxAmount" column="max_amount"/>
+        <result property="interestRate" column="interest_rate"/>
+        <result property="minTerm" column="min_term"/>
+        <result property="maxTerm" column="max_term"/>
+        <result property="requirements" column="requirements" typeHandler="com.baomidou.mybatisplus.extension.handlers.JacksonTypeHandler"/>
+        <result property="documents" column="documents" typeHandler="com.baomidou.mybatisplus.extension.handlers.JacksonTypeHandler"/>
+        <result property="productFeatures" column="product_features"/>
+        <result property="commissionRate" column="commission_rate"/>
+        <result property="status" column="status"/>
+        <result property="sortOrder" column="sort_order"/>
+        <result property="onlineTime" column="online_time"/>
+        <result property="offlineTime" column="offline_time"/>
+        <result property="createdBy" column="created_by"/>
+        <result property="createdAt" column="created_at"/>
+        <result property="updatedBy" column="updated_by"/>
+        <result property="updatedAt" column="updated_at"/>
+        <result property="deleted" column="deleted"/>
+    </resultMap>
+
+    <select id="selectByBankId" resultMap="financeProductMap">
+        SELECT id, product_code, product_name, bank_id, min_amount, max_amount,
+               interest_rate, min_term, max_term, requirements, documents,
+               product_features, commission_rate, status, sort_order,
+               online_time, offline_time, created_by, created_at, updated_by,
+               updated_at, deleted
+        FROM finance_product
+        WHERE bank_id = #{bankId} AND deleted = 0
+        ORDER BY sort_order
+    </select>
+
+</mapper>

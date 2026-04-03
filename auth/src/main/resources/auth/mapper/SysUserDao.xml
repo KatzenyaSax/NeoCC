@@ -1,0 +1,36 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.dafuweng.auth.dao.SysUserDao">
+
+    <resultMap id="sysUserMap" type="com.dafuweng.auth.entity.SysUserEntity">
+        <result property="id" column="id"/>
+        <result property="username" column="username"/>
+        <result property="password" column="password"/>
+        <result property="realName" column="real_name"/>
+        <result property="phone" column="phone"/>
+        <result property="email" column="email"/>
+        <result property="deptId" column="dept_id"/>
+        <result property="zoneId" column="zone_id"/>
+        <result property="status" column="status"/>
+        <result property="loginErrorCount" column="login_error_count"/>
+        <result property="lockTime" column="lock_time"/>
+        <result property="lastLoginTime" column="last_login_time"/>
+        <result property="lastLoginIp" column="last_login_ip"/>
+        <result property="createdBy" column="created_by"/>
+        <result property="createdAt" column="created_at"/>
+        <result property="updatedBy" column="updated_by"/>
+        <result property="updatedAt" column="updated_at"/>
+        <result property="deleted" column="deleted"/>
+        <result property="version" column="version"/>
+    </resultMap>
+
+    <select id="selectByUsername" resultMap="sysUserMap">
+        SELECT id, username, password, real_name, phone, email, dept_id, zone_id,
+               status, login_error_count, lock_time, last_login_time, last_login_ip,
+               created_by, created_at, updated_by, updated_at, deleted, version
+        FROM sys_user
+        WHERE username = #{username} AND deleted = 0
+    </select>
+
+</mapper>

@@ -1,0 +1,41 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.dafuweng.finance.dao.LoanAuditDao">
+
+    <resultMap id="loanAuditMap" type="com.dafuweng.finance.entity.LoanAuditEntity">
+        <result property="id" column="id"/>
+        <result property="contractId" column="contract_id"/>
+        <result property="financeSpecialistId" column="finance_specialist_id"/>
+        <result property="recommendedProductId" column="recommended_product_id"/>
+        <result property="approvedAmount" column="approved_amount"/>
+        <result property="approvedTerm" column="approved_term"/>
+        <result property="approvedInterestRate" column="approved_interest_rate"/>
+        <result property="auditStatus" column="audit_status"/>
+        <result property="bankId" column="bank_id"/>
+        <result property="bankAuditStatus" column="bank_audit_status"/>
+        <result property="bankApplyTime" column="bank_apply_time"/>
+        <result property="bankFeedbackTime" column="bank_feedback_time"/>
+        <result property="bankFeedbackContent" column="bank_feedback_content"/>
+        <result property="rejectReason" column="reject_reason"/>
+        <result property="auditOpinion" column="audit_opinion"/>
+        <result property="auditDate" column="audit_date"/>
+        <result property="loanGrantedDate" column="loan_granted_date"/>
+        <result property="actualLoanAmount" column="actual_loan_amount"/>
+        <result property="actualInterestRate" column="actual_interest_rate"/>
+        <result property="createdAt" column="created_at"/>
+        <result property="updatedAt" column="updated_at"/>
+        <result property="deleted" column="deleted"/>
+    </resultMap>
+
+    <select id="selectByContractId" resultMap="loanAuditMap">
+        SELECT id, contract_id, finance_specialist_id, recommended_product_id,
+               approved_amount, approved_term, approved_interest_rate, audit_status,
+               bank_id, bank_audit_status, bank_apply_time, bank_feedback_time,
+               bank_feedback_content, reject_reason, audit_opinion, audit_date,
+               loan_granted_date, actual_loan_amount, actual_interest_rate,
+               created_at, updated_at, deleted
+        FROM loan_audit
+        WHERE contract_id = #{contractId} AND deleted = 0
+    </select>
+
+</mapper>

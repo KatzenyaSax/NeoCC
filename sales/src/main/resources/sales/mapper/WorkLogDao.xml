@@ -1,0 +1,29 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.dafuweng.sales.dao.WorkLogDao">
+
+    <resultMap id="workLogMap" type="com.dafuweng.sales.entity.WorkLogEntity">
+        <result property="id" column="id"/>
+        <result property="salesRepId" column="sales_rep_id"/>
+        <result property="logDate" column="log_date"/>
+        <result property="callsMade" column="calls_made"/>
+        <result property="effectiveCalls" column="effective_calls"/>
+        <result property="newIntentions" column="new_intentions"/>
+        <result property="intentionClients" column="intention_clients"/>
+        <result property="faceToFaceClients" column="face_to_face_clients"/>
+        <result property="signedContracts" column="signed_contracts"/>
+        <result property="content" column="content"/>
+        <result property="createdAt" column="created_at"/>
+        <result property="updatedAt" column="updated_at"/>
+        <result property="deleted" column="deleted"/>
+    </resultMap>
+
+    <select id="selectBySalesRepIdAndLogDate" resultMap="workLogMap">
+        SELECT id, sales_rep_id, log_date, calls_made, effective_calls,
+               new_intentions, intention_clients, face_to_face_clients,
+               signed_contracts, content, created_at, updated_at, deleted
+        FROM work_log
+        WHERE sales_rep_id = #{salesRepId} AND log_date = #{logDate} AND deleted = 0
+    </select>
+
+</mapper>

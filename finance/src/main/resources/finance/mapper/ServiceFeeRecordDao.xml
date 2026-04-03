@@ -1,0 +1,31 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.dafuweng.finance.dao.ServiceFeeRecordDao">
+
+    <resultMap id="serviceFeeRecordMap" type="com.dafuweng.finance.entity.ServiceFeeRecordEntity">
+        <result property="id" column="id"/>
+        <result property="contractId" column="contract_id"/>
+        <result property="feeType" column="fee_type"/>
+        <result property="amount" column="amount"/>
+        <result property="shouldAmount" column="should_amount"/>
+        <result property="paymentMethod" column="payment_method"/>
+        <result property="paymentStatus" column="payment_status"/>
+        <result property="paymentDate" column="payment_date"/>
+        <result property="paymentAccount" column="payment_account"/>
+        <result property="receiptNo" column="receipt_no"/>
+        <result property="accountantId" column="accountant_id"/>
+        <result property="remark" column="remark"/>
+        <result property="createdAt" column="created_at"/>
+        <result property="updatedAt" column="updated_at"/>
+        <result property="deleted" column="deleted"/>
+    </resultMap>
+
+    <select id="selectByContractId" resultMap="serviceFeeRecordMap">
+        SELECT id, contract_id, fee_type, amount, should_amount,
+               payment_method, payment_status, payment_date, payment_account,
+               receipt_no, accountant_id, remark, created_at, updated_at, deleted
+        FROM service_fee_record
+        WHERE contract_id = #{contractId} AND deleted = 0
+    </select>
+
+</mapper>

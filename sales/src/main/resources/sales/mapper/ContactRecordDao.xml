@@ -1,0 +1,41 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.dafuweng.sales.dao.ContactRecordDao">
+
+    <resultMap id="contactRecordMap" type="com.dafuweng.sales.entity.ContactRecordEntity">
+        <result property="id" column="id"/>
+        <result property="customerId" column="customer_id"/>
+        <result property="salesRepId" column="sales_rep_id"/>
+        <result property="contactType" column="contact_type"/>
+        <result property="contactDate" column="contact_date"/>
+        <result property="content" column="content"/>
+        <result property="intentionBefore" column="intention_before"/>
+        <result property="intentionAfter" column="intention_after"/>
+        <result property="followUpDate" column="follow_up_date"/>
+        <result property="attachmentUrls" column="attachment_urls"/>
+        <result property="createdBy" column="created_by"/>
+        <result property="createdAt" column="created_at"/>
+        <result property="updatedBy" column="updated_by"/>
+        <result property="updatedAt" column="updated_at"/>
+        <result property="deleted" column="deleted"/>
+    </resultMap>
+
+    <select id="selectByCustomerId" resultMap="contactRecordMap">
+        SELECT id, customer_id, sales_rep_id, contact_type, contact_date, content,
+               intention_before, intention_after, follow_up_date, attachment_urls,
+               created_by, created_at, updated_by, updated_at, deleted
+        FROM contact_record
+        WHERE customer_id = #{customerId} AND deleted = 0
+        ORDER BY contact_date DESC
+    </select>
+
+    <select id="selectBySalesRepId" resultMap="contactRecordMap">
+        SELECT id, customer_id, sales_rep_id, contact_type, contact_date, content,
+               intention_before, intention_after, follow_up_date, attachment_urls,
+               created_by, created_at, updated_by, updated_at, deleted
+        FROM contact_record
+        WHERE sales_rep_id = #{salesRepId} AND deleted = 0
+        ORDER BY contact_date DESC
+    </select>
+
+</mapper>

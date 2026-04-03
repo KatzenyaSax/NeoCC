@@ -1,0 +1,50 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.dafuweng.sales.dao.ContractDao">
+
+    <resultMap id="contractMap" type="com.dafuweng.sales.entity.ContractEntity">
+        <result property="id" column="id"/>
+        <result property="contractNo" column="contract_no"/>
+        <result property="customerId" column="customer_id"/>
+        <result property="salesRepId" column="sales_rep_id"/>
+        <result property="deptId" column="dept_id"/>
+        <result property="productId" column="product_id"/>
+        <result property="contractAmount" column="contract_amount"/>
+        <result property="actualLoanAmount" column="actual_loan_amount"/>
+        <result property="serviceFeeRate" column="service_fee_rate"/>
+        <result property="serviceFee1" column="service_fee_1"/>
+        <result property="serviceFee2" column="service_fee_2"/>
+        <result property="serviceFee1Paid" column="service_fee_1_paid"/>
+        <result property="serviceFee2Paid" column="service_fee_2_paid"/>
+        <result property="serviceFee1PayDate" column="service_fee_1_pay_date"/>
+        <result property="serviceFee2PayDate" column="service_fee_2_pay_date"/>
+        <result property="status" column="status"/>
+        <result property="signDate" column="sign_date"/>
+        <result property="paperContractNo" column="paper_contract_no"/>
+        <result property="financeSendTime" column="finance_send_time"/>
+        <result property="financeReceiveTime" column="finance_receive_time"/>
+        <result property="loanUse" column="loan_use"/>
+        <result property="guaranteeInfo" column="guarantee_info"/>
+        <result property="rejectReason" column="reject_reason"/>
+        <result property="remark" column="remark"/>
+        <result property="createdBy" column="created_by"/>
+        <result property="createdAt" column="created_at"/>
+        <result property="updatedBy" column="updated_by"/>
+        <result property="updatedAt" column="updated_at"/>
+        <result property="deleted" column="deleted"/>
+        <result property="version" column="version"/>
+    </resultMap>
+
+    <select id="selectByContractNo" resultMap="contractMap">
+        SELECT id, contract_no, customer_id, sales_rep_id, dept_id, product_id,
+               contract_amount, actual_loan_amount, service_fee_rate, service_fee_1,
+               service_fee_2, service_fee_1_paid, service_fee_2_paid,
+               service_fee_1_pay_date, service_fee_2_pay_date, status, sign_date,
+               paper_contract_no, finance_send_time, finance_receive_time, loan_use,
+               guarantee_info, reject_reason, remark, created_by, created_at,
+               updated_by, updated_at, deleted, version
+        FROM contract
+        WHERE contract_no = #{contractNo} AND deleted = 0
+    </select>
+
+</mapper>

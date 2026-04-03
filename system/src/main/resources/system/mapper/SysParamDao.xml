@@ -1,0 +1,28 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.dafuweng.system.dao.SysParamDao">
+
+    <resultMap id="sysParamMap" type="com.dafuweng.system.entity.SysParamEntity">
+        <result property="id" column="id"/>
+        <result property="paramKey" column="param_key"/>
+        <result property="paramValue" column="param_value"/>
+        <result property="paramType" column="param_type"/>
+        <result property="paramGroup" column="param_group"/>
+        <result property="remark" column="remark"/>
+        <result property="sortOrder" column="sort_order"/>
+        <result property="status" column="status"/>
+        <result property="createdBy" column="created_by"/>
+        <result property="createdAt" column="created_at"/>
+        <result property="updatedBy" column="updated_by"/>
+        <result property="updatedAt" column="updated_at"/>
+        <result property="deleted" column="deleted"/>
+    </resultMap>
+
+    <select id="selectByParamKey" resultMap="sysParamMap">
+        SELECT id, param_key, param_value, param_type, param_group, remark,
+               sort_order, status, created_by, created_at, updated_by, updated_at, deleted
+        FROM sys_param
+        WHERE param_key = #{paramKey} AND deleted = 0
+    </select>
+
+</mapper>

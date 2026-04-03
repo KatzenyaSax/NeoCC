@@ -1,0 +1,36 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.dafuweng.sales.dao.PerformanceRecordDao">
+
+    <resultMap id="performanceRecordMap" type="com.dafuweng.sales.entity.PerformanceRecordEntity">
+        <result property="id" column="id"/>
+        <result property="contractId" column="contract_id"/>
+        <result property="salesRepId" column="sales_rep_id"/>
+        <result property="deptId" column="dept_id"/>
+        <result property="zoneId" column="zone_id"/>
+        <result property="contractAmount" column="contract_amount"/>
+        <result property="commissionRate" column="commission_rate"/>
+        <result property="commissionAmount" column="commission_amount"/>
+        <result property="status" column="status"/>
+        <result property="calculateTime" column="calculate_time"/>
+        <result property="confirmTime" column="confirm_time"/>
+        <result property="grantTime" column="grant_time"/>
+        <result property="cancelReason" column="cancel_reason"/>
+        <result property="remark" column="remark"/>
+        <result property="createdBy" column="created_by"/>
+        <result property="createdAt" column="created_at"/>
+        <result property="updatedBy" column="updated_by"/>
+        <result property="updatedAt" column="updated_at"/>
+        <result property="deleted" column="deleted"/>
+    </resultMap>
+
+    <select id="selectByContractId" resultMap="performanceRecordMap">
+        SELECT id, contract_id, sales_rep_id, dept_id, zone_id,
+               contract_amount, commission_rate, commission_amount, status,
+               calculate_time, confirm_time, grant_time, cancel_reason, remark,
+               created_by, created_at, updated_by, updated_at, deleted
+        FROM performance_record
+        WHERE contract_id = #{contractId} AND deleted = 0
+    </select>
+
+</mapper>

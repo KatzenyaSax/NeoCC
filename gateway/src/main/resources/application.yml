@@ -1,0 +1,28 @@
+server:
+  port: 8086
+
+spring:
+  application:
+    name: gateway
+  cloud:
+    nacos:
+      discovery:
+        server-addr: localhost:8848
+        password: nacos
+        username: nacos
+        namespace: afae1f3f-8800-48c4-a161-c525a45538c9
+    gateway:
+      routes:
+        - id: "gateway-test"
+          uri: "http://www.bilibili.com"
+          predicates:
+            - Path=/bilibili
+  main:
+    web-application-type: reactive
+
+
+
+
+logging:
+  level:
+    com.dafuweng: DEBUG
