@@ -70,4 +70,12 @@ public class PerformanceRecordServiceImpl implements PerformanceRecordService {
     public void delete(Long id) {
         performanceRecordDao.deleteById(id);
     }
+
+    @Override
+    public PerformanceRecordEntity getByContractId(Long contractId) {
+        LambdaQueryWrapper<PerformanceRecordEntity> wrapper = new LambdaQueryWrapper<>();
+        wrapper.eq(PerformanceRecordEntity::getContractId, contractId);
+        wrapper.eq(PerformanceRecordEntity::getDeleted, 0);
+        return performanceRecordDao.selectOne(wrapper);
+    }
 }

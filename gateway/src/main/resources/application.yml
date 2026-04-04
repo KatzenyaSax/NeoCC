@@ -4,6 +4,9 @@ server:
 spring:
   application:
     name: gateway
+  main:
+    web-application-type: reactive
+
   cloud:
     nacos:
       discovery:
@@ -17,8 +20,43 @@ spring:
           uri: "http://www.bilibili.com"
           predicates:
             - Path=/bilibili
-  main:
-    web-application-type: reactive
+
+        - id: auth-route
+          uri: http://localhost:8085
+          predicates:
+            - Path=/auth/**
+          filters:
+            - StripPrefix=1
+
+        - id: finance-route
+          uri: http://localhost:8084
+          predicates:
+            - Path=/finance/**
+          filters:
+            - StripPrefix=1
+
+        - id: sales-route
+          uri: http://localhost:8083
+          predicates:
+            - Path=/sales/**
+          filters:
+            - StripPrefix=1
+
+        - id: system-route
+          uri: http://localhost:8082
+          predicates:
+            - Path=/system/**
+          filters:
+            - StripPrefix=1
+
+
+
+
+
+
+
+
+
 
 
 

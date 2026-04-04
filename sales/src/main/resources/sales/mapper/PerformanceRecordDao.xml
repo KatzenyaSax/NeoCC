@@ -33,4 +33,10 @@
         WHERE contract_id = #{contractId} AND deleted = 0
     </select>
 
+    <select id="selectOne" resultMap="BaseResultMap">
+        SELECT * FROM performance_record
+        WHERE contract_id = #{contractId} AND deleted = 0
+            LIMIT 1
+    </select>
+
 </mapper>

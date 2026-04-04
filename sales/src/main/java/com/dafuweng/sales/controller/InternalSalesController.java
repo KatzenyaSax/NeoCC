@@ -1,0 +1,110 @@
+package com.dafuweng.sales.controller;
+
+import com.dafuweng.common.entity.Result;
+import com.dafuweng.common.entity.dto.PerformanceCreateDTO;
+import com.dafuweng.common.entity.vo.ContractVO;
+import com.dafuweng.sales.entity.ContractEntity;
+import com.dafuweng.sales.entity.PerformanceRecordEntity;
+import com.dafuweng.sales.service.ContractService;
+import com.dafuweng.sales.service.PerformanceRecordService;
+import org.springframework.beans.BeanUtils;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.dao.DuplicateKeyException;
+import org.springframework.web.bind.annotation.*;
+
+@RestController
+@RequestMapping("/sales/internal")
+public class InternalSalesController {
+
+    @Autowired
+    private PerformanceRecordService performanceRecordService;
+
+    @Autowired
+    private ContractService contractService;
+
+    /**
+     * POST /sales/internal/performances/create
+     * 创建业绩记录（供 finance 服务调用）
+     *
+     * 幂等性：contract_id 有唯一索引，重复插入会抛 DuplicateKeyException
+     */
+    @PostMapping("/performances/create")
+    public Result<?> createPerformance(@RequestBody PerformanceCreateDTO dto) {
+        // 检查是否已存在（幂等保护）
+        PerformanceRecordEntity existing = performanceRecordService.getByContractId(dto.getContractId());
+        if (existing != null) {
+            return Result.error(400, "该合同已创建业绩记录，请勿重复提交");
+        }
+
+        PerformanceRecordEntity entity = new PerformanceRecordEntity();
+        entity.setContractId(dto.getContractId());
+        entity.setSalesRepId(dto.getSalesRepId());
+        entity.setDeptId(dto.getDeptId());
+        entity.setZoneId(dto.getZoneId());
+        entity.setContractAmount(dto.getContractAmount());
+        entity.setCommissionRate(dto.getCommissionRate());
+        entity.setCommissionAmount(dto.getCommissionAmount());
+        entity.setStatus(dto.getStatus() != null ? dto.getStatus() : 0);  // 默认待计算
+        entity.setCalculateTime(dto.getCalculateTime() != null ? dto.getCalculateTime() : new java.util.Date());
+        entity.setRemark(dto.getRemark());
+
+        try {
+            performanceRecordService.save(entity);
+            return Result.success(entity);
+        } catch (DuplicateKeyException e) {
+            return Result.error(400, "该合同已创建业绩记录，幂等冲突");
+        }
+    }
+
+    /**
+     * GET /sales/internal/contracts/{id}
+     * 查询合同详情（供 finance 服务调用）
+     */
+    @GetMapping("/contracts/{id}")
+    public Result<ContractVO> getContract(@PathVariable Long id) {
+        ContractEntity entity = contractService.getById(id);
+        if (entity == null) {
+            return Result.error("合同不存在");
+        }
+        ContractVO vo = new ContractVO();
+        vo.setId(entity.getId());
+        vo.setContractNo(entity.getContractNo());
+        vo.setCustomerId(entity.getCustomerId());
+        vo.setSalesRepId(entity.getSalesRepId());
+        vo.setDeptId(entity.getDeptId());
+        vo.setProductId(entity.getProductId());
+        vo.setContractAmount(entity.getContractAmount());
+        vo.setActualLoanAmount(entity.getActualLoanAmount());
+        vo.setServiceFeeRate(entity.getServiceFeeRate());
+        vo.setServiceFee1(entity.getServiceFee1());
+        vo.setServiceFee2(entity.getServiceFee2());
+        vo.setServiceFee1Paid(entity.getServiceFee1Paid());
+        vo.setServiceFee2Paid(entity.getServiceFee2Paid());
+        vo.setStatus(entity.getStatus());
+        vo.setSignDate(entity.getSignDate());
+        vo.setPaperContractNo(entity.getPaperContractNo());
+        vo.setLoanUse(entity.getLoanUse());
+        vo.setRejectReason(entity.getRejectReason());
+        vo.setRemark(entity.getRemark());
+        return Result.success(vo);
+    }
+
+    /**
+     * PUT /sales/internal/contracts/{id}/status
+     * 更新合同状态（供 finance 服务调用）
+     *
+     * finance 审核流程中：
+     * - 合同签署后 status=2（已签署）→ 发送金融部后 status=4（已发送金融部）
+     * - 银行放款后 status=7（已放款）
+     */
+    @PutMapping("/contracts/{id}/status")
+    public Result<?> updateContractStatus(@PathVariable Long id, @RequestParam Short status) {
+        ContractEntity entity = contractService.getById(id);
+        if (entity == null) {
+            return Result.error("合同不存在");
+        }
+        entity.setStatus(status);
+        contractService.update(entity);
+        return Result.success();
+    }
+}

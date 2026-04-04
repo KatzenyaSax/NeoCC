@@ -11,6 +11,8 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.StringUtils;
 
+import java.math.BigDecimal;
+import java.util.Date;
 import java.util.List;
 
 public interface LoanAuditService {
@@ -31,4 +33,7 @@ public interface LoanAuditService {
 
     @Transactional
     void delete(Long id);
+
+    @Transactional
+    void approve(Long loanAuditId, BigDecimal actualLoanAmount, BigDecimal actualInterestRate, Date loanGrantedDate);
 }
