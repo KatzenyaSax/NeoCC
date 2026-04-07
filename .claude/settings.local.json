@@ -1,0 +1,18 @@
+{
+  "permissions": {
+    "allow": [
+      "Read(//c/Program Files/draw.io/**)",
+      "Read(//c/Program Files \\(x86\\)/draw.io/**)",
+      "Read(//c//**)",
+      "Bash(cmd /c \"dir C:\\\\tmp\\\\agentBrainstorm.drawio\" 2>&1)",
+      "Bash(powershell -Command \"Set-Clipboard -Value 'test content'; Get-Clipboard\" 2>&1)",
+      "Bash(cd /tmp)",
+      "Bash(npm install:*)",
+      "Bash(node gen_diagram.js)",
+      "Bash(node /tmp/gen_diagram.js)",
+      "Bash(echo $TEMP)",
+      "Read(//c/Users/a1829/Desktop/NeoCC/**)",
+      "Bash(node /c/Users/a1829/Desktop/NeoCC/scripts/figures/gen_diagram.js)"
+    ]
+  }
+}
