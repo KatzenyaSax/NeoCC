@@ -4,9 +4,11 @@ import com.dafuweng.common.entity.Result;
 import com.dafuweng.gateway.feign.AuthFeignClient;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import org.springframework.beans.factory.ObjectProvider;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.cloud.gateway.filter.GatewayFilterChain;
 import org.springframework.cloud.gateway.filter.GlobalFilter;
+import org.springframework.context.annotation.Lazy;
 import org.springframework.core.Ordered;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.server.reactive.ServerHttpRequest;
@@ -21,11 +23,23 @@ import java.util.Optional;
 public class AuthFilter implements GlobalFilter, Ordered {
 
     @Autowired
+    private ObjectProvider<AuthFeignClient> authFeignClientProvider;
+
+    @Autowired
+    @Lazy
     private AuthFeignClient authFeignClient;
 
     private static final String AUTH_HEADER = "Authorization";
     private static final String USER_ID_HEADER = "X-User-Id";
     private static final String USER_ROLES_HEADER = "X-User-Roles";
+
+    private AuthFeignClient getAuthFeignClient() {
+        try {
+            return authFeignClientProvider.getObject();
+        } catch (Exception e) {
+            return authFeignClient;
+        }
+    }
 
     @Override
     public Mono<Void> filter(ServerWebExchange exchange, GatewayFilterChain chain) {
@@ -33,7 +47,7 @@ public class AuthFilter implements GlobalFilter, Ordered {
 
         // 跳过登录/公开路径
         String path = request.getURI().getPath();
-        if (path.contains("/api/sysUser/login") || path.contains("/api/sysUser/page")) {
+        if (path.contains("/auth/api/sysUser/login") || path.contains("/auth/api/sysUser/page")) {
             return chain.filter(exchange);
         }
 
@@ -56,7 +70,7 @@ public class AuthFilter implements GlobalFilter, Ordered {
 
         // 调用 auth 服务验证用户存在且有效
         try {
-            Result<?> userResult = authFeignClient.getUserById(userId);
+            Result<?> userResult = getAuthFeignClient().getUserById(userId);
             if (userResult == null || userResult.getCode() != 200 || userResult.getData() == null) {
                 exchange.getResponse().setStatusCode(HttpStatus.UNAUTHORIZED);
                 return exchange.getResponse().setComplete();
@@ -69,7 +83,7 @@ public class AuthFilter implements GlobalFilter, Ordered {
         // 查询用户角色
         List<Long> roleIds = null;
         try {
-            Result<?> rolesResult = authFeignClient.getRoleIds(userId);
+            Result<?> rolesResult = getAuthFeignClient().getRoleIds(userId);
             if (rolesResult != null && rolesResult.getCode() == 200 && rolesResult.getData() != null) {
                 roleIds = new ObjectMapper().convertValue(rolesResult.getData(), new TypeReference<List<Long>>() {});
             }

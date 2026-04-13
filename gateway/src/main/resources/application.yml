@@ -22,32 +22,46 @@ spring:
             - Path=/bilibili
 
         - id: auth-route
-          uri: http://localhost:8085
+          uri: lb://auth
           predicates:
             - Path=/auth/**
           filters:
             - StripPrefix=1
 
         - id: finance-route
-          uri: http://localhost:8084
+          uri: lb://finance
           predicates:
             - Path=/finance/**
           filters:
             - StripPrefix=1
 
         - id: sales-route
-          uri: http://localhost:8083
+          uri: lb://sales
           predicates:
             - Path=/sales/**
           filters:
             - StripPrefix=1
 
         - id: system-route
-          uri: http://localhost:8082
+          uri: lb://system
           predicates:
             - Path=/system/**
           filters:
             - StripPrefix=1
+
+      globalcors:
+        corsConfigurations:
+          '[/**]':
+            allowedOrigins: "http://localhost:3000"
+            allowedMethods:
+              - GET
+              - POST
+              - PUT
+              - DELETE
+              - OPTIONS
+            allowedHeaders: "*"
+            allowCredentials: true
+            maxAge: 3600
 
 
 
