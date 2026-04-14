@@ -9,6 +9,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
+import java.util.Map;
 
 @RestController
 @RequestMapping("/api/commissionRecord")
@@ -42,9 +43,21 @@ public class CommissionRecordController {
         return Result.success(commissionRecordService.update(entity));
     }
 
-    @DeleteMapping("/{id}")
+@DeleteMapping("/{id}")
     public Result<Void> delete(@PathVariable Long id) {
         commissionRecordService.delete(id);
+        return Result.success();
+    }
+
+    @PostMapping("/{id}/confirm")
+    public Result<Void> confirm(@PathVariable Long id) {
+        commissionRecordService.confirm(id);
+        return Result.success();
+    }
+
+    @PostMapping("/{id}/grant")
+    public Result<Void> grant(@PathVariable Long id, @RequestBody Map<String, String> req) {
+        commissionRecordService.grant(id, req.get("grantAccount"), req.getOrDefault("remark", ""));
         return Result.success();
     }
 }

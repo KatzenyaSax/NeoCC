@@ -29,6 +29,9 @@ public class ContractEntity implements Serializable {
 
     private Long productId;
 
+    /** 战区ID */
+    private Long zoneId;
+
     private BigDecimal contractAmount;
 
     private BigDecimal actualLoanAmount;

@@ -13,6 +13,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.StringUtils;
 
+import java.util.Date;
 import java.util.List;
 
 @Service
@@ -67,5 +68,37 @@ public class CommissionRecordServiceImpl implements CommissionRecordService {
     @Transactional
     public void delete(Long id) {
         commissionRecordDao.deleteById(id);
+    }
+
+    @Override
+    @Transactional
+    public void confirm(Long id) {
+        CommissionRecordEntity record = commissionRecordDao.selectById(id);
+        if (record == null) {
+            throw new IllegalArgumentException("提成记录不存在");
+        }
+        if (record.getStatus() != 0) {
+            throw new IllegalStateException("当前状态不允许确认，当前状态：" + record.getStatus());
+        }
+        record.setStatus((short) 1);
+        record.setConfirmTime(new Date());
+        commissionRecordDao.updateById(record);
+    }
+
+    @Override
+    @Transactional
+    public void grant(Long id, String grantAccount, String remark) {
+        CommissionRecordEntity record = commissionRecordDao.selectById(id);
+        if (record == null) {
+            throw new IllegalArgumentException("提成记录不存在");
+        }
+        if (record.getStatus() != 1) {
+            throw new IllegalStateException("当前状态不允许发放，当前状态：" + record.getStatus());
+        }
+        record.setStatus((short) 2);
+        record.setGrantTime(new Date());
+        record.setGrantAccount(grantAccount);
+        record.setRemark(remark);
+        commissionRecordDao.updateById(record);
     }
 }

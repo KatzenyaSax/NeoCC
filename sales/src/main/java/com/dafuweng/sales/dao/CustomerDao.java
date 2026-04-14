@@ -13,4 +13,6 @@ public interface CustomerDao extends BaseMapper<CustomerEntity> {
     List<CustomerEntity> selectBySalesRepId(@Param("salesRepId") Long salesRepId);
 
     List<CustomerEntity> selectByStatus(@Param("status") Short status);
+
+    List<CustomerEntity> selectCustomerToPublicSea(@Param("publicSeaDays") Integer publicSeaDays);
 }

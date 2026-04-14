@@ -94,6 +94,12 @@
             <scope>provided</scope>
         </dependency>
 
+        <!-- Spring Security 认证框架 -->
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-security</artifactId>
+        </dependency>
+
         <!-- common包 -->
         <dependency>
             <groupId>com.dafuweng</groupId>

@@ -19,6 +19,8 @@ public interface SysParamService {
 
     SysParamEntity getByParamKey(String paramKey);
 
+    String getParamValue(String paramKey);
+
     PageResponse<SysParamEntity> pageList(PageRequest request);
 
     List<SysParamEntity> listByParamGroup(String paramGroup);

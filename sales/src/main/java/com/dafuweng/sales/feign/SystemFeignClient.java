@@ -19,4 +19,11 @@ public interface SystemFeignClient {
      */
     @GetMapping("/api/sysZone/{id}")
     Result<?> getZoneById(@PathVariable Long id);
+
+    /**
+     * 根据参数键获取参数值
+     * 用于sales模块定时任务读取系统配置
+     */
+    @GetMapping("/api/sysParam/value/{paramKey}")
+    Result<String> getParamValue(@PathVariable String paramKey);
 }

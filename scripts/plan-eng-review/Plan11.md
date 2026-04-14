@@ -1,8 +1,8 @@
 # Plan11: 单一业务开发流程规范与待办分解
 
-**版本：** v1.0
+**版本：** v2.0
 **日期：** 2026-04-13
-**目标：** 将剩余未实现的单一业务整理为原子化任务，给出每个业务的标准化开发流程
+**目标：** 将剩余未实现的单一业务整理为原子化任务，给出每个业务的标准化开发流程；本次更新：T01 从 Shiro 切换为 Spring Security
 
 ---
 
@@ -22,20 +22,20 @@
 
 | # | 业务 | 模块 | 优先级 | 依赖关系 |
 |---|------|------|--------|----------|
-| T01 | Shiro 认证体系（BCrypt + ShiroRealm） | auth | P0 | 无，是其他一切的基石 |
-| T02 | AuthServiceImpl 密码验证改为 BCrypt | auth | P0 | 依赖 T01 |
-| T03 | 贷款审核状态流转（review/submit-bank/bank-result/approve/reject） | finance | P1 | 依赖 auth 认证（T01） |
-| T04 | RabbitMQ 交换机/队列配置（common/mq/MqConfig） | common | P1 | 无 |
-| T05 | sales 合同签署事件发送（ContractSignedEvent） | sales | P1 | 依赖 T04 |
-| T06 | finance 接收合同签署事件并创建 LoanAudit | finance | P1 | 依赖 T04 + T05 |
-| T07 | 提成发放逻辑（CommissionRecordService.grant()） | finance | P1 | 依赖 T03 |
-| T08 | 服务费确认收款（ServiceFeeRecordService.confirmPay()） | finance | P1 | 依赖 T03 |
+| T01 | Spring Security 认证体系（UserDetailsService + JWT Filter） | auth | P0 | ✅ 已完成 |
+| T02 | AuthServiceImpl 密码验证改为 BCrypt | auth | P0 | ✅ 已完成 |
+| T03 | 贷款审核状态流转（review/submit-bank/bank-result/approve/reject） | finance | P1 | ✅ 已完成 |
+| T04 | RabbitMQ 交换机/队列配置（common/mq/MqConfig） | common | P1 | ✅ 已完成 |
+| T05 | sales 合同签署事件发送（ContractSignedEvent） | sales | P1 | ✅ 已完成 |
+| T06 | finance 接收合同签署事件并创建 LoanAudit | finance | P1 | ✅ 已完成 |
+| T07 | 提成发放逻辑（CommissionRecordService.grant()） | finance | P1 | ✅ 已完成 |
+| T08 | 服务费确认收款（ServiceFeeRecordService.confirmPay()） | finance | P1 | ✅ 已完成 |
 | T09 | 业绩 OpenFeign 回调接口完善（zoneId/commissionRate） | sales/finance | P2 | 依赖 T03 |
 | T10 | 公海定时扫描任务（PublicSeaTask） | sales | P2 | 依赖 auth（T01 完成 MetaObjectHandler 才能自动填充销售） |
 | T11 | 操作日志 AOP 切面（@OperationLog + Aspect） | system | P2 | 无 |
 | T12 | Redis 缓存集成（SysParam/SysDict） | system | P2 | 无 |
-| T13 | 数据权限拦截器（DataScopeInterceptor） | common | P2 | 依赖 T01（取 currentUserId） |
-| T14 | MetaObjectHandler 自动填充 createdBy/updatedBy | common | P2 | 依赖 T01（Shiro Subject） |
+| T13 | 数据权限拦截器（DataScopeInterceptor） | common | P2 | 依赖 T01（Spring Security SecurityContext 取 currentUserId） |
+| T14 | MetaObjectHandler 自动填充 createdBy/updatedBy | common | P2 | 依赖 T01（Spring Security SecurityContext） |
 
 ---
 
@@ -83,55 +83,280 @@ Step 6: 代码审查
 
 ## 三、原子化任务详情
 
-### T01: Shiro 认证体系
+### T01: Spring Security 认证体系
 
 **模块：** auth
 **优先级：** P0（是一切的基础）
-**涉及文件：** ShiroConfig.java, ShiroRealm.java, SysPermissionDao.java
+**涉及文件：** SecurityConfig.java, JwtAuthenticationFilter.java, SysPermissionDao.java
 **依赖：** 无
 
-**工作内容：**
-1. 创建 `auth/src/main/java/com/dafuweng/auth/config/ShiroConfig.java`
-   - 配置 SecurityManager + ShiroRealm
-   - 配置 ShiroFilterFactoryBean，放行 `/api/sysUser/login` 和 `/api/sysUser/page`
-   - 注册 BCryptPasswordEncoder Bean
-   - 配置 DefaultAdvisorAutoProxyCreator + AuthorizationAttributeSourceAdvisor
+**迁移背景：**
+原计划使用 Shiro 1.13.0 / 2.0.0，但 Shiro 2.0 的 `shiro-web` 模块内部硬依赖 `javax.servlet.Filter`（旧版），与 Spring Boot 3.x 的 `jakarta.servlet` 不兼容。已尝试排除自动配置、换用 `shiro-spring-boot-starter` 等方案均失败。改用 Spring Security（原生支持 Jakarta EE 9 / Spring Boot 3.x）。
 
-2. 创建 `auth/src/main/java/com/dafuweng/auth/config/ShiroRealm.java`
-   - 实现 `doGetAuthenticationInfo`：查询用户，验证密码
-   - 实现 `doGetAuthorizationInfo`：加载角色和权限码
-   - SysPermissionDao 添加 `selectPermCodesByRoleId()` 方法
+**当前已就绪（来自前次 T01/T02 执行）：**
+- BCryptPasswordEncoder Bean 已注册（ShiroConfig → SecurityConfig 继承）
+- SysUserServiceImpl 已注入 BCryptPasswordEncoder，密码验证已改为 `passwordEncoder.matches()`
+- SysPermissionDao.selectPermCodesByRoleId() 已实现
 
-3. BCryptPasswordEncoder Bean 已在 ShiroConfig 中注册
+**迁移后删除文件：**
+- `auth/src/main/java/com/dafuweng/auth/config/ShiroConfig.java`（BCryptPasswordEncoder 除外）
+- `auth/src/main/java/com/dafuweng/auth/config/ShiroRealm.java`
+- `auth/src/main/java/com/dafuweng/auth/filter/ShiroAuthenticationFilter.java`
+- `AuthApplication.java` 中的 Shiro exclude 注解
+- `application.yml` 中的 `shiro.enabled: false`
 
-**Step 1-6 详细说明：**
+---
+
+#### Step 1: 修改 pom.xml（依赖替换）
+
+**移除：**
+```xml
+<!-- 删除 -->
+<dependency>
+    <groupId>org.apache.shiro</groupId>
+    <artifactId>shiro-spring-boot-web-starter</artifactId>
+    <version>2.0.0</version>
+</dependency>
+```
+
+**新增：**
+```xml
+<!-- Spring Security -->
+<dependency>
+    <groupId>org.springframework.boot</groupId>
+    <artifactId>spring-boot-starter-security</artifactId>
+</dependency>
+```
+
+**说明：** `spring-boot-starter-security` 内部传递依赖 `spring-security-crypto`（BCryptPasswordEncoder 所在包），无需单独引入。
+
+---
+
+#### Step 2: 新建 SecurityConfig.java（替换 ShiroConfig）
+
+**路径：** `auth/src/main/java/com/dafuweng/auth/config/SecurityConfig.java`
+
+```java
+package com.dafuweng.auth.config;
+
+import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.Configuration;
+import org.springframework.security.authentication.AuthenticationManager;
+import org.springframework.security.config.annotation.authentication.configuration.AuthenticationConfiguration;
+import org.springframework.security.config.annotation.method.configuration.EnableMethodSecurity;
+import org.springframework.security.config.annotation.web.builders.HttpSecurity;
+import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
+import org.springframework.security.config.http.SessionCreationPolicy;
+import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
+import org.springframework.security.crypto.password.PasswordEncoder;
+import org.springframework.security.web.SecurityFilterChain;
+import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
+
+@Configuration
+@EnableWebSecurity
+@EnableMethodSecurity
+public class SecurityConfig {
+
+    private final JwtAuthenticationFilter jwtAuthenticationFilter;
+
+    public SecurityConfig(JwtAuthenticationFilter jwtAuthenticationFilter) {
+        this.jwtAuthenticationFilter = jwtAuthenticationFilter;
+    }
+
+    @Bean
+    public PasswordEncoder passwordEncoder() {
+        return new BCryptPasswordEncoder();
+    }
+
+    @Bean
+    public AuthenticationManager authenticationManager(AuthenticationConfiguration config) throws Exception {
+        return config.getAuthenticationManager();
+    }
+
+    @Bean
+    public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
+        http
+            .csrf(csrf -> csrf.disable())
+            .sessionManagement(sm -> sm.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
+            .authorizeHttpRequests(auth -> auth
+                .requestMatchers("/api/sysUser/login", "/api/sysUser/page").permitAll()
+                .requestMatchers("/static/**", "/favicon.ico").permitAll()
+                .anyRequest().authenticated()
+            )
+            .addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class);
+
+        return http.build();
+    }
+}
+```
+
+**关键点：**
+- `SessionCreationPolicy.STATELESS` — 无状态，JWT 每次请求都要验证
+- `jwtAuthenticationFilter` 在 `UsernamePasswordAuthenticationFilter` 之前执行
+- `csrf.disable()` — API 服务不需要 CSRF 防护（由 Gateway 处理）
+- `@EnableMethodSecurity` — 启用方法级 `@PreAuthorize` 注解（如需要）
+
+---
+
+#### Step 3: 新建 JwtAuthenticationFilter.java（替换 ShiroAuthenticationFilter）
+
+**路径：** `auth/src/main/java/com/dafuweng/auth/filter/JwtAuthenticationFilter.java`
+
+```java
+package com.dafuweng.auth.filter;
+
+import com.dafuweng.auth.service.SysUserService;
+import jakarta.servlet.FilterChain;
+import jakarta.servlet.ServletException;
+import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletResponse;
+import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
+import org.springframework.security.core.authority.SimpleGrantedAuthority;
+import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.security.web.authentication.WebAuthenticationDetailsSource;
+import org.springframework.stereotype.Component;
+import org.springframework.web.filter.OncePerRequestFilter;
+
+import java.io.IOException;
+import java.util.List;
+import java.util.stream.Collectors;
+
+@Component
+public class JwtAuthenticationFilter extends OncePerRequestFilter {
+
+    private final SysUserService sysUserService;
+
+    public JwtAuthenticationFilter(SysUserService sysUserService) {
+        this.sysUserService = sysUserService;
+    }
+
+    @Override
+    protected void doFilterInternal(HttpServletRequest request,
+                                    HttpServletResponse response,
+                                    FilterChain filterChain) throws ServletException, IOException {
+
+        String path = request.getRequestURI();
+
+        // 放行公开路径
+        if (path.contains("/api/sysUser/login") || path.contains("/api/sysUser/page")) {
+            filterChain.doFilter(request, response);
+            return;
+        }
+
+        String authHeader = request.getHeader("Authorization");
+        if (authHeader == null || !authHeader.startsWith("Bearer ")) {
+            filterChain.doFilter(request, response);
+            return;
+        }
+
+        String token = authHeader.substring(7);
+
+        try {
+            // 当前设计：token = userId 字符串（与 Plan08 Gateway AuthFilter 一致）
+            Long userId = Long.parseLong(token);
+
+            // 加载用户信息
+            var user = sysUserService.getById(userId);
+            if (user == null || user.getDeleted() == 1) {
+                filterChain.doFilter(request, response);
+                return;
+            }
+
+            // 加载角色和权限码
+            List<String> roleIds = sysUserService.getRoleIdsByUserId(userId)
+                    .stream().map(String::valueOf).collect(Collectors.toList());
+            List<String> permCodes = sysUserService.getPermCodesByUserId(userId);
+
+            List<SimpleGrantedAuthority> authorities = roleIds.stream()
+                    .map(r -> new SimpleGrantedAuthority("ROLE_" + r))
+                    .collect(Collectors.toList());
+            permCodes.forEach(p -> authorities.add(new SimpleGrantedAuthority(p)));
+
+            UsernamePasswordAuthenticationToken authentication =
+                    new UsernamePasswordAuthenticationToken(user, null, authorities);
+            authentication.setDetails(new WebAuthenticationDetailsSource().buildDetails(request));
+
+            SecurityContextHolder.getContext().setAuthentication(authentication);
+        } catch (Exception ignored) {
+            // token 无效或解析失败，继续过滤链（最终被 Spring Security 拦截）
+        }
+
+        filterChain.doFilter(request, response);
+    }
+}
+```
+
+**与原 ShiroAuthenticationFilter 对比：**
+
+| 对比项 | ShiroAuthenticationFilter | JwtAuthenticationFilter |
+|--------|--------------------------|-------------------------|
+| 父类 | `OncePerRequestFilter`（shiro，`javax.servlet`） | `OncePerRequestFilter`（spring，`jakarta.servlet`） |
+| 认证对象 | Shiro `Subject.login()` | Spring Security `SecurityContext` |
+| 角色注入 | `info.addRoles(roleIds)` | `authorities.add(ROLE_xxx)` |
+| 权限码注入 | `info.addStringPermissions(permCodes)` | `authorities.add(permCode)` |
+| 失败处理 | 返回 401 JSON | 继续过滤链，由 SecurityFilterChain 处理 |
+
+---
+
+#### Step 4: 修改 AuthApplication.java
+
+**移除：**
+```java
+// 删除 import
+import org.apache.shiro.spring.boot.autoconfigure.ShiroBeanAutoConfiguration;
+
+// 删除 exclude（Shiro 全部配置已移除）
+exclude = {
+    ShiroBeanAutoConfiguration.class,
+    org.apache.shiro.spring.config.web.autoconfigure.ShiroWebAutoConfiguration.class,
+    org.apache.shiro.spring.config.web.autoconfigure.ShiroWebFilterConfiguration.class,
+    org.apache.shiro.spring.boot.autoconfigure.ShiroAutoConfiguration.class,
+    org.apache.shiro.spring.boot.autoconfigure.ShiroAnnotationProcessorAutoConfiguration.class
+}
+```
+
+**结果：**
+```java
+@SpringBootApplication(scanBasePackages = "com.dafuweng")
+@EnableDiscoveryClient
+@MapperScan("com.dafuweng.auth.dao")
+public class AuthApplication { ... }
+```
+
+---
+
+#### Step 5: 修改 application.yml
+
+**删除：**
+```yaml
+shiro:
+  enabled: false
+```
+
+---
+
+#### Step 6: 自测验证
 
 ```
-Step 1: 用户故事
-  - 用户登录时 Shiro 进行身份验证
-  - 用户访问受保护资源时 Shiro 进行权限校验
-  - 验收：登录成功返回用户信息，访问无权限接口返回 403
+1. POST /api/sysUser/login 带 {username, password}
+   - 成功返回 200 + user 信息
+   - 失败返回 401
 
-Step 2: Controller 接口
-  - POST /auth/login (已有 SysUserController.login)
-  - GET /auth/currentUser (已有)
-  - 需在 ShiroFilterChain 中配置 /auth/api/sysUser/login 和 /auth/api/sysUser/page 为 anon
+2. GET /api/sysUser/1/roles 不带 Token
+   - 返回 401（Spring Security 默认行为）
 
-Step 3: ShiroConfig.java 实现
-  - SecurityManager 配置 Realm
-  - ShiroFilterFactoryBean 设置 filterChainDefinition
-  - BCryptPasswordEncoder Bean
+3. GET /api/sysUser/1/roles 带正确 Bearer token
+   - 返回 200 + 角色列表
 
-Step 4: ShiroRealm.java 实现
-  - doGetAuthenticationInfo: 调用 sysUserDao.selectByUsername
-  - doGetAuthorizationInfo: 调用 sysUserRoleDao.selectRoleIdsByUserId
-  - SysPermissionDao.selectPermCodesByRoleId() SQL
-
-Step 5: 自测
-  - POST /auth/api/sysUser/login 带用户名密码
-  - GET 其他接口不带 Token 应返回 401
-  - GET 其他接口带正确 Token 应返回业务数据
+4. 带错误 Token
+   - 返回 403 Forbidden
 ```
+
+**验收标准：**
+- Spring Security Filter 链正常启动，无 `NoClassDefFoundError`
+- 登录接口 `/api/sysUser/login` 和分页接口 `/api/sysUser/page` 免认证
+- 其他接口带有效 Token 返回业务数据
+- 其他接口不带 Token 或 Token 无效返回 401/403
 
 ---
 
@@ -139,30 +364,43 @@ Step 5: 自测
 
 **模块：** auth
 **优先级：** P0
-**涉及文件：** AuthServiceImpl.java, SysUserDao.xml
-**依赖：** T01（ShiroConfig 中的 BCryptPasswordEncoder Bean）
+**涉及文件：** AuthServiceImpl.java
+**依赖：** T01（已完成）
 
 **工作内容：**
-- 删除 `SALT` 常量（BCrypt 不需要固定盐）
 - 注入 `BCryptPasswordEncoder`
 - 登录验证改为 `passwordEncoder.matches(rawPassword, user.getPassword())`
 - 将 `user.getDeleted() == 1` 改为 `Objects.equals(user.getDeleted(), (short) 1)`
+- `changePassword` 使用 `passwordEncoder.encode(newPassword)`
 
 **关键代码片段：**
 
 ```java
-// 修复前（SHA-256，错误）
-String hashedPassword = new SimpleHash("SHA-256", rawPassword, ByteSource.Util.bytes(SALT), 2).toString();
-if (!hashedPassword.equals(user.getPassword())) {
-
-// 修复后（BCrypt，正确）
 @Autowired
 private BCryptPasswordEncoder passwordEncoder;
 
-if (!passwordEncoder.matches(rawPassword, user.getPassword())) {
-    throw new IllegalArgumentException("用户名或密码错误");
+@Override
+@Transactional
+public SysUserEntity login(String username, String password, String loginIp) {
+    SysUserEntity user = sysUserDao.selectByUsername(username);
+    if (user == null) {
+        throw new IllegalArgumentException("用户名或密码错误");
+    }
+    if (user.getLockTime() != null && user.getLockTime().after(new Date())) {
+        throw new IllegalArgumentException("账号已锁定，请稍后再试");
+    }
+    if (Objects.equals(user.getDeleted(), (short) 1)) {
+        throw new IllegalArgumentException("账号已删除");
+    }
+    if (!passwordEncoder.matches(password, user.getPassword())) {
+        // ... 登录失败逻辑
+        throw new IllegalArgumentException("用户名或密码错误");
+    }
+    // ... 登录成功逻辑
 }
 ```
+
+**状态：已实现** ✅
 
 ---
 
@@ -543,25 +781,100 @@ public class OperationLogAspect {
 
 **模块：** system
 **优先级：** P2
-**涉及文件：** system/service/impl/SysParamServiceImpl.java, system/service/impl/SysDictServiceImpl.java
-**依赖：** pom 中 spring-boot-starter-data-redis 已就绪
+**涉及文件：** system/service/impl/SysParamServiceImpl.java, system/service/impl/SysDictServiceImpl.java, system/pom.xml
+**依赖：** 无（需新增 spring-boot-starter-data-redis）
 
-**工作内容：**
+#### Step 1: 添加 Redis 依赖
+
+system/pom.xml 中新增：
+
+```xml
+<!-- Redis 缓存 -->
+<dependency>
+    <groupId>org.springframework.boot</groupId>
+    <artifactId>spring-boot-starter-data-redis</artifactId>
+</dependency>
+```
+
+#### Step 2: 配置 Redis 连接
+
+application.yml 中添加（如尚未配置）：
+
+```yaml
+spring:
+  data:
+    redis:
+      host: ${REDIS_HOST:localhost}
+      port: ${REDIS_PORT:6379}
+      password: ${REDIS_PASSWORD:}
+      database: ${REDIS_DB:0}
+      timeout: 5000
+```
+
+#### Step 3: 启用缓存注解
+
+SystemApplication.java 添加 `@EnableCaching`：
 
 ```java
-// SysParamServiceImpl 查询时：
-@Cacheable(value = "param", key = "#paramKey")
-public String getParamValue(String paramKey) {
-    SysParamEntity param = sysParamDao.selectByParamKey(paramKey);
-    return param != null ? param.getParamValue() : null;
-}
+@SpringBootApplication(scanBasePackages = "com.dafuweng")
+@EnableCaching
+@MapperScan("com.dafuweng.system.dao")
+public class SystemApplication { ... }
+```
 
-// 修改时删除缓存：
-@CacheEvict(value = "param", key = "#paramKey")
-public void updateParam(String paramKey, String paramValue) {
-    // ... 更新逻辑
-    cacheManager.getCache("param").evict(paramKey);
+#### Step 4: SysParamServiceImpl 缓存实现
+
+```java
+@Service
+public class SysParamServiceImpl implements SysParamService {
+
+    @Autowired
+    private SysParamDao sysParamDao;
+
+    // 已有方法：getParamValue(String paramKey) — 新增 @Cacheable
+    @Cacheable(value = "param", key = "#paramKey")
+    public String getParamValue(String paramKey) {
+        SysParamEntity entity = sysParamDao.selectByParamKey(paramKey);
+        return entity != null ? entity.getParamValue() : null;
+    }
+
+    @CacheEvict(value = "param", key = "#paramKey")
+    public void updateParam(String paramKey, String paramValue) {
+        // ... 更新逻辑
+    }
+
+    @CacheEvict(value = "param", key = "#paramKey")
+    public void deleteParam(String paramKey) {
+        // ... 删除逻辑
+    }
 }
+```
+
+#### Step 5: SysDictServiceImpl 缓存实现
+
+同样模式，对 `getDictValue(dictGroup, dictKey)` 等查询方法加 `@Cacheable`。
+
+#### 缓存键设计
+
+| 表 | 缓存 value | key 格式 | 过期时间 |
+|----|-----------|----------|----------|
+| sys_param | param | param:{paramKey} | 1小时 |
+| sys_dict | dict | dict:{group}:{key} | 1小时 |
+
+#### 自测验证
+
+```
+1. GET /api/sysParam/value/customer.public_sea_days
+   - 首次访问：查 DB，缓存 miss
+   - 再次访问：命中缓存（查看 debug 日志 cache hit）
+
+2. PUT /api/sysParam（更新）
+   - 验证缓存已 evict
+   - 再次 GET 返回新值
+
+3. Redis 不可用时：
+   - 配置 RedisTemplate 设置 fallback 策略
+   - 缓存异常不影响主流程（fallback to DB）
 ```
 
 ---
@@ -571,9 +884,33 @@ public void updateParam(String paramKey, String paramValue) {
 **模块：** common
 **优先级：** P2
 **涉及文件：** common/config/DataScopeInterceptor.java
-**依赖：** T01（Shiro Subject 取 currentUserId）
+**依赖：** T01（Spring Security SecurityContext 取 currentUserId + dataScope）
 
-**工作内容：**
+#### 技术方案变更说明
+
+原方案使用 Shiro 的 `SecurityUtils.getSubject()`，现改为 Spring Security 的 `SecurityContextHolder`。当前认证上下文为：
+
+```
+JwtAuthenticationFilter.doFilterInternal()
+  → SecurityContextHolder.getContext().setAuthentication(
+      new UsernamePasswordAuthenticationToken(
+          SysUserEntity (principal), null, authorities))
+```
+
+在任意 Service/Component 中通过以下方式获取当前用户：
+
+```java
+Authentication auth = SecurityContextHolder.getContext().getAuthentication();
+if (auth != null && auth.isAuthenticated()) {
+    SysUserEntity user = (SysUserEntity) auth.getPrincipal();
+    Long userId = user.getId();
+    Short dataScope = user.getDataScope();
+    Long deptId = user.getDeptId();
+    Long zoneId = user.getZoneId();
+}
+```
+
+#### 工作内容
 
 ```java
 // common/config/DataScopeInterceptor.java
@@ -581,22 +918,60 @@ public void updateParam(String paramKey, String paramValue) {
     @Signature(type = StatementHandler.class, method = "prepare", args = {Connection.class, Integer.class})
 })
 public class DataScopeInterceptor implements Interceptor {
+
     @Override
     public Object intercept(Invocation invocation) throws Throwable {
-        // 从 Shiro Subject 获取当前用户
-        SysUserEntity user = (SysUserEntity) SecurityUtils.getSubject().getPrincipal();
-        Long userId = user.getId();
-        Short dataScope = user.getDataScope();  // 1=本人 2=本部门 3=本战区 4=全部
-
-        String originalSql = ...;  // 拦截 SQL，动态拼接 WHERE 条件
-        switch (dataScope) {
-            case 1: sql += " AND created_by = " + userId; break;
-            case 2: sql += " AND dept_id = " + user.getDeptId(); break;
-            case 3: sql += " AND zone_id = " + user.getZoneId(); break;
-            case 4: /* 不过滤 */ break;
+        // 从 Spring Security SecurityContext 获取当前用户
+        Authentication auth = SecurityContextHolder.getContext().getAuthentication();
+        if (auth == null || !auth.isAuthenticated()) {
+            return invocation.proceed();  // 未登录，不过滤
         }
+
+        Object principal = auth.getPrincipal();
+        if (!(principal instanceof SysUserEntity)) {
+            return invocation.proceed();
+        }
+
+        SysUserEntity user = (SysUserEntity) principal;
+        Long userId = user.getId();
+        Short dataScope = user.getDataScope();
+
+        // 获取原始 SQL 并动态拼接数据权限条件
+        String originalSql = ...;  // 拦截 SQL，动态拼接 WHERE 条件
+
+        switch (dataScope != null ? dataScope : 4) {
+            case 1: sql += " AND created_by = " + userId; break;      // 本人
+            case 2: sql += " AND dept_id = " + user.getDeptId(); break;  // 本部门
+            case 3: sql += " AND zone_id = " + user.getZoneId(); break;  // 本战区
+            case 4: /* 不过滤 */ break;  // 全部
+            default: /* 不过滤 */ break;
+        }
+
+        // 注意：需防止 SQL 注入，上述为示意。实际使用 LambdaQueryWrapper 或参数化查询。
         return invocation.proceed();
     }
+}
+```
+
+#### 数据权限级别说明
+
+| dataScope 值 | 名称 | 过滤条件 |
+|-------------|------|----------|
+| 1 | 本人 | `created_by = currentUserId` |
+| 2 | 本部门 | `dept_id = currentUser.deptId` |
+| 3 | 本战区 | `zone_id = currentUser.zoneId` |
+| 4 | 全部 | 不过滤 |
+| null | 默认 | 不过滤（安全默认值） |
+
+#### 注册拦截器
+
+在 common 模块的 Config 类中注册 MyBatis-Plus Interceptor：
+
+```java
+// common/src/main/java/com/dafuweng/common/config/MybatisPlusConfig.java
+@Bean
+public DataScopeInterceptor dataScopeInterceptor() {
+    return new DataScopeInterceptor();
 }
 ```
 
@@ -607,19 +982,24 @@ public class DataScopeInterceptor implements Interceptor {
 **模块：** common
 **优先级：** P2
 **涉及文件：** common/config/AutoFillMetaObjectHandler.java
-**依赖：** T01（Shiro Subject 取 currentUserId）
+**依赖：** T01（Spring Security SecurityContext）
 
-**工作内容：**
+#### 技术方案变更说明
+
+同 T13，原使用 Shiro 的 `SecurityUtils.getSubject()`，现改为 Spring Security 的 `SecurityContextHolder`。
+
+#### 工作内容
 
 ```java
-// common/config/AutoFillMetaObjectHandler.java
+// common/src/main/java/com/dafuweng/common/config/AutoFillMetaObjectHandler.java
 @Component
 public class AutoFillMetaObjectHandler implements MetaObjectHandler {
+
     @Override
     public void insertFill(MetaObject metaObject) {
         this.strictInsertFill(metaObject, "createdAt", Date.class, new Date());
         this.strictInsertFill(metaObject, "updatedAt", Date.class, new Date());
-        Long userId = getCurrentUserId();  // 从 Shiro Subject 获取
+        Long userId = getCurrentUserId();
         if (userId != null) {
             this.strictInsertFill(metaObject, "createdBy", Long.class, userId);
             this.strictInsertFill(metaObject, "updatedBy", Long.class, userId);
@@ -637,15 +1017,39 @@ public class AutoFillMetaObjectHandler implements MetaObjectHandler {
 
     private Long getCurrentUserId() {
         try {
-            Subject subject = SecurityUtils.getSubject();
-            if (subject.isAuthenticated()) {
-                SysUserEntity user = (SysUserEntity) subject.getPrincipal();
-                return user.getId();
+            Authentication auth = SecurityContextHolder.getContext().getAuthentication();
+            if (auth != null && auth.isAuthenticated()
+                    && auth.getPrincipal() instanceof SysUserEntity) {
+                return ((SysUserEntity) auth.getPrincipal()).getId();
             }
-        } catch (Exception e) { /* 无登录上下文 */ }
+        } catch (Exception e) {
+            // 无登录上下文（如定时任务、测试环境、Redis 缓存未命中导致匿名用户）
+        }
         return null;
     }
 }
+```
+
+#### 关键设计决策
+
+1. **getCurrentUserId() 返回 null 是安全的**：`strictInsertFill` 在值为 null 时跳过填充，不会报错。这是正确的设计，因为定时任务和系统内部调用没有用户上下文。
+2. **依赖顺序**：T13（DataScopeInterceptor）和 T14（AutoFillMetaObjectHandler）都依赖 T01 的 Spring Security 认证上下文建立后才能工作。
+3. **SysUserEntity 需实现 UserDetails**：当前 `SysUserEntity` 作为 `UsernamePasswordAuthenticationToken` 的 principal 传入，需实现 Spring Security 的 `UserDetails` 接口（或强制转型）。建议在 `SysUserEntity` 中添加 `getAuthorities()` / `isAccountNonExpired()` 等方法的默认实现，避免 ClassCastException。
+
+#### 自测验证
+
+```
+1. 插入操作（insertFill 验证）
+   - 用有效 Bearer token 调用任意写接口
+   - 查看数据库 created_by 字段是否为当前用户 id
+
+2. 无 token 调用
+   - 返回 401 或降级为 null 填充（created_by = null）
+   - 验证系统不报错
+
+3. 定时任务场景
+   - PublicSeaTask 等无用户上下文调用
+   - 验证 created_by = null 且无异常
 ```
 
 ---

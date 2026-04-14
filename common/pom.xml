@@ -34,6 +34,27 @@
             <version>3.5.7</version>
             <scope>compile</scope>
         </dependency>
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-amqp</artifactId>
+            <version>3.3.0</version>
+        </dependency>
+
+        <!-- Spring Security Core (for SecurityContextHolder in interceptors) -->
+        <dependency>
+            <groupId>org.springframework.security</groupId>
+            <artifactId>spring-security-core</artifactId>
+            <version>6.2.4</version>
+            <scope>compile</scope>
+        </dependency>
+
+        <!-- Spring AOP (for @Aspect in DataScopeAspect) -->
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-aop</artifactId>
+            <version>3.3.0</version>
+            <scope>compile</scope>
+        </dependency>
     </dependencies>
 
 

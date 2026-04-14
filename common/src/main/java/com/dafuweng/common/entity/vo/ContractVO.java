@@ -27,6 +27,9 @@ public class ContractVO implements Serializable {
     /** 金融产品ID */
     private Long productId;
 
+    /** 战区ID */
+    private Long zoneId;
+
     /** 合同金额 */
     private BigDecimal contractAmount;
 

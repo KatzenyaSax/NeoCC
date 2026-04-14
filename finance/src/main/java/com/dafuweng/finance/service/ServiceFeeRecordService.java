@@ -27,6 +27,10 @@ public interface ServiceFeeRecordService {
     @Transactional
     ServiceFeeRecordEntity update(ServiceFeeRecordEntity entity);
 
-    @Transactional
+@Transactional
     void delete(Long id);
+
+    /** 确认收款 */
+    @Transactional
+    void confirmPay(Long id, String paymentMethod, String paymentAccount, String receiptNo, String remark);
 }

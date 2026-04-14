@@ -10,6 +10,7 @@ import com.dafuweng.common.entity.PageRequest;
 import com.dafuweng.common.entity.PageResponse;
 import com.dafuweng.auth.service.SysUserService;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
+import com.baomidou.mybatisplus.core.conditions.update.LambdaUpdateWrapper;
 import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -21,6 +22,8 @@ import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.Date;
 import java.util.List;
+import java.util.Objects;
+import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 
 @Service
 public class SysUserServiceImpl implements SysUserService {
@@ -37,9 +40,16 @@ public class SysUserServiceImpl implements SysUserService {
     @Autowired
     private SysPermissionDao sysPermissionDao;
 
+    @Autowired
+    private BCryptPasswordEncoder passwordEncoder;
+
     @Override
     public SysUserEntity getById(Long id) {
-        return sysUserDao.selectById(id);
+        SysUserEntity user = sysUserDao.selectById(id);
+        if (user != null) {
+            user.setPassword(null);
+        }
+        return user;
     }
 
     @Override
@@ -56,6 +66,7 @@ public class SysUserServiceImpl implements SysUserService {
             wrapper.orderByDesc(SysUserEntity::getCreatedAt);
         }
         IPage<SysUserEntity> result = sysUserDao.selectPage(page, wrapper);
+        result.getRecords().forEach(u -> u.setPassword(null));
         return PageResponse.of(result.getTotal(), result.getRecords(),
             (int) page.getCurrent(), (int) page.getSize());
     }
@@ -72,12 +83,18 @@ public class SysUserServiceImpl implements SysUserService {
         if (user == null) {
             throw new IllegalArgumentException("用户名或密码错误");
         }
+        // 保存密码 hash（登录成功后要清除，避免返回给前端）
+        String passwordHash = user.getPassword();
         // 检查账号锁定
         if (user.getLockTime() != null && user.getLockTime().after(new Date())) {
             throw new IllegalArgumentException("账号已锁定，请稍后再试");
         }
-        // 验证密码（明文比对）
-        if (!password.equals(user.getPassword())) {
+        // 检查删除状态
+        if (Objects.equals(user.getDeleted(), (short) 1)) {
+            throw new IllegalArgumentException("账号已删除");
+        }
+        // 验证密码（BCrypt）
+        if (!passwordEncoder.matches(password, passwordHash)) {
             int errors = (user.getLoginErrorCount() == null ? 0 : user.getLoginErrorCount()) + 1;
             user.setLoginErrorCount(errors);
             if (errors >= 5) {
@@ -88,11 +105,13 @@ public class SysUserServiceImpl implements SysUserService {
             sysUserDao.updateById(user);
             throw new IllegalArgumentException("用户名或密码错误");
         }
-        // 登录成功，重置错误计数
-        user.setLoginErrorCount(0);
-        user.setLastLoginTime(new Date());
-        user.setLastLoginIp(loginIp);
-        sysUserDao.updateById(user);
+        // 登录成功，重置错误计数（用 LambdaUpdateWrapper，避免更新 password 字段）
+        sysUserDao.update(null,
+                new com.baomidou.mybatisplus.core.conditions.update.LambdaUpdateWrapper<SysUserEntity>()
+                        .eq(SysUserEntity::getId, user.getId())
+                        .set(SysUserEntity::getLoginErrorCount, 0)
+                        .set(SysUserEntity::getLastLoginTime, new Date())
+                        .set(SysUserEntity::getLastLoginIp, loginIp));
         // 不返回明文密码
         user.setPassword(null);
         return user;
@@ -190,11 +209,20 @@ public class SysUserServiceImpl implements SysUserService {
         if (user == null) {
             throw new IllegalArgumentException("用户不存在");
         }
-        if (!oldPassword.equals(user.getPassword())) {
+        if (!passwordEncoder.matches(oldPassword, user.getPassword())) {
             throw new IllegalArgumentException("原密码错误");
         }
-        user.setPassword(newPassword);
+        user.setPassword(passwordEncoder.encode(newPassword));
         sysUserDao.updateById(user);
         return true;
+    }
+
+    /** 调试用：重置指定用户的密码（不校验旧密码） */
+    @Transactional
+    public void resetPassword(Long userId, String newPassword) {
+        LambdaUpdateWrapper<SysUserEntity> wrapper = new LambdaUpdateWrapper<>();
+        wrapper.eq(SysUserEntity::getId, userId)
+               .set(SysUserEntity::getPassword, passwordEncoder.encode(newPassword));
+        sysUserDao.update(null, wrapper);
     }
 }

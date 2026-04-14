@@ -85,4 +85,13 @@ public class SysUserController {
         sysUserService.delete(id);
         return Result.success();
     }
+
+    // ===== 临时调试接口（开发环境用），后续删除 =====
+    @PostMapping("/dev/reset-password")
+    public Result<Void> resetPassword(@RequestBody Map<String, Object> req) {
+        Long userId = ((Number) req.get("userId")).longValue();
+        String newPassword = (String) req.get("newPassword");
+        sysUserService.resetPassword(userId, newPassword);
+        return Result.success();
+    }
 }

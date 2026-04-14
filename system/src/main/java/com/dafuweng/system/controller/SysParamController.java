@@ -37,6 +37,12 @@ public class SysParamController {
         return Result.success(sysParamService.listByParamGroup(paramGroup));
     }
 
+    @GetMapping("/value/{paramKey}")
+    public Result<String> getParamValue(@PathVariable String paramKey) {
+        String value = sysParamService.getParamValue(paramKey);
+        return Result.success(value);
+    }
+
     @PostMapping
     public Result<SysParamEntity> save(@RequestBody SysParamEntity entity) {
         return Result.success(sysParamService.save(entity));

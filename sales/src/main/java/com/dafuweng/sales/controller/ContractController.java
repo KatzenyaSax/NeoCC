@@ -5,6 +5,7 @@ import com.dafuweng.common.entity.PageRequest;
 import com.dafuweng.common.entity.PageResponse;
 import com.dafuweng.sales.entity.ContractEntity;
 import com.dafuweng.sales.service.ContractService;
+import com.dafuweng.sales.service.ContractSignService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 
@@ -16,6 +17,9 @@ public class ContractController {
 
     @Autowired
     private ContractService contractService;
+
+    @Autowired
+    private ContractSignService contractSignService;
 
     @GetMapping("/{id}")
     public Result<ContractEntity> getById(@PathVariable Long id) {
@@ -55,6 +59,16 @@ public class ContractController {
     @DeleteMapping("/{id}")
     public Result<Void> delete(@PathVariable Long id) {
         contractService.delete(id);
+        return Result.success();
+    }
+
+    /**
+     * POST /api/contract/{id}/sign
+     * 签署合同并发送事件通知金融部
+     */
+    @PostMapping("/{id}/sign")
+    public Result<Void> sign(@PathVariable Long id) {
+        contractSignService.sign(id);
         return Result.success();
     }
 }

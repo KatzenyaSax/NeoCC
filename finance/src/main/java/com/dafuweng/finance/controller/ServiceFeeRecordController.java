@@ -9,6 +9,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
+import java.util.Map;
 
 @RestController
 @RequestMapping("/api/serviceFeeRecord")
@@ -45,6 +46,18 @@ public class ServiceFeeRecordController {
     @DeleteMapping("/{id}")
     public Result<Void> delete(@PathVariable Long id) {
         serviceFeeRecordService.delete(id);
+        return Result.success();
+    }
+
+    @PutMapping("/{id}/pay")
+    public Result<Void> confirmPay(@PathVariable Long id, @RequestBody Map<String, String> req) {
+        serviceFeeRecordService.confirmPay(
+            id,
+            req.get("paymentMethod"),
+            req.get("paymentAccount"),
+            req.get("receiptNo"),
+            req.getOrDefault("remark", "")
+        );
         return Result.success();
     }
 }

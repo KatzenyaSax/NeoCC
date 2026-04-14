@@ -12,7 +12,23 @@
       "Bash(node /tmp/gen_diagram.js)",
       "Bash(echo $TEMP)",
       "Read(//c/Users/a1829/Desktop/NeoCC/**)",
-      "Bash(node /c/Users/a1829/Desktop/NeoCC/scripts/figures/gen_diagram.js)"
+      "Bash(node /c/Users/a1829/Desktop/NeoCC/scripts/figures/gen_diagram.js)",
+      "Read(//c/Users/a1829/.m2/repository/org/apache/shiro/shiro-web/2.0.0/**)",
+      "Bash(unzip -l ~/.m2/repository/org/apache/shiro/shiro-web/2.0.0/shiro-web-2.0.0.jar)",
+      "Bash(curl:*)",
+      "Bash(mvn compile:*)",
+      "Bash(mvn install:*)",
+      "Read(//c/Users/a1829/Desktop/**)",
+      "Bash(done)",
+      "Skill(plan-eng-review)",
+      "Bash(mkdir -p C:/Users/a1829/Desktop/NeoCC/finance/src/test/java/com/dafuweng/finance/service/impl)",
+      "Bash(mkdir -p C:/Users/a1829/Desktop/NeoCC/finance/src/test/java/com/dafuweng/finance/mq)",
+      "Bash(mkdir -p C:/Users/a1829/Desktop/NeoCC/sales/src/test/java/com/dafuweng/sales/service/impl)",
+      "Bash(mvn test:*)",
+      "Skill(qa)",
+      "Skill(gstack-upgrade)",
+      "Bash(mvn clean:*)",
+      "Bash(netstat -ano)"
     ]
   }
 }

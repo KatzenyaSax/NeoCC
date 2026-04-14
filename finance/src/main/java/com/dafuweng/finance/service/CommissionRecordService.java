@@ -27,6 +27,14 @@ public interface CommissionRecordService {
     @Transactional
     CommissionRecordEntity update(CommissionRecordEntity entity);
 
-    @Transactional
+@Transactional
     void delete(Long id);
+
+    /** 确认提成 */
+    @Transactional
+    void confirm(Long id);
+
+    /** 发放提成 */
+    @Transactional
+    void grant(Long id, String grantAccount, String remark);
 }

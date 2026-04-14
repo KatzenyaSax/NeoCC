@@ -34,6 +34,29 @@ public interface LoanAuditService {
     @Transactional
     void delete(Long id);
 
+    /** 接收合同（1→2） */
     @Transactional
-    void approve(Long loanAuditId, BigDecimal actualLoanAmount, BigDecimal actualInterestRate, Date loanGrantedDate);
+    void receive(Long id, Long operatorId, String operatorName, String operatorRole, String comment);
+
+    /** 初审（2→3） */
+    @Transactional
+    void review(Long id, Long operatorId, String operatorName, String operatorRole, String comment);
+
+    /** 提交银行（3→4） */
+    @Transactional
+    void submitBank(Long id, Long bankId, Long operatorId, String operatorName, String operatorRole, String comment);
+
+    /** 银行反馈（4→6 approve / 4→7 reject） */
+    @Transactional
+    void bankResult(Long id, boolean approved, String bankFeedbackContent,
+                    Long operatorId, String operatorName, String operatorRole, String comment);
+
+    /** 终审通过（6→终态，触发业绩创建） */
+    @Transactional
+    void approve(Long id, Long operatorId, String operatorName, String operatorRole, String comment,
+                 BigDecimal actualLoanAmount, BigDecimal actualInterestRate, Date loanGrantedDate);
+
+    /** 终审拒绝（4/5/7→终态） */
+    @Transactional
+    void reject(Long id, Long operatorId, String operatorName, String operatorRole, String comment);
 }

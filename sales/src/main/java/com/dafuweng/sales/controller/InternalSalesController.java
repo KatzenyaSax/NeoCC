@@ -7,7 +7,6 @@ import com.dafuweng.sales.entity.ContractEntity;
 import com.dafuweng.sales.entity.PerformanceRecordEntity;
 import com.dafuweng.sales.service.ContractService;
 import com.dafuweng.sales.service.PerformanceRecordService;
-import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.dao.DuplicateKeyException;
 import org.springframework.web.bind.annotation.*;
@@ -73,6 +72,7 @@ public class InternalSalesController {
         vo.setSalesRepId(entity.getSalesRepId());
         vo.setDeptId(entity.getDeptId());
         vo.setProductId(entity.getProductId());
+        vo.setZoneId(entity.getZoneId());
         vo.setContractAmount(entity.getContractAmount());
         vo.setActualLoanAmount(entity.getActualLoanAmount());
         vo.setServiceFeeRate(entity.getServiceFeeRate());
@@ -104,6 +104,27 @@ public class InternalSalesController {
             return Result.error("合同不存在");
         }
         entity.setStatus(status);
+        contractService.update(entity);
+        return Result.success();
+    }
+
+    /**
+     * PUT /sales/internal/contracts/{id}/service-fee-paid
+     * 更新合同服务费支付状态（供 finance 服务调用）
+     *
+     * @param feeType 1=首期服务费已付 2=二期服务费已付
+     */
+    @PutMapping("/contracts/{id}/service-fee-paid")
+    public Result<?> updateServiceFeePaid(@PathVariable Long id, @RequestParam Short feeType) {
+        ContractEntity entity = contractService.getById(id);
+        if (entity == null) {
+            return Result.error("合同不存在");
+        }
+        if (feeType == 1) {
+            entity.setServiceFee1Paid((short) 1);
+        } else if (feeType == 2) {
+            entity.setServiceFee2Paid((short) 1);
+        }
         contractService.update(entity);
         return Result.success();
     }

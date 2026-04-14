@@ -54,4 +54,18 @@
         WHERE status = #{status} AND deleted = 0
     </select>
 
+    <select id="selectCustomerToPublicSea" resultMap="customerMap">
+        SELECT id, name, phone, id_card, company_name, company_legal_person,
+               company_reg_capital, customer_type, sales_rep_id, dept_id, zone_id,
+               intention_level, status, last_contact_date, next_follow_up_date,
+               public_sea_time, public_sea_reason, annotation, source,
+               loan_intention_amount, loan_intention_product, created_by, created_at,
+               updated_by, updated_at, deleted, version
+        FROM customer
+        WHERE deleted = 0
+          AND status NOT IN (3, 4, 5)
+          AND next_follow_up_date &lt; NOW()
+          AND created_at &lt; DATE_SUB(NOW(), INTERVAL #{publicSeaDays} DAY)
+    </select>
+
 </mapper>

@@ -16,4 +16,8 @@ public interface SalesFeignClient {
 
     @GetMapping("/sales/internal/contracts/{id}")
     Result<ContractVO> getContract(@PathVariable Long id);
+
+    @PutMapping("/sales/internal/contracts/{id}/service-fee-paid")
+    Result<?> updateServiceFeePaid(@PathVariable Long id,
+                                   @RequestParam("feeType") Short feeType);
 }

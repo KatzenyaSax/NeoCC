@@ -9,6 +9,8 @@ import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.dafuweng.common.entity.PageRequest;
 import com.dafuweng.common.entity.PageResponse;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.cache.annotation.CacheEvict;
+import org.springframework.cache.annotation.Cacheable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.StringUtils;
@@ -29,6 +31,13 @@ public class SysParamServiceImpl implements SysParamService {
     @Override
     public SysParamEntity getByParamKey(String paramKey) {
         return sysParamDao.selectByParamKey(paramKey);
+    }
+
+    @Override
+    @Cacheable(value = "param", key = "#paramKey")
+    public String getParamValue(String paramKey) {
+        SysParamEntity entity = sysParamDao.selectByParamKey(paramKey);
+        return entity != null ? entity.getParamValue() : null;
     }
 
     @Override
@@ -59,6 +68,7 @@ public class SysParamServiceImpl implements SysParamService {
 
     @Override
     @Transactional
+    @CacheEvict(value = "param", key = "#entity.paramKey")
     public SysParamEntity save(SysParamEntity entity) {
         sysParamDao.insert(entity);
         return entity;
@@ -66,6 +76,7 @@ public class SysParamServiceImpl implements SysParamService {
 
     @Override
     @Transactional
+    @CacheEvict(value = "param", key = "#entity.paramKey")
     public SysParamEntity update(SysParamEntity entity) {
         sysParamDao.updateById(entity);
         return entity;
@@ -73,7 +84,11 @@ public class SysParamServiceImpl implements SysParamService {
 
     @Override
     @Transactional
+    @CacheEvict(value = "param", allEntries = true)
     public void delete(Long id) {
-        sysParamDao.deleteById(id);
+        SysParamEntity entity = sysParamDao.selectById(id);
+        if (entity != null) {
+            sysParamDao.deleteById(id);
+        }
     }
 }

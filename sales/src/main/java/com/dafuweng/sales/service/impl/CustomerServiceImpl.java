@@ -55,6 +55,11 @@ public class CustomerServiceImpl implements CustomerService {
     }
 
     @Override
+    public List<CustomerEntity> listCustomerToPublicSea(Integer publicSeaDays) {
+        return customerDao.selectCustomerToPublicSea(publicSeaDays);
+    }
+
+    @Override
     @Transactional
     public CustomerEntity save(CustomerEntity entity) {
         customerDao.insert(entity);

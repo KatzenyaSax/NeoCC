@@ -24,6 +24,8 @@ public interface CustomerService {
 
     List<CustomerEntity> listByStatus(Short status);
 
+    List<CustomerEntity> listCustomerToPublicSea(Integer publicSeaDays);
+
     @Transactional
     CustomerEntity save(CustomerEntity entity);
 
