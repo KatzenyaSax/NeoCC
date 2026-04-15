@@ -1,0 +1,52 @@
+import request from '@/utils/request'
+
+// 查询客户列表（分页）
+export function listCustomer(query) {
+  return request({
+    url: '/api/customer/page',
+    method: 'get',
+    params: query
+  })
+}
+
+// 查询客户详细
+export function getCustomer(id) {
+  return request({
+    url: '/api/customer/' + id,
+    method: 'get'
+  })
+}
+
+// 根据销售代表ID查询客户列表
+export function listBySalesRepId(salesRepId) {
+  return request({
+    url: '/api/customer/listBySalesRepId/' + salesRepId,
+    method: 'get'
+  })
+}
+
+// 新增客户
+export function addCustomer(data) {
+  return request({
+    url: '/api/customer',
+    method: 'post',
+    data: data
+  })
+}
+
+// 修改客户
+export function updateCustomer(data) {
+  return request({
+    url: '/api/customer',
+    method: 'put',
+    data: data
+  })
+}
+
+// 删除客户
+export function delCustomer(id) {
+  return request({
+    url: '/api/customer/' + id,
+    method: 'delete'
+  })
+}
