@@ -1,6 +1,8 @@
 # 前端修改记录 log4_5
 
 > 基准版本：`cadcc15`（feat: add ruoyi-ui frontend source code）  
+> 第一阶段提交：`d698a6f`（feat: 前端功能补全、分页修复、首页重设计及修改记录）  
+> 第二阶段提交：`d698a6f` 基础上新增 Docker 编排文件及完成度统计  
 > 修改日期：2026-04-15  
 > 分支：`fix/ruoyi-frontend-integration`
 
@@ -38,6 +40,10 @@
 | `ruoyi-ui/src/views/system/user/index.vue` | 新增 | 用户管理页面（含分配角色弹窗、修改密码弹窗） |
 | `ruoyi-ui/src/views/system/role/index.vue` | 新增 | 角色管理页面（含分配权限树弹窗） |
 | `ruoyi-ui/src/views/system/menu/index.vue` | 新增 | 菜单/权限管理页面 |
+| `docker-compose.yml` | 新增 | 完整 Docker 编排文件（含 Nacos、全部微服务、Nginx） |
+| `docker-compose-simple.yml` | 新增 | 简化版 Docker 编排文件（无 Nacos，Gateway 使用 docker-simple profile） |
+| `scripts/init-db.sql` | 新增 | 数据库初始化脚本（创建 5 个数据库 + 授权远程访问） |
+| `前后端实现完成度统计.md` | 新增 | 前后端各模块实现完成度统计文档 |
 
 ---
 
@@ -187,3 +193,59 @@ UPDATE sys_user SET real_name='系统管理员' WHERE id=1;
 | 银行管理 `/api/bank/page` | 200 ✅ | 0 |
 
 前端首页数据看板正常加载，统计卡片实时调用接口并展示总数，快捷入口和模块卡片跳转正常。
+
+---
+
+## 四、Docker 编排文件（本次新增）
+
+### 7. `docker-compose.yml`（完整版）
+
+包含以下服务：Nacos（v2.3.0-slim）、MySQL 8.0、Redis 7、Auth(8085)、System(8082)、Sales(8083)、Finance(8084)、Gateway(8086)、Nginx(80)。
+
+特点：
+- MySQL 使用 `healthcheck` 保证服务启动顺序
+- Nginx 通过 Volume 挂载 `./ruoyi-ui/dist` 和 `./nginx.conf`
+- 所有服务使用 `SPRING_PROFILES_ACTIVE=docker`
+- 统一使用 `neocc-network` bridge 网络
+
+### 8. `docker-compose-simple.yml`（简化版，无 Nacos）
+
+去除 Nacos 依赖，Gateway 使用 `SPRING_PROFILES_ACTIVE=docker-simple`（对应 `application-docker.yml` 中禁用 Nacos 服务发现、直连容器名的配置），适合本地开发快速启动。
+
+### 9. `scripts/init-db.sql`（数据库初始化脚本）
+
+```sql
+CREATE DATABASE IF NOT EXISTS nacos DEFAULT CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
+CREATE DATABASE IF NOT EXISTS dafuweng_auth DEFAULT CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
+CREATE DATABASE IF NOT EXISTS dafuweng_system DEFAULT CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
+CREATE DATABASE IF NOT EXISTS dafuweng_sales DEFAULT CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
+CREATE DATABASE IF NOT EXISTS dafuweng_finance DEFAULT CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
+ALTER USER 'root'@'%' IDENTIFIED WITH mysql_native_password BY '123456';
+FLUSH PRIVILEGES;
+```
+
+所有数据库统一使用 `utf8mb4_unicode_ci`，从根源解决中文乱码问题。
+
+---
+
+## 五、前后端实现完成度统计
+
+新增 `前后端实现完成度统计.md`，记录各业务模块的前后端对接状态：
+
+| 模块 | 后端 API | 前端页面 | 整体状态 |
+|------|---------|---------|----------|
+| 客户管理 | ✅ | ✅ | **完成** |
+| 合同管理 | ✅ | ✅ | **完成** |
+| 合同签署 | ✅ | ✅ | **完成** |
+| 贷款审核 | ✅ | ✅ | **完成** |
+| 佣金记录 | ✅ | ✅ | **完成** |
+| 服务费记录 | ✅ | ✅（本次补全） | **完成** |
+| 业绩记录 | ✅ | ✅（本次补全） | **完成** |
+| 跟进记录 | ✅ | ✅（本次补全） | **完成** |
+| 工作日志 | ✅ | ✅（本次补全） | **完成** |
+| 客户转移记录 | ✅ | ✅（本次补全） | **完成** |
+| 银行管理 | ✅ | ✅（本次补全） | **完成** |
+| 金融产品 | ✅ | ✅（本次补全） | **完成** |
+| 部门管理 | ✅ | ✅（本次补全） | **完成** |
+| 区域管理 | ✅ | ✅（本次补全） | **完成** |
+| 用户管理 | ✅ | ✅（本次补全） | **完成** |

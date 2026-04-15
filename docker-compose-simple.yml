@@ -1,0 +1,145 @@
+version: '3.8'
+
+services:
+  # MySQL 数据库
+  mysql:
+    image: mysql:8.0
+    container_name: neocc-mysql
+    environment:
+      MYSQL_ROOT_PASSWORD: 123456
+      MYSQL_DATABASE: dafuweng_auth
+    ports:
+      - "3306:3306"
+    volumes:
+      - mysql_data:/var/lib/mysql
+      - ./scripts/init-db.sql:/docker-entrypoint-initdb.d/init.sql
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost", "-u", "root", "-p123456"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+    networks:
+      - neocc-network
+
+  # Redis 缓存
+  redis:
+    image: redis:7-alpine
+    container_name: neocc-redis
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis_data:/data
+    networks:
+      - neocc-network
+
+  # Auth 认证服务 (端口 8085)
+  auth-service:
+    build:
+      context: ./auth
+      dockerfile: Dockerfile
+    container_name: neocc-auth
+    environment:
+      - SPRING_PROFILES_ACTIVE=docker
+      - SERVER_PORT=8085
+    ports:
+      - "8085:8085"
+    depends_on:
+      mysql:
+        condition: service_healthy
+    networks:
+      - neocc-network
+
+  # System 系统服务 (端口 8082)
+  system-service:
+    build:
+      context: ./system
+      dockerfile: Dockerfile
+    container_name: neocc-system
+    environment:
+      - SPRING_PROFILES_ACTIVE=docker
+      - SERVER_PORT=8082
+      - REDIS_HOST=neocc-redis
+    ports:
+      - "8082:8082"
+    depends_on:
+      mysql:
+        condition: service_healthy
+      redis:
+        condition: service_started
+    networks:
+      - neocc-network
+
+  # Sales 销售服务 (端口 8083)
+  sales-service:
+    build:
+      context: ./sales
+      dockerfile: Dockerfile
+    container_name: neocc-sales
+    environment:
+      - SPRING_PROFILES_ACTIVE=docker
+      - SERVER_PORT=8083
+    ports:
+      - "8083:8083"
+    depends_on:
+      mysql:
+        condition: service_healthy
+    networks:
+      - neocc-network
+
+  # Finance 财务服务 (端口 8084)
+  finance-service:
+    build:
+      context: ./finance
+      dockerfile: Dockerfile
+    container_name: neocc-finance
+    environment:
+      - SPRING_PROFILES_ACTIVE=docker
+      - SERVER_PORT=8084
+    ports:
+      - "8084:8084"
+    depends_on:
+      mysql:
+        condition: service_healthy
+    networks:
+      - neocc-network
+
+  # Gateway 网关服务 (端口 8086)
+  gateway-service:
+    build:
+      context: ./gateway
+      dockerfile: Dockerfile
+    container_name: neocc-gateway
+    environment:
+      - SPRING_PROFILES_ACTIVE=docker-simple
+      - SERVER_PORT=8086
+    ports:
+      - "8086:8086"
+    depends_on:
+      - auth-service
+      - system-service
+      - sales-service
+      - finance-service
+    networks:
+      - neocc-network
+
+  # Nginx 前端服务 (端口 80)
+  nginx:
+    image: nginx:alpine
+    container_name: neocc-nginx
+    ports:
+      - "80:80"
+    volumes:
+      - ./ruoyi-ui/dist:/usr/share/nginx/html:ro
+      - ./nginx.conf:/etc/nginx/nginx.conf:ro
+    depends_on:
+      - gateway-service
+    networks:
+      - neocc-network
+
+volumes:
+  mysql_data:
+  redis_data:
+
+networks:
+  neocc-network:
+    driver: bridge
