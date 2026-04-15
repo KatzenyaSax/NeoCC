@@ -115,14 +115,16 @@ public class RuoyiAdapterController {
         systemMenu.put("hidden", false);
         systemMenu.put("component", "Layout");
         systemMenu.put("meta", createMeta("系统管理", "system", false, null));
-        
+
         List<Map<String, Object>> systemChildren = new ArrayList<>();
         systemChildren.add(createMenuItem("User", "user", "system/user/index", "用户管理", "user"));
         systemChildren.add(createMenuItem("Role", "role", "system/role/index", "角色管理", "peoples"));
         systemChildren.add(createMenuItem("Menu", "menu", "system/menu/index", "菜单管理", "tree-table"));
+        systemChildren.add(createMenuItem("Department", "department", "system/department/index", "部门管理", "tree"));
+        systemChildren.add(createMenuItem("Zone", "zone", "system/zone/index", "区域管理", "map"));
         systemMenu.put("children", systemChildren);
         routers.add(systemMenu);
-        
+
         // 销售管理菜单
         Map<String, Object> salesMenu = new HashMap<>();
         salesMenu.put("name", "Sales");
@@ -130,13 +132,17 @@ public class RuoyiAdapterController {
         salesMenu.put("hidden", false);
         salesMenu.put("component", "Layout");
         salesMenu.put("meta", createMeta("销售管理", "shopping", false, null));
-        
+
         List<Map<String, Object>> salesChildren = new ArrayList<>();
-        salesChildren.add(createMenuItem("Customer", "customer", "sales/customer/index", "客户管理", "customer"));
+        salesChildren.add(createMenuItem("Customer", "customer", "sales/customer/index", "客户管理", "peoples"));
         salesChildren.add(createMenuItem("Contract", "contract", "sales/contract/index", "合同管理", "edit"));
+        salesChildren.add(createMenuItem("ContactRecord", "contact-record", "sales/contact-record/index", "跟进记录", "message"));
+        salesChildren.add(createMenuItem("WorkLog", "work-log", "sales/work-log/index", "工作日志", "log"));
+        salesChildren.add(createMenuItem("PerformanceRecord", "performance-record", "sales/performance-record/index", "业绩记录", "chart"));
+        salesChildren.add(createMenuItem("CustomerTransfer", "customer-transfer", "sales/customer-transfer/index", "客户转移记录", "sort"));
         salesMenu.put("children", salesChildren);
         routers.add(salesMenu);
-        
+
         // 财务管理菜单
         Map<String, Object> financeMenu = new HashMap<>();
         financeMenu.put("name", "Finance");
@@ -144,10 +150,13 @@ public class RuoyiAdapterController {
         financeMenu.put("hidden", false);
         financeMenu.put("component", "Layout");
         financeMenu.put("meta", createMeta("财务管理", "money", false, null));
-        
+
         List<Map<String, Object>> financeChildren = new ArrayList<>();
         financeChildren.add(createMenuItem("LoanAudit", "loan-audit", "finance/loan-audit/index", "贷款审核", "audit"));
         financeChildren.add(createMenuItem("Commission", "commission", "finance/commission/index", "佣金记录", "dollar"));
+        financeChildren.add(createMenuItem("ServiceFee", "service-fee", "finance/service-fee/index", "服务费记录", "money"));
+        financeChildren.add(createMenuItem("Bank", "bank", "finance/bank/index", "银行管理", "card"));
+        financeChildren.add(createMenuItem("FinanceProduct", "product", "finance/product/index", "金融产品", "list"));
         financeMenu.put("children", financeChildren);
         routers.add(financeMenu);
         

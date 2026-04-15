@@ -39,6 +39,8 @@ public class SecurityConfig {
             .authorizeHttpRequests(auth -> auth
                 .requestMatchers("/api/sysUser/login", "/api/sysUser/page").permitAll()
                 .requestMatchers("/api/sysUser/dev/**").permitAll()
+                // 系统管理接口（用户/角色/权限管理）
+                .requestMatchers("/api/sysUser/**", "/api/sysRole/**", "/api/sysPermission/**").permitAll()
                 // RuoYi 前端适配接口白名单
                 .requestMatchers("/captchaImage", "/login", "/logout", "/register", "/getInfo", "/getRouters", "/unlockscreen").permitAll()
                 .requestMatchers("/static/**", "/favicon.ico").permitAll()

@@ -9,10 +9,7 @@ spring:
   cloud:
     nacos:
       discovery:
-        server-addr: ${NACOS_SERVER_ADDR:neocc-nacos:8848}
-        password: nacos
-        username: nacos
-        namespace: afae1f3f-8800-48c4-a161-c525a45538c9
+        enabled: false
     gateway:
       routes:
         - id: "gateway-test"
@@ -20,38 +17,120 @@ spring:
           predicates:
             - Path=/bilibili
 
+        # RuoYi 前端适配：登录认证相关接口（根路径）
+        - id: auth-root-route
+          uri: http://neocc-auth:8085
+          predicates:
+            - Path=/captchaImage,/login,/logout,/register,/getInfo,/getRouters,/unlockscreen
+
         - id: auth-route
-          uri: lb://auth
+          uri: http://neocc-auth:8085
           predicates:
             - Path=/auth/**
-          filters:
-            - StripPrefix=1
 
         - id: finance-route
-          uri: lb://finance
+          uri: http://neocc-finance:8084
           predicates:
             - Path=/finance/**
-          filters:
-            - StripPrefix=1
 
         - id: sales-route
-          uri: lb://sales
+          uri: http://neocc-sales:8083
           predicates:
             - Path=/sales/**
-          filters:
-            - StripPrefix=1
 
         - id: system-route
-          uri: lb://system
+          uri: http://neocc-system:8082
           predicates:
             - Path=/system/**
-          filters:
-            - StripPrefix=1
+
+        # 销售模块 API 路由
+        - id: sales-api-customer
+          uri: http://neocc-sales:8083
+          predicates:
+            - Path=/api/customer/**
+
+        - id: sales-api-contract
+          uri: http://neocc-sales:8083
+          predicates:
+            - Path=/api/contract/**
+
+        - id: sales-api-contact-record
+          uri: http://neocc-sales:8083
+          predicates:
+            - Path=/api/contactRecord/**
+
+        - id: sales-api-customer-transfer
+          uri: http://neocc-sales:8083
+          predicates:
+            - Path=/api/customerTransferLog/**
+
+        - id: sales-api-performance
+          uri: http://neocc-sales:8083
+          predicates:
+            - Path=/api/performanceRecord/**
+
+        - id: sales-api-worklog
+          uri: http://neocc-sales:8083
+          predicates:
+            - Path=/api/workLog/**
+
+        # 财务模块 API 路由
+        - id: finance-api-loan-audit
+          uri: http://neocc-finance:8084
+          predicates:
+            - Path=/api/loanAudit/**
+
+        - id: finance-api-commission
+          uri: http://neocc-finance:8084
+          predicates:
+            - Path=/api/commissionRecord/**
+
+        - id: finance-api-service-fee
+          uri: http://neocc-finance:8084
+          predicates:
+            - Path=/api/serviceFeeRecord/**
+
+        - id: finance-api-bank
+          uri: http://neocc-finance:8084
+          predicates:
+            - Path=/api/bank/**
+
+        - id: finance-api-product
+          uri: http://neocc-finance:8084
+          predicates:
+            - Path=/api/financeProduct/**
+
+        # 系统模块 API 路由
+        - id: system-api-department
+          uri: http://neocc-system:8082
+          predicates:
+            - Path=/api/sysDepartment/**
+
+        - id: system-api-zone
+          uri: http://neocc-system:8082
+          predicates:
+            - Path=/api/sysZone/**
+
+        # Auth 模块 API 路由（用户/角色/权限管理）
+        - id: auth-api-user
+          uri: http://neocc-auth:8085
+          predicates:
+            - Path=/api/sysUser/**
+
+        - id: auth-api-role
+          uri: http://neocc-auth:8085
+          predicates:
+            - Path=/api/sysRole/**
+
+        - id: auth-api-permission
+          uri: http://neocc-auth:8085
+          predicates:
+            - Path=/api/sysPermission/**
 
       globalcors:
         corsConfigurations:
           '[/**]':
-            allowedOrigins: "*"
+            allowedOriginPatterns: "*"
             allowedMethods:
               - GET
               - POST
@@ -59,7 +138,7 @@ spring:
               - DELETE
               - OPTIONS
             allowedHeaders: "*"
-            allowCredentials: true
+            allowCredentials: false
             maxAge: 3600
 
 logging:

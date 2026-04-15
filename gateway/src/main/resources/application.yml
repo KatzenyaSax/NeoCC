@@ -106,6 +106,33 @@ spring:
           predicates:
             - Path=/api/financeProduct/**
 
+        # 系统模块 API 路由
+        - id: system-api-department
+          uri: http://neocc-system:8082
+          predicates:
+            - Path=/api/sysDepartment/**
+
+        - id: system-api-zone
+          uri: http://neocc-system:8082
+          predicates:
+            - Path=/api/sysZone/**
+
+        # Auth 模块 API 路由（用户/角色/权限管理）
+        - id: auth-api-user
+          uri: http://neocc-auth:8085
+          predicates:
+            - Path=/api/sysUser/**
+
+        - id: auth-api-role
+          uri: http://neocc-auth:8085
+          predicates:
+            - Path=/api/sysRole/**
+
+        - id: auth-api-permission
+          uri: http://neocc-auth:8085
+          predicates:
+            - Path=/api/sysPermission/**
+
       globalcors:
         corsConfigurations:
           '[/**]':
