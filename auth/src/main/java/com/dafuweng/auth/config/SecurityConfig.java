@@ -35,9 +35,12 @@ public class SecurityConfig {
         http
             .csrf(csrf -> csrf.disable())
             .sessionManagement(sm -> sm.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
+            .logout(logout -> logout.disable())
             .authorizeHttpRequests(auth -> auth
                 .requestMatchers("/api/sysUser/login", "/api/sysUser/page").permitAll()
                 .requestMatchers("/api/sysUser/dev/**").permitAll()
+                // RuoYi 前端适配接口白名单
+                .requestMatchers("/captchaImage", "/login", "/logout", "/register", "/getInfo", "/getRouters", "/unlockscreen").permitAll()
                 .requestMatchers("/static/**", "/favicon.ico").permitAll()
                 .anyRequest().authenticated()
             )

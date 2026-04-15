@@ -41,6 +41,17 @@ public class AuthFilter implements GlobalFilter, Ordered {
         }
     }
 
+    // RuoYi 前端公开接口白名单
+    private static final List<String> PUBLIC_PATHS = List.of(
+        "/captchaImage",
+        "/login",
+        "/logout",
+        "/register",
+        "/getInfo",
+        "/getRouters",
+        "/unlockscreen"
+    );
+
     @Override
     public Mono<Void> filter(ServerWebExchange exchange, GatewayFilterChain chain) {
         ServerHttpRequest request = exchange.getRequest();
@@ -48,6 +59,21 @@ public class AuthFilter implements GlobalFilter, Ordered {
         // 跳过登录/公开路径
         String path = request.getURI().getPath();
         if (path.contains("/auth/api/sysUser/login") || path.contains("/auth/api/sysUser/page")) {
+            return chain.filter(exchange);
+        }
+        
+        // 跳过 RuoYi 前端公开接口
+        if (PUBLIC_PATHS.contains(path)) {
+            return chain.filter(exchange);
+        }
+        
+        // 跳过业务 API 路径（/api/**）
+        if (path.startsWith("/api/")) {
+            return chain.filter(exchange);
+        }
+        
+        // 跳过系统管理路径（/system/**）
+        if (path.startsWith("/system/")) {
             return chain.filter(exchange);
         }
 

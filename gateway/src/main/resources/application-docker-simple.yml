@@ -1,0 +1,67 @@
+server:
+  port: 8086
+
+spring:
+  application:
+    name: gateway
+  main:
+    web-application-type: reactive
+  cloud:
+    gateway:
+      routes:
+        - id: "gateway-test"
+          uri: "http://www.bilibili.com"
+          predicates:
+            - Path=/bilibili
+
+        # 登录认证相关接口（根路径）
+        - id: auth-root-route
+          uri: http://neocc-auth:8085
+          predicates:
+            - Path=/captchaImage,/login,/logout,/register,/getInfo,/getRouters,/unlockscreen
+
+        - id: auth-route
+          uri: http://neocc-auth:8085
+          predicates:
+            - Path=/auth/**
+          filters:
+            - StripPrefix=1
+
+        - id: finance-route
+          uri: http://neocc-finance:8084
+          predicates:
+            - Path=/finance/**
+          filters:
+            - StripPrefix=1
+
+        - id: sales-route
+          uri: http://neocc-sales:8083
+          predicates:
+            - Path=/sales/**
+          filters:
+            - StripPrefix=1
+
+        - id: system-route
+          uri: http://neocc-system:8082
+          predicates:
+            - Path=/system/**
+          filters:
+            - StripPrefix=1
+
+      globalcors:
+        corsConfigurations:
+          '[/**]':
+            allowedOriginPatterns: "*"
+            allowedMethods:
+              - GET
+              - POST
+              - PUT
+              - DELETE
+              - OPTIONS
+            allowedHeaders: "*"
+            allowCredentials: false
+            maxAge: 3600
+
+logging:
+  level:
+    com.dafuweng: DEBUG

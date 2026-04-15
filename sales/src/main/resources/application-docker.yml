@@ -14,9 +14,6 @@ spring:
       discovery:
         enabled: false
 
-
-
-
 mybatis-plus:
   mapper-locations: classpath:sales/mapper/*.xml
   type-aliases-package: com.dafuweng.sales.entity

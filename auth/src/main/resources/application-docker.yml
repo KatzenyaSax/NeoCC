@@ -1,12 +1,12 @@
 server:
-  port: 8083
+  port: 8085
 
 spring:
   application:
-    name: sales
+    name: auth
   datasource:
     driver-class-name: com.mysql.cj.jdbc.Driver
-    url: jdbc:mysql://neocc-mysql:3306/dafuweng_sales?allowPublicKeyRetrieval=true&useUnicode=true&characterEncoding=utf8&serverTimezone=Asia/Shanghai&useSSL=false
+    url: jdbc:mysql://neocc-mysql:3306/dafuweng_auth?allowPublicKeyRetrieval=true&useUnicode=true&characterEncoding=utf8&serverTimezone=Asia/Shanghai&useSSL=false
     username: root
     password: 123456
   cloud:
@@ -14,12 +14,9 @@ spring:
       discovery:
         enabled: false
 
-
-
-
 mybatis-plus:
-  mapper-locations: classpath:sales/mapper/*.xml
-  type-aliases-package: com.dafuweng.sales.entity
+  mapper-locations: classpath:auth/mapper/*.xml
+  type-aliases-package: com.dafuweng.auth.entity
   configuration:
     map-underscore-to-camel-case: true
     log-impl: org.apache.ibatis.logging.stdout.StdOutImpl
