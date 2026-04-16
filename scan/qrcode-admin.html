@@ -1,0 +1,575 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>模拟手机扫码登录</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+        }
+        
+        .phone-container {
+            width: 100%;
+            max-width: 400px;
+            background: white;
+            border-radius: 24px;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+            overflow: hidden;
+        }
+        
+        .phone-header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 30px 20px;
+            text-align: center;
+        }
+        
+        .phone-header .icon {
+            font-size: 48px;
+            margin-bottom: 10px;
+        }
+        
+        .phone-header h1 {
+            font-size: 22px;
+            margin-bottom: 5px;
+        }
+        
+        .phone-header p {
+            font-size: 13px;
+            opacity: 0.9;
+        }
+        
+        .phone-body {
+            padding: 30px 20px;
+        }
+        
+        .scan-result {
+            background: #f0f9ff;
+            border: 2px solid #3b82f6;
+            border-radius: 12px;
+            padding: 15px;
+            margin-bottom: 25px;
+        }
+        
+        .scan-result label {
+            display: block;
+            font-size: 12px;
+            color: #666;
+            margin-bottom: 5px;
+            font-weight: 500;
+        }
+        
+        .scan-result .value {
+            font-family: 'Courier New', monospace;
+            font-size: 14px;
+            color: #333;
+            word-break: break-all;
+            background: white;
+            padding: 8px;
+            border-radius: 6px;
+            border: 1px solid #e5e7eb;
+            margin-bottom: 10px;
+        }
+        
+        .btn-auto-scan {
+            width: 100%;
+            padding: 8px;
+            border: 1px solid #3b82f6;
+            border-radius: 6px;
+            background: #eff6ff;
+            color: #1e40af;
+            font-size: 13px;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+        
+        .btn-auto-scan:hover {
+            background: #dbeafe;
+            border-color: #2563eb;
+        }
+        
+        .btn-auto-scan:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+        }
+        
+        .form-group {
+            margin-bottom: 20px;
+        }
+        
+        .form-group label {
+            display: block;
+            font-size: 14px;
+            color: #333;
+            margin-bottom: 8px;
+            font-weight: 500;
+        }
+        
+        .form-group input {
+            width: 100%;
+            padding: 12px;
+            border: 2px solid #e5e7eb;
+            border-radius: 8px;
+            font-size: 14px;
+            transition: all 0.3s;
+        }
+        
+        .form-group input:focus {
+            outline: none;
+            border-color: #667eea;
+            box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+        }
+        
+        .btn {
+            width: 100%;
+            padding: 14px;
+            border: none;
+            border-radius: 8px;
+            font-size: 16px;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.3s;
+            margin-bottom: 10px;
+        }
+        
+        .btn-primary {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+        }
+        
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 20px rgba(102, 126, 234, 0.4);
+        }
+        
+        .btn-primary:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+            transform: none;
+        }
+        
+        .btn-secondary {
+            background: #f3f4f6;
+            color: #374151;
+        }
+        
+        .btn-secondary:hover {
+            background: #e5e7eb;
+        }
+        
+        .message {
+            padding: 12px;
+            border-radius: 8px;
+            margin-top: 15px;
+            font-size: 14px;
+            display: none;
+        }
+        
+        .message.success {
+            background: #d1fae5;
+            color: #065f46;
+            border: 1px solid #10b981;
+            display: block;
+        }
+        
+        .message.error {
+            background: #fee2e2;
+            color: #991b1b;
+            border: 1px solid #ef4444;
+            display: block;
+        }
+        
+        .message.info {
+            background: #dbeafe;
+            color: #1e40af;
+            border: 1px solid #3b82f6;
+            display: block;
+        }
+        
+        .steps {
+            background: #f8f9fa;
+            border-radius: 8px;
+            padding: 15px;
+            margin-bottom: 20px;
+        }
+        
+        .steps h3 {
+            font-size: 14px;
+            color: #333;
+            margin-bottom: 10px;
+        }
+        
+        .steps ol {
+            padding-left: 20px;
+            font-size: 13px;
+            color: #666;
+            line-height: 1.8;
+        }
+        
+        .loading {
+            display: none;
+            text-align: center;
+            padding: 20px;
+        }
+        
+        .loading.show {
+            display: block;
+        }
+        
+        .spinner {
+            border: 3px solid #f3f3f3;
+            border-top: 3px solid #667eea;
+            border-radius: 50%;
+            width: 40px;
+            height: 40px;
+            animation: spin 1s linear infinite;
+            margin: 0 auto 10px;
+        }
+        
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+    </style>
+</head>
+<body>
+    <div class="phone-container">
+        <div class="phone-header">
+            <div class="icon">📱</div>
+            <h1>模拟手机扫码</h1>
+            <p>扫描二维码并确认登录</p>
+        </div>
+        
+        <div class="phone-body">
+            <div class="steps">
+                <h3>📋 操作步骤</h3>
+                <ol>
+                    <li>在 Web 端生成二维码</li>
+                    <li>扫描或输入 Login TID</li>
+                    <li>输入用户名和密码验证身份</li>
+                    <li>点击"确认登录"</li>
+                </ol>
+            </div>
+            
+            <!-- 扫码结果 -->
+            <div class="scan-result">
+                <label>📷 扫描到的二维码（Login TID）</label>
+                <div class="value" id="scannedTid">等待扫码...</div>
+                <button class="btn-auto-scan" onclick="autoDetectQRCode()" id="autoScanBtn">
+                    🔍 自动检测最新二维码
+                </button>
+            </div>
+            
+            <!-- 手动输入 Login TID -->
+            <div class="form-group">
+                <label for="loginTid">或直接输入 Login TID</label>
+                <input 
+                    type="text" 
+                    id="loginTid" 
+                    placeholder="请输入从二维码解析的 Login TID"
+                    oninput="updateScannedTid()"
+                />
+            </div>
+            
+            <!-- 用户名 -->
+            <div class="form-group">
+                <label for="username">👤 用户名</label>
+                <input 
+                    type="text" 
+                    id="username" 
+                    placeholder="请输入用户名"
+                    value="admin"
+                />
+            </div>
+            
+            <!-- 密码 -->
+            <div class="form-group">
+                <label for="password">🔒 密码</label>
+                <input 
+                    type="password" 
+                    id="password" 
+                    placeholder="请输入密码"
+                    value="admin123"
+                />
+            </div>
+            
+            <!-- 确认按钮 -->
+            <button class="btn btn-primary" id="confirmBtn" onclick="confirmLogin()">
+                ✅ 确认登录
+            </button>
+            
+            <button class="btn btn-secondary" onclick="resetForm()">
+                🔄 重置
+            </button>
+            
+            <!-- 加载动画 -->
+            <div class="loading" id="loading">
+                <div class="spinner"></div>
+                <p style="color: #666; font-size: 14px;">正在验证身份...</p>
+            </div>
+            
+            <!-- 消息提示 -->
+            <div class="message" id="message"></div>
+        </div>
+    </div>
+    
+    <script>
+        const API_BASE = '/prod-api';
+        let currentLoginTid = '';
+        let autoDetectTimer = null;
+        let lastDetectedTid = '';
+        
+        // 更新扫码显示
+        function updateScannedTid() {
+            const tid = document.getElementById('loginTid').value;
+            document.getElementById('scannedTid').textContent = tid || '等待扫码...';
+            currentLoginTid = tid;
+        }
+        
+        // 显示消息
+        function showMessage(text, type = 'info') {
+            const msg = document.getElementById('message');
+            msg.textContent = text;
+            msg.className = 'message ' + type;
+        }
+        
+        // 自动检测最新二维码
+        async function autoDetectQRCode() {
+            const btn = document.getElementById('autoScanBtn');
+            btn.disabled = true;
+            btn.textContent = '⏳ 检测中...';
+            
+            try {
+                // 获取所有活跃的会话
+                const response = await fetch(`${API_BASE}/api/oauth2/qrcode/sessions`, {
+                    method: 'GET'
+                });
+                
+                const data = await response.json();
+                
+                if (data.code !== 200) {
+                    throw new Error('获取会话列表失败');
+                }
+                
+                const sessions = data.data || [];
+                
+                // 找到状态为 GENERATED 的最新会话（兼容大小写）
+                const pendingSession = sessions.find(s => 
+                    s.status === 'GENERATED' || s.status === 'generated'
+                );
+                
+                if (!pendingSession) {
+                    showMessage('💡 当前没有待扫描的二维码，请先在 Web 端生成二维码', 'info');
+                    return;
+                }
+                
+                // 自动填充 loginTid
+                currentLoginTid = pendingSession.loginTid;
+                document.getElementById('loginTid').value = currentLoginTid;
+                document.getElementById('scannedTid').textContent = currentLoginTid;
+                
+                showMessage(`✅ 自动检测到二维码: ${currentLoginTid.substring(0, 16)}...`, 'success');
+                
+                // 开始轮询状态
+                startStatusPolling();
+                
+            } catch (error) {
+                console.error('自动检测失败:', error);
+                showMessage('❌ 自动检测失败: ' + error.message, 'error');
+            } finally {
+                btn.disabled = false;
+                btn.textContent = '🔍 自动检测最新二维码';
+            }
+        }
+        
+        // 开始轮询二维码状态
+        function startStatusPolling() {
+            // 清除之前的定时器
+            if (autoDetectTimer) {
+                clearInterval(autoDetectTimer);
+            }
+            
+            // 每 2 秒检查一次状态
+            autoDetectTimer = setInterval(async () => {
+                if (!currentLoginTid) return;
+                
+                try {
+                    const response = await fetch(`${API_BASE}/api/oauth2/qrcode/status?loginTid=${currentLoginTid}`, {
+                        method: 'GET'
+                    });
+                    
+                    const data = await response.json();
+                    
+                    if (data.code !== 200) return;
+                    
+                    const status = data.data.status;
+                    
+                    // 兼容大小写
+                    const statusUpper = status.toUpperCase();
+                    
+                    if (statusUpper === 'CONFIRMED') {
+                        showMessage('🎉 Web 端已登录成功！', 'success');
+                        clearInterval(autoDetectTimer);
+                    } else if (statusUpper === 'REJECTED') {
+                        showMessage('❌ 登录请求已被拒绝', 'error');
+                        clearInterval(autoDetectTimer);
+                    } else if (statusUpper === 'SCANNED') {
+                        showMessage('⏳ 已扫码，等待确认...', 'info');
+                    }
+                    
+                } catch (error) {
+                    console.error('状态检查失败:', error);
+                }
+            }, 2000);
+        }
+        
+        // 确认登录
+        async function confirmLogin() {
+            const loginTid = document.getElementById('loginTid').value.trim();
+            const username = document.getElementById('username').value.trim();
+            const password = document.getElementById('password').value.trim();
+            
+            if (!loginTid) {
+                showMessage('❌ 请输入 Login TID', 'error');
+                return;
+            }
+            
+            if (!username) {
+                showMessage('❌ 请输入用户名', 'error');
+                return;
+            }
+            
+            if (!password) {
+                showMessage('❌ 请输入密码', 'error');
+                return;
+            }
+            
+            // 显示加载动画
+            document.getElementById('loading').classList.add('show');
+            document.getElementById('confirmBtn').disabled = true;
+            
+            try {
+                // 步骤 1: 先登录获取 Token 和 userId
+                const loginResponse = await fetch(`${API_BASE}/login`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({ username, password })
+                });
+                
+                const loginData = await loginResponse.json();
+                
+                if (loginData.code !== 200) {
+                    throw new Error(loginData.message || '登录失败');
+                }
+                
+                // 从 JWT Token 中解析 userId
+                const token = loginData.data.token;
+                const payload = JSON.parse(atob(token.split('.')[1]));
+                const userId = payload.userId;
+                
+                showMessage(`✅ 身份验证成功，用户ID: ${userId}`, 'success');
+                
+                // 等待 1 秒
+                await new Promise(resolve => setTimeout(resolve, 1000));
+                
+                // 步骤 2: 扫码
+                const scanResponse = await fetch(`${API_BASE}/api/oauth2/qrcode/scan`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        loginTid: loginTid,
+                        userId: userId,
+                        username: username,
+                        deviceId: 'mobile-app'
+                    })
+                });
+                
+                const scanData = await scanResponse.json();
+                
+                if (scanData.code !== 200) {
+                    throw new Error(scanData.message || '扫码失败');
+                }
+                
+                showMessage('✅ 扫码成功，正在确认登录...', 'success');
+                
+                // 等待 1 秒
+                await new Promise(resolve => setTimeout(resolve, 1000));
+                
+                // 步骤 3: 确认登录
+                const confirmResponse = await fetch(`${API_BASE}/api/oauth2/qrcode/confirm`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        loginTid: loginTid,
+                        userId: userId,
+                        confirm: true
+                    })
+                });
+                
+                const confirmData = await confirmResponse.json();
+                
+                if (confirmData.code !== 200) {
+                    throw new Error(confirmData.message || '确认失败');
+                }
+                
+                showMessage('🎉 登录确认成功！Web 端已自动登录', 'success');
+                
+            } catch (error) {
+                console.error('操作失败:', error);
+                showMessage('❌ ' + error.message, 'error');
+            } finally {
+                document.getElementById('loading').classList.remove('show');
+                document.getElementById('confirmBtn').disabled = false;
+            }
+        }
+        
+        // 重置表单
+        function resetForm() {
+            document.getElementById('loginTid').value = '';
+            document.getElementById('username').value = 'admin';
+            document.getElementById('password').value = 'admin123';
+            document.getElementById('scannedTid').textContent = '等待扫码...';
+            document.getElementById('message').className = 'message';
+            currentLoginTid = '';
+            lastDetectedTid = '';
+            
+            // 停止轮询
+            if (autoDetectTimer) {
+                clearInterval(autoDetectTimer);
+                autoDetectTimer = null;
+            }
+        }
+        
+        // 页面卸载时清理定时器
+        window.addEventListener('beforeunload', () => {
+            if (autoDetectTimer) {
+                clearInterval(autoDetectTimer);
+            }
+        });
+        
+        // 页面加载完成
+        window.addEventListener('DOMContentLoaded', () => {
+            showMessage('💡 提示：输入 Login TID 和用户名密码后点击确认', 'info');
+        });
+    </script>
+</body>
+</html>

@@ -1,0 +1,297 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>扫码登录测试 - 二维码生成器</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+        }
+        
+        .container {
+            background: white;
+            border-radius: 16px;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+            padding: 40px;
+            max-width: 500px;
+            width: 100%;
+            text-align: center;
+        }
+        
+        h1 {
+            color: #333;
+            margin-bottom: 10px;
+            font-size: 28px;
+        }
+        
+        .subtitle {
+            color: #666;
+            margin-bottom: 30px;
+            font-size: 14px;
+        }
+        
+        .btn-generate {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            padding: 14px 32px;
+            border-radius: 8px;
+            font-size: 16px;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.3s;
+            margin-bottom: 30px;
+        }
+        
+        .btn-generate:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 20px rgba(102, 126, 234, 0.4);
+        }
+        
+        .btn-generate:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+            transform: none;
+        }
+        
+        .qrcode-section {
+            display: none;
+            margin-top: 30px;
+        }
+        
+        .qrcode-section.show {
+            display: block;
+        }
+        
+        .qrcode-image {
+            width: 300px;
+            height: 300px;
+            margin: 0 auto 20px;
+            border-radius: 12px;
+            border: 2px solid #e5e7eb;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+        }
+        
+        .info-box {
+            background: #f8f9fa;
+            border-radius: 8px;
+            padding: 15px;
+            margin-bottom: 15px;
+            text-align: left;
+        }
+        
+        .info-box label {
+            display: block;
+            color: #666;
+            font-size: 12px;
+            margin-bottom: 5px;
+            font-weight: 500;
+        }
+        
+        .info-box .value {
+            color: #333;
+            font-family: 'Courier New', monospace;
+            font-size: 13px;
+            word-break: break-all;
+        }
+        
+        .status-box {
+            background: #dbeafe;
+            border: 1px solid #3b82f6;
+            border-radius: 8px;
+            padding: 12px;
+            margin-top: 15px;
+            color: #1e40af;
+            font-weight: 500;
+        }
+        
+        .status-box.scanned {
+            background: #fef3c7;
+            border-color: #f59e0b;
+            color: #92400e;
+        }
+        
+        .status-box.confirmed {
+            background: #d1fae5;
+            border-color: #10b981;
+            color: #065f46;
+        }
+        
+        .loading {
+            display: none;
+            margin: 20px 0;
+        }
+        
+        .loading.show {
+            display: block;
+        }
+        
+        .spinner {
+            border: 3px solid #f3f3f3;
+            border-top: 3px solid #667eea;
+            border-radius: 50%;
+            width: 40px;
+            height: 40px;
+            animation: spin 1s linear infinite;
+            margin: 0 auto;
+        }
+        
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+        
+        .hint {
+            color: #999;
+            font-size: 13px;
+            margin-top: 20px;
+            line-height: 1.6;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🔐 扫码登录测试</h1>
+        <p class="subtitle">生成二维码并获取 loginTid</p>
+        
+        <button class="btn-generate" id="generateBtn" onclick="generateQrCode()">
+            生成二维码
+        </button>
+        
+        <div class="loading" id="loading">
+            <div class="spinner"></div>
+            <p style="margin-top: 10px; color: #666;">正在生成二维码...</p>
+        </div>
+        
+        <div class="qrcode-section" id="qrcodeSection">
+            <img id="qrcodeImage" class="qrcode-image" alt="二维码" />
+            
+            <div class="info-box">
+                <label>Login TID（复制这个值）</label>
+                <div class="value" id="loginTid"></div>
+            </div>
+            
+            <div class="info-box">
+                <label>二维码内容</label>
+                <div class="value" id="qrcodeContent"></div>
+            </div>
+            
+            <div class="status-box" id="statusBox">
+                ⏳ 状态：等待扫码
+            </div>
+            
+            <p class="hint">
+                💡 提示：<br>
+                1. 复制上面的 loginTid<br>
+                2. 打开管理后台页面：qrcode-admin.html<br>
+                3. 粘贴 loginTid 并点击"模拟扫码"<br>
+                4. 点击"确认登录"完成测试
+            </p>
+        </div>
+    </div>
+    
+    <script>
+        let loginTid = '';
+        let pollTimer = null;
+        
+        async function generateQrCode() {
+            const btn = document.getElementById('generateBtn');
+            const loading = document.getElementById('loading');
+            const section = document.getElementById('qrcodeSection');
+            
+            btn.disabled = true;
+            loading.classList.add('show');
+            section.classList.remove('show');
+            
+            try {
+                const response = await fetch('/prod-api/api/oauth2/qrcode/generate', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        clientType: 'web',
+                        deviceName: 'Test Browser'
+                    })
+                });
+                
+                const result = await response.json();
+                
+                if (result.code === 200) {
+                    loginTid = result.data.loginTid;
+                    
+                    // 显示二维码
+                    document.getElementById('qrcodeImage').src = result.data.qrcodeBase64;
+                    document.getElementById('loginTid').textContent = loginTid;
+                    document.getElementById('qrcodeContent').textContent = result.data.qrcodeContent;
+                    
+                    section.classList.add('show');
+                    
+                    // 开始轮询状态
+                    startPolling();
+                } else {
+                    alert('生成失败：' + result.message);
+                }
+            } catch (error) {
+                alert('生成失败：' + error.message);
+            } finally {
+                btn.disabled = false;
+                loading.classList.remove('show');
+            }
+        }
+        
+        function startPolling() {
+            if (pollTimer) {
+                clearInterval(pollTimer);
+            }
+            
+            pollTimer = setInterval(async () => {
+                try {
+                    const response = await fetch(`/prod-api/api/oauth2/qrcode/status?tid=${loginTid}`);
+                    const result = await response.json();
+                    
+                    if (result.code === 200) {
+                        const { status, message } = result.data;
+                        const statusBox = document.getElementById('statusBox');
+                        
+                        if (status === 'scanned') {
+                            statusBox.textContent = '✅ 状态：已扫码，请在管理后台确认';
+                            statusBox.className = 'status-box scanned';
+                        } else if (status === 'confirmed') {
+                            statusBox.textContent = '🎉 状态：登录成功！';
+                            statusBox.className = 'status-box confirmed';
+                            clearInterval(pollTimer);
+                            
+                            // 显示 Token
+                            setTimeout(() => {
+                                alert('登录成功！\n\nToken: ' + result.data.token.substring(0, 50) + '...');
+                            }, 500);
+                        } else if (status === 'rejected') {
+                            statusBox.textContent = '❌ 状态：登录已被拒绝';
+                            clearInterval(pollTimer);
+                        }
+                    }
+                } catch (error) {
+                    if (error.message.includes('过期')) {
+                        clearInterval(pollTimer);
+                        document.getElementById('statusBox').textContent = '⏰ 状态：二维码已过期';
+                    }
+                }
+            }, 2000);
+        }
+    </script>
+</body>
+</html>

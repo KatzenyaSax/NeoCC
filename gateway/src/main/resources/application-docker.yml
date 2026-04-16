@@ -1,0 +1,204 @@
+server:
+  port: 8086
+
+spring:
+  application:
+    name: gateway
+  main:
+    web-application-type: reactive
+  http:
+    codecs:
+      max-in-memory-size: 10MB
+  cloud:
+    nacos:
+      discovery:
+        enabled: false
+    gateway:
+      # 启用字符编码支持
+      httpclient:
+        compress: true
+      default-filters:
+        - DedupeResponseHeader=Access-Control-Allow-Origin Access-Control-Allow-Credentials, RETAIN_UNIQUE
+      routes:
+        - id: "gateway-test"
+          uri: "http://www.bilibili.com"
+          predicates:
+            - Path=/bilibili
+
+        # RuoYi 前端适配：登录认证相关接口（带StripPrefix过滤/prod-api前缀）
+        - id: auth-root-route
+          uri: http://auth-service:8085
+          predicates:
+            - Path=/prod-api/captchaImage,/prod-api/login,/prod-api/logout,/prod-api/register,/prod-api/getInfo,/prod-api/getRouters,/prod-api/unlockscreen
+          filters:
+            - StripPrefix=1
+
+        # Token刷新接口（带StripPrefix过滤/prod-api前缀）
+        - id: auth-token-route
+          uri: http://auth-service:8085
+          predicates:
+            - Path=/prod-api/api/token/**
+          filters:
+            - StripPrefix=1
+
+        # OAuth2 二维码登录接口（带StripPrefix过滤/prod-api前缀）
+        - id: auth-oauth2-qrcode-route
+          uri: http://auth-service:8085
+          predicates:
+            - Path=/prod-api/api/oauth2/**
+          filters:
+            - StripPrefix=1
+
+        - id: auth-route
+          uri: http://auth-service:8085
+          predicates:
+            - Path=/auth/**
+
+        - id: finance-route
+          uri: http://finance-service:8084
+          predicates:
+            - Path=/finance/**
+
+        - id: sales-route
+          uri: http://sales-service:8083
+          predicates:
+            - Path=/sales/**
+
+        - id: system-route
+          uri: http://system-service:8082
+          predicates:
+            - Path=/system/**
+
+        # 销售模块 API 路由（带StripPrefix过滤/prod-api前缀）
+        - id: sales-api-customer
+          uri: http://sales-service:8083
+          predicates:
+            - Path=/prod-api/api/customer/**
+          filters:
+            - StripPrefix=1
+
+        - id: sales-api-contract
+          uri: http://sales-service:8083
+          predicates:
+            - Path=/prod-api/api/contract/**
+          filters:
+            - StripPrefix=1
+
+        - id: sales-api-contact-record
+          uri: http://sales-service:8083
+          predicates:
+            - Path=/prod-api/api/contactRecord/**
+          filters:
+            - StripPrefix=1
+
+        - id: sales-api-customer-transfer
+          uri: http://sales-service:8083
+          predicates:
+            - Path=/prod-api/api/customerTransferLog/**
+          filters:
+            - StripPrefix=1
+
+        - id: sales-api-performance
+          uri: http://sales-service:8083
+          predicates:
+            - Path=/prod-api/api/performanceRecord/**
+          filters:
+            - StripPrefix=1
+
+        - id: sales-api-worklog
+          uri: http://sales-service:8083
+          predicates:
+            - Path=/prod-api/api/workLog/**
+          filters:
+            - StripPrefix=1
+
+        # 财务模块 API 路由（带StripPrefix过滤/prod-api前缀）
+        - id: finance-api-loan-audit
+          uri: http://finance-service:8084
+          predicates:
+            - Path=/prod-api/api/loanAudit/**
+          filters:
+            - StripPrefix=1
+
+        - id: finance-api-commission
+          uri: http://finance-service:8084
+          predicates:
+            - Path=/prod-api/api/commissionRecord/**
+          filters:
+            - StripPrefix=1
+
+        - id: finance-api-service-fee
+          uri: http://finance-service:8084
+          predicates:
+            - Path=/prod-api/api/serviceFeeRecord/**
+          filters:
+            - StripPrefix=1
+
+        - id: finance-api-bank
+          uri: http://finance-service:8084
+          predicates:
+            - Path=/prod-api/api/bank/**
+          filters:
+            - StripPrefix=1
+
+        - id: finance-api-product
+          uri: http://finance-service:8084
+          predicates:
+            - Path=/prod-api/api/financeProduct/**
+          filters:
+            - StripPrefix=1
+
+        # 系统模块 API 路由（带StripPrefix过滤/prod-api前缀）
+        - id: system-api-department
+          uri: http://system-service:8082
+          predicates:
+            - Path=/prod-api/api/sysDepartment/**
+          filters:
+            - StripPrefix=1
+
+        - id: system-api-zone
+          uri: http://system-service:8082
+          predicates:
+            - Path=/prod-api/api/sysZone/**
+          filters:
+            - StripPrefix=1
+
+        # Auth 模块 API 路由（用户/角色/权限管理，带StripPrefix过滤/prod-api前缀）
+        - id: auth-api-user
+          uri: http://auth-service:8085
+          predicates:
+            - Path=/prod-api/api/sysUser/**
+          filters:
+            - StripPrefix=1
+
+        - id: auth-api-role
+          uri: http://auth-service:8085
+          predicates:
+            - Path=/prod-api/api/sysRole/**
+          filters:
+            - StripPrefix=1
+
+        - id: auth-api-permission
+          uri: http://auth-service:8085
+          predicates:
+            - Path=/prod-api/api/sysPermission/**
+          filters:
+            - StripPrefix=1
+
+      globalcors:
+        corsConfigurations:
+          '[/**]':
+            allowedOriginPatterns: "*"
+            allowedMethods:
+              - GET
+              - POST
+              - PUT
+              - DELETE
+              - OPTIONS
+            allowedHeaders: "*"
+            allowCredentials: false
+            maxAge: 3600
+
+logging:
+  level:
+    com.dafuweng: DEBUG

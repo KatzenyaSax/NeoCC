@@ -1,0 +1,47 @@
+server:
+  port: 8082
+  servlet:
+    encoding:
+      charset: UTF-8
+      force: true
+      enabled: true
+
+spring:
+  application:
+    name: system
+  http:
+    encoding:
+      charset: UTF-8
+      force: true
+      enabled: true
+  datasource:
+    driver-class-name: com.mysql.cj.jdbc.Driver
+    url: jdbc:mysql://neocc-mysql:3306/dafuweng_system?allowPublicKeyRetrieval=true&useUnicode=true&characterEncoding=utf8&serverTimezone=Asia/Shanghai&useSSL=false
+    username: root
+    password: 123456
+  redis:
+    host: ${REDIS_HOST:neocc-redis}
+    port: 6379
+    password:
+    database: 0
+    timeout: 5000
+  cloud:
+    nacos:
+      discovery:
+        enabled: false
+
+mybatis-plus:
+  mapper-locations: classpath:system/mapper/*.xml
+  type-aliases-package: com.dafuweng.system.entity
+  configuration:
+    map-underscore-to-camel-case: true
+    log-impl: org.apache.ibatis.logging.stdout.StdOutImpl
+  global-config:
+    db-config:
+      logic-delete-field: deleted
+      logic-delete-value: 1
+      logic-not-delete-value: 0
+
+logging:
+  level:
+    com.dafuweng: DEBUG
