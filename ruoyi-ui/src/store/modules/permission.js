@@ -45,7 +45,10 @@ const usePermissionStore = defineStore(
             const rewriteRoutes = filterAsyncRouter(rdata, false, true)
             const defaultRoutes = filterAsyncRouter(defaultData)
             const asyncRoutes = filterDynamicRoutes(dynamicRoutes)
+            // 注册动态路由
             asyncRoutes.forEach(route => { router.addRoute(route) })
+            // 注册从后端获取的路由（重要！）
+            rewriteRoutes.forEach(route => { router.addRoute(route) })
             this.setRoutes(rewriteRoutes)
             this.setSidebarRouters(constantRoutes.concat(sidebarRoutes))
             this.setDefaultRoutes(sidebarRoutes)

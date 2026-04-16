@@ -6,126 +6,184 @@ spring:
     name: gateway
   main:
     web-application-type: reactive
+  http:
+    codecs:
+      max-in-memory-size: 10MB
   cloud:
     nacos:
       discovery:
         enabled: false
     gateway:
+      # 启用字符编码支持
+      httpclient:
+        compress: true
+      default-filters:
+        - DedupeResponseHeader=Access-Control-Allow-Origin Access-Control-Allow-Credentials, RETAIN_UNIQUE
       routes:
         - id: "gateway-test"
           uri: "http://www.bilibili.com"
           predicates:
             - Path=/bilibili
 
-        # RuoYi 前端适配：登录认证相关接口（根路径）
+        # RuoYi 前端适配：登录认证相关接口（带StripPrefix过滤/prod-api前缀）
         - id: auth-root-route
-          uri: http://neocc-auth:8085
+          uri: http://auth-service:8085
           predicates:
-            - Path=/captchaImage,/login,/logout,/register,/getInfo,/getRouters,/unlockscreen
+            - Path=/prod-api/captchaImage,/prod-api/login,/prod-api/logout,/prod-api/register,/prod-api/getInfo,/prod-api/getRouters,/prod-api/unlockscreen
+          filters:
+            - StripPrefix=1
+
+        # Token刷新接口（带StripPrefix过滤/prod-api前缀）
+        - id: auth-token-route
+          uri: http://auth-service:8085
+          predicates:
+            - Path=/prod-api/api/token/**
+          filters:
+            - StripPrefix=1
+
+        # OAuth2 二维码登录接口（带StripPrefix过滤/prod-api前缀）
+        - id: auth-oauth2-qrcode-route
+          uri: http://auth-service:8085
+          predicates:
+            - Path=/prod-api/api/oauth2/**
+          filters:
+            - StripPrefix=1
 
         - id: auth-route
-          uri: http://neocc-auth:8085
+          uri: http://auth-service:8085
           predicates:
             - Path=/auth/**
 
         - id: finance-route
-          uri: http://neocc-finance:8084
+          uri: http://finance-service:8084
           predicates:
             - Path=/finance/**
 
         - id: sales-route
-          uri: http://neocc-sales:8083
+          uri: http://sales-service:8083
           predicates:
             - Path=/sales/**
 
         - id: system-route
-          uri: http://neocc-system:8082
+          uri: http://system-service:8082
           predicates:
             - Path=/system/**
 
-        # 销售模块 API 路由
+        # 销售模块 API 路由（带StripPrefix过滤/prod-api前缀）
         - id: sales-api-customer
-          uri: http://neocc-sales:8083
+          uri: http://sales-service:8083
           predicates:
-            - Path=/api/customer/**
+            - Path=/prod-api/api/customer/**
+          filters:
+            - StripPrefix=1
 
         - id: sales-api-contract
-          uri: http://neocc-sales:8083
+          uri: http://sales-service:8083
           predicates:
-            - Path=/api/contract/**
+            - Path=/prod-api/api/contract/**
+          filters:
+            - StripPrefix=1
 
         - id: sales-api-contact-record
-          uri: http://neocc-sales:8083
+          uri: http://sales-service:8083
           predicates:
-            - Path=/api/contactRecord/**
+            - Path=/prod-api/api/contactRecord/**
+          filters:
+            - StripPrefix=1
 
         - id: sales-api-customer-transfer
-          uri: http://neocc-sales:8083
+          uri: http://sales-service:8083
           predicates:
-            - Path=/api/customerTransferLog/**
+            - Path=/prod-api/api/customerTransferLog/**
+          filters:
+            - StripPrefix=1
 
         - id: sales-api-performance
-          uri: http://neocc-sales:8083
+          uri: http://sales-service:8083
           predicates:
-            - Path=/api/performanceRecord/**
+            - Path=/prod-api/api/performanceRecord/**
+          filters:
+            - StripPrefix=1
 
         - id: sales-api-worklog
-          uri: http://neocc-sales:8083
+          uri: http://sales-service:8083
           predicates:
-            - Path=/api/workLog/**
+            - Path=/prod-api/api/workLog/**
+          filters:
+            - StripPrefix=1
 
-        # 财务模块 API 路由
+        # 财务模块 API 路由（带StripPrefix过滤/prod-api前缀）
         - id: finance-api-loan-audit
-          uri: http://neocc-finance:8084
+          uri: http://finance-service:8084
           predicates:
-            - Path=/api/loanAudit/**
+            - Path=/prod-api/api/loanAudit/**
+          filters:
+            - StripPrefix=1
 
         - id: finance-api-commission
-          uri: http://neocc-finance:8084
+          uri: http://finance-service:8084
           predicates:
-            - Path=/api/commissionRecord/**
+            - Path=/prod-api/api/commissionRecord/**
+          filters:
+            - StripPrefix=1
 
         - id: finance-api-service-fee
-          uri: http://neocc-finance:8084
+          uri: http://finance-service:8084
           predicates:
-            - Path=/api/serviceFeeRecord/**
+            - Path=/prod-api/api/serviceFeeRecord/**
+          filters:
+            - StripPrefix=1
 
         - id: finance-api-bank
-          uri: http://neocc-finance:8084
+          uri: http://finance-service:8084
           predicates:
-            - Path=/api/bank/**
+            - Path=/prod-api/api/bank/**
+          filters:
+            - StripPrefix=1
 
         - id: finance-api-product
-          uri: http://neocc-finance:8084
+          uri: http://finance-service:8084
           predicates:
-            - Path=/api/financeProduct/**
+            - Path=/prod-api/api/financeProduct/**
+          filters:
+            - StripPrefix=1
 
-        # 系统模块 API 路由
+        # 系统模块 API 路由（带StripPrefix过滤/prod-api前缀）
         - id: system-api-department
-          uri: http://neocc-system:8082
+          uri: http://system-service:8082
           predicates:
-            - Path=/api/sysDepartment/**
+            - Path=/prod-api/api/sysDepartment/**
+          filters:
+            - StripPrefix=1
 
         - id: system-api-zone
-          uri: http://neocc-system:8082
+          uri: http://system-service:8082
           predicates:
-            - Path=/api/sysZone/**
+            - Path=/prod-api/api/sysZone/**
+          filters:
+            - StripPrefix=1
 
-        # Auth 模块 API 路由（用户/角色/权限管理）
+        # Auth 模块 API 路由（用户/角色/权限管理，带StripPrefix过滤/prod-api前缀）
         - id: auth-api-user
-          uri: http://neocc-auth:8085
+          uri: http://auth-service:8085
           predicates:
-            - Path=/api/sysUser/**
+            - Path=/prod-api/api/sysUser/**
+          filters:
+            - StripPrefix=1
 
         - id: auth-api-role
-          uri: http://neocc-auth:8085
+          uri: http://auth-service:8085
           predicates:
-            - Path=/api/sysRole/**
+            - Path=/prod-api/api/sysRole/**
+          filters:
+            - StripPrefix=1
 
         - id: auth-api-permission
-          uri: http://neocc-auth:8085
+          uri: http://auth-service:8085
           predicates:
-            - Path=/api/sysPermission/**
+            - Path=/prod-api/api/sysPermission/**
+          filters:
+            - StripPrefix=1
 
       globalcors:
         corsConfigurations:

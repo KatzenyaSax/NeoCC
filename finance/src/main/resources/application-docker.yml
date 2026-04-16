@@ -1,9 +1,19 @@
 server:
   port: 8084
+  servlet:
+    encoding:
+      charset: UTF-8
+      force: true
+      enabled: true
 
 spring:
   application:
     name: finance
+  http:
+    encoding:
+      charset: UTF-8
+      force: true
+      enabled: true
   datasource:
     driver-class-name: com.mysql.cj.jdbc.Driver
     url: jdbc:mysql://neocc-mysql:3306/dafuweng_finance?allowPublicKeyRetrieval=true&useUnicode=true&characterEncoding=utf8&serverTimezone=Asia/Shanghai&useSSL=false

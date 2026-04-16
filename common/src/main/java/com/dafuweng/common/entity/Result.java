@@ -20,6 +20,14 @@ public class Result<T> {
         return success(null);
     }
 
+    public static <T> Result<T> success(String message) {
+        Result<T> r = new Result<>();
+        r.setCode(200);
+        r.setMessage(message);
+        r.setData(null);
+        return r;
+    }
+
     public static <T> Result<T> error(String message) {
         return error(500, message);
     }

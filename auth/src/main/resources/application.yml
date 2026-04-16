@@ -1,14 +1,30 @@
 server:
   port: 8085
+  servlet:
+    encoding:
+      charset: UTF-8
+      force: true
+      enabled: true
 
 spring:
   application:
     name: auth
+  http:
+    encoding:
+      charset: UTF-8
+      force: true
+      enabled: true
   datasource:
     driver-class-name: com.mysql.cj.jdbc.Driver
     url: jdbc:mysql://localhost:3306/dafuweng_auth?allowPublicKeyRetrieval=true&useUnicode=true&characterEncoding=utf8&serverTimezone=Asia/Shanghai&useSSL=false
     username: root
     password: 123456
+  redis:
+    host: localhost
+    port: 6379
+    password:
+    database: 0
+    timeout: 3000
   cloud:
     nacos:
       discovery:
@@ -29,6 +45,30 @@ mybatis-plus:
       logic-delete-value: 1
       logic-not-delete-value: 0
 
+# JWT配置
+jwt:
+  # JWT签名密钥（生产环境应使用更复杂的密钥）
+  secret: NeoCC2024SecretKeyForJWTTokenGenerationAndValidation123456
+  # Token过期时间（毫秒），默认24小时
+  expiration: 86400000
+  # Refresh Token过期时间（毫秒），默认7天
+  refresh-expiration: 604800000
+  # Token前缀
+  prefix: "Bearer "
+
 logging:
   level:
     com.dafuweng: DEBUG
+
+# Swagger配置
+springdoc:
+  api-docs:
+    enabled: true
+    path: /v3/api-docs
+  swagger-ui:
+    enabled: true
+    path: /swagger-ui.html
+  info:
+    title: NeoCC 认证服务API
+    version: 1.0.0
+    description: NeoCC信贷管理系统 - 认证授权模块

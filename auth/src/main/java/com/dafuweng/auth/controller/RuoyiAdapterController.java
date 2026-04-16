@@ -1,7 +1,12 @@
 package com.dafuweng.auth.controller;
 
+import com.dafuweng.auth.annotation.OperLog;
+import com.dafuweng.auth.entity.SysMenuEntity;
 import com.dafuweng.auth.entity.SysUserEntity;
+import com.dafuweng.auth.service.SysMenuService;
 import com.dafuweng.auth.service.SysUserService;
+import com.dafuweng.auth.service.TokenStoreService;
+import com.dafuweng.auth.utils.JwtUtil;
 import com.dafuweng.common.entity.Result;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
@@ -17,23 +22,21 @@ public class RuoyiAdapterController {
 
     @Autowired
     private SysUserService sysUserService;
-
-    /**
-     * 验证码接口 - 放行直接通过（返回模拟验证码）
-     */
-    @GetMapping("/captchaImage")
-    public Result<Map<String, Object>> captchaImage() {
-        Map<String, Object> result = new HashMap<>();
-        // 模拟返回验证码信息，实际使用时可以接入验证码生成库
-        result.put("captchaEnabled", false); // 关闭验证码功能
-        result.put("uuid", UUID.randomUUID().toString());
-        result.put("img", ""); // 空图片，前端不显示验证码
-        return Result.success(result);
-    }
+    
+    @Autowired
+    private SysMenuService sysMenuService;
+    
+    @Autowired
+    private JwtUtil jwtUtil;
+    
+    @Autowired
+    private TokenStoreService tokenStoreService;
 
     /**
      * 登录接口 - 适配 RuoYi 格式
+     * 使用真正的JWT Token
      */
+    @OperLog(title = "用户登录", businessType = 0)
     @PostMapping("/login")
     public Result<Map<String, Object>> login(@RequestBody Map<String, String> loginRequest) {
         String username = loginRequest.get("username");
@@ -41,13 +44,47 @@ public class RuoyiAdapterController {
         String code = loginRequest.get("code");
         String uuid = loginRequest.get("uuid");
         
+        // 验证验证码
+        if (code != null && uuid != null && !code.isEmpty()) {
+            if (!CaptchaController.verifyCaptcha(uuid, code)) {
+                return Result.error(400, "验证码错误");
+            }
+        }
+        
         // 调用原有登录逻辑
         SysUserEntity user = sysUserService.login(username, password, "unknown");
         
+        // 获取用户权限
+        List<String> permissions = sysUserService.getPermCodesByUserId(user.getId());
+        List<String> roles = new ArrayList<>();
+        if (permissions.contains("*:*:*")) {
+            roles.add("admin");
+        } else {
+            roles.add("common");
+        }
+        
+        // 生成真正的JWT Token
+        String jwtToken = jwtUtil.generateToken(
+            user.getId(),
+            user.getUsername(),
+            roles.toArray(new String[0]),
+            permissions.toArray(new String[0])
+        );
+        
+        // 生成Refresh Token（用于Token刷新）
+        String deviceId = loginRequest.getOrDefault("deviceId", "default");
+        String refreshToken = tokenStoreService.createRefreshToken(
+            user.getId(),
+            user.getUsername(),
+            deviceId
+        );
+        
         // 适配 RuoYi 响应格式
         Map<String, Object> result = new HashMap<>();
-        result.put("token", user.getId().toString()); // 使用 userId 作为 token
-        result.put("expires_in", 7200); // token 过期时间 2小时
+        result.put("token", jwtToken); // 使用真正的JWT Token
+        result.put("refreshToken", refreshToken); // Refresh Token
+        result.put("expires_in", 86400); // Access Token 过期时间 24小时
+        result.put("refreshExpiresIn", 604800); // Refresh Token 过期时间 7天
         
         return Result.success(result);
     }
@@ -100,65 +137,17 @@ public class RuoyiAdapterController {
     }
 
     /**
-     * 获取路由菜单 - 适配 RuoYi 格式
+     * 获取路由菜单 - 从数据库动态加载
      */
     @GetMapping("/getRouters")
     public Result<List<Map<String, Object>>> getRouters(@RequestHeader(value = "Authorization", required = false) String token) {
         Long userId = getUserIdFromToken(token);
         
-        List<Map<String, Object>> routers = new ArrayList<>();
+        // 从数据库获取用户菜单
+        List<SysMenuEntity> menus = sysMenuService.getUserMenus(userId);
         
-        // 系统管理菜单
-        Map<String, Object> systemMenu = new HashMap<>();
-        systemMenu.put("name", "System");
-        systemMenu.put("path", "/system");
-        systemMenu.put("hidden", false);
-        systemMenu.put("component", "Layout");
-        systemMenu.put("meta", createMeta("系统管理", "system", false, null));
-
-        List<Map<String, Object>> systemChildren = new ArrayList<>();
-        systemChildren.add(createMenuItem("User", "user", "system/user/index", "用户管理", "user"));
-        systemChildren.add(createMenuItem("Role", "role", "system/role/index", "角色管理", "peoples"));
-        systemChildren.add(createMenuItem("Menu", "menu", "system/menu/index", "菜单管理", "tree-table"));
-        systemChildren.add(createMenuItem("Department", "department", "system/department/index", "部门管理", "tree"));
-        systemChildren.add(createMenuItem("Zone", "zone", "system/zone/index", "区域管理", "map"));
-        systemMenu.put("children", systemChildren);
-        routers.add(systemMenu);
-
-        // 销售管理菜单
-        Map<String, Object> salesMenu = new HashMap<>();
-        salesMenu.put("name", "Sales");
-        salesMenu.put("path", "/sales");
-        salesMenu.put("hidden", false);
-        salesMenu.put("component", "Layout");
-        salesMenu.put("meta", createMeta("销售管理", "shopping", false, null));
-
-        List<Map<String, Object>> salesChildren = new ArrayList<>();
-        salesChildren.add(createMenuItem("Customer", "customer", "sales/customer/index", "客户管理", "peoples"));
-        salesChildren.add(createMenuItem("Contract", "contract", "sales/contract/index", "合同管理", "edit"));
-        salesChildren.add(createMenuItem("ContactRecord", "contact-record", "sales/contact-record/index", "跟进记录", "message"));
-        salesChildren.add(createMenuItem("WorkLog", "work-log", "sales/work-log/index", "工作日志", "log"));
-        salesChildren.add(createMenuItem("PerformanceRecord", "performance-record", "sales/performance-record/index", "业绩记录", "chart"));
-        salesChildren.add(createMenuItem("CustomerTransfer", "customer-transfer", "sales/customer-transfer/index", "客户转移记录", "sort"));
-        salesMenu.put("children", salesChildren);
-        routers.add(salesMenu);
-
-        // 财务管理菜单
-        Map<String, Object> financeMenu = new HashMap<>();
-        financeMenu.put("name", "Finance");
-        financeMenu.put("path", "/finance");
-        financeMenu.put("hidden", false);
-        financeMenu.put("component", "Layout");
-        financeMenu.put("meta", createMeta("财务管理", "money", false, null));
-
-        List<Map<String, Object>> financeChildren = new ArrayList<>();
-        financeChildren.add(createMenuItem("LoanAudit", "loan-audit", "finance/loan-audit/index", "贷款审核", "audit"));
-        financeChildren.add(createMenuItem("Commission", "commission", "finance/commission/index", "佣金记录", "dollar"));
-        financeChildren.add(createMenuItem("ServiceFee", "service-fee", "finance/service-fee/index", "服务费记录", "money"));
-        financeChildren.add(createMenuItem("Bank", "bank", "finance/bank/index", "银行管理", "card"));
-        financeChildren.add(createMenuItem("FinanceProduct", "product", "finance/product/index", "金融产品", "list"));
-        financeMenu.put("children", financeChildren);
-        routers.add(financeMenu);
+        // 转换为RuoYi前端格式
+        List<Map<String, Object>> routers = convertToRouters(menus);
         
         return Result.success(routers);
     }
@@ -200,14 +189,23 @@ public class RuoyiAdapterController {
 
     // ========== 辅助方法 ==========
     
+    /**
+     * 从Token中获取用户ID
+     * 使用JwtUtil解析真正的JWT Token
+     */
     private Long getUserIdFromToken(String token) {
         if (token == null || token.isEmpty()) {
             return null;
         }
-        // 简化处理：token 就是 userId
         try {
-            return Long.parseLong(token.replace("Bearer ", ""));
-        } catch (NumberFormatException e) {
+            // 去除Bearer前缀
+            String cleanToken = token.replace("Bearer ", "").trim();
+            // 使用JwtUtil解析
+            if (jwtUtil.validateToken(cleanToken)) {
+                return jwtUtil.getUserIdFromToken(cleanToken);
+            }
+            return null;
+        } catch (Exception e) {
             return null;
         }
     }
@@ -230,5 +228,54 @@ public class RuoyiAdapterController {
         item.put("component", component);
         item.put("meta", createMeta(title, icon, false, null));
         return item;
+    }
+    
+    /**
+     * 将数据库菜单转换为RuoYi前端路由格式
+     */
+    private List<Map<String, Object>> convertToRouters(List<SysMenuEntity> menus) {
+        List<Map<String, Object>> routers = new ArrayList<>();
+        
+        // 获取所有一级菜单（parentId=0）
+        List<SysMenuEntity> parentMenus = menus.stream()
+                .filter(m -> m.getParentId() == 0)
+                .toList();
+        
+        for (SysMenuEntity parent : parentMenus) {
+            Map<String, Object> router = new HashMap<>();
+            router.put("name", parent.getRouteName());
+            router.put("path", parent.getPath());
+            router.put("hidden", "1".equals(parent.getVisible()));
+            router.put("component", parent.getComponent());
+            router.put("meta", createMeta(
+                parent.getMenuName(),
+                parent.getIcon(),
+                parent.getIsCache() == 1,
+                null
+            ));
+            
+            // 获取子菜单
+            List<SysMenuEntity> children = menus.stream()
+                    .filter(m -> m.getParentId().equals(parent.getMenuId()))
+                    .toList();
+            
+            if (!children.isEmpty()) {
+                List<Map<String, Object>> childrenList = new ArrayList<>();
+                for (SysMenuEntity child : children) {
+                    childrenList.add(createMenuItem(
+                        child.getRouteName(),
+                        child.getPath(),
+                        child.getComponent(),
+                        child.getMenuName(),
+                        child.getIcon()
+                    ));
+                }
+                router.put("children", childrenList);
+            }
+            
+            routers.add(router);
+        }
+        
+        return routers;
     }
 }
