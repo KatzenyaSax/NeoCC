@@ -348,6 +348,7 @@ CREATE TABLE `contract` (
   `customer_id`           BIGINT         NOT NULL                     COMMENT '客户ID',
   `sales_rep_id`          BIGINT         NOT NULL                     COMMENT '负责销售ID',
   `dept_id`               BIGINT         NOT NULL                     COMMENT '所属部门ID',
+  `zone_id`               BIGINT                                      COLLATE '所属战区',
   `product_id`            BIGINT                                       COMMENT '金融产品ID(审核通过后填充)',
   `contract_amount`       DECIMAL(15,2)  NOT NULL                     COMMENT '合同金额(贷款申请额)',
   `actual_loan_amount`    DECIMAL(15,2)                                COMMENT '实际放款金额(银行放款后)',

@@ -2,6 +2,7 @@ package com.dafuweng.auth.service.impl;
 
 import com.dafuweng.auth.dao.SysRoleDao;
 import com.dafuweng.auth.dao.SysRolePermissionDao;
+import com.dafuweng.auth.dao.SysUserRoleDao;
 import com.dafuweng.auth.entity.SysRoleEntity;
 import com.dafuweng.auth.entity.SysRolePermissionEntity;
 import com.dafuweng.auth.service.SysRoleService;
@@ -18,6 +19,8 @@ import org.springframework.util.StringUtils;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
+import java.util.Objects;
+import java.util.stream.Collectors;
 
 @Service
 public class SysRoleServiceImpl implements SysRoleService {
@@ -27,6 +30,9 @@ public class SysRoleServiceImpl implements SysRoleService {
 
     @Autowired
     private SysRolePermissionDao sysRolePermissionDao;
+
+    @Autowired
+    private SysUserRoleDao sysUserRoleDao;
 
     @Override
     public SysRoleEntity getById(Long id) {
@@ -99,5 +105,18 @@ public class SysRoleServiceImpl implements SysRoleService {
     @Transactional
     public void delete(Long id) {
         sysRoleDao.deleteById(id);
+    }
+
+    @Override
+    public List<String> getRoleCodesByUserId(Long userId) {
+        List<Long> roleIds = sysUserRoleDao.selectRoleIdsByUserId(userId);
+        if (roleIds == null || roleIds.isEmpty()) return new ArrayList<>();
+        return roleIds.stream()
+            .map(id -> {
+                SysRoleEntity role = sysRoleDao.selectById(id);
+                return role != null ? role.getRoleCode() : null;
+            })
+            .filter(Objects::nonNull)
+            .collect(Collectors.toList());
     }
 }

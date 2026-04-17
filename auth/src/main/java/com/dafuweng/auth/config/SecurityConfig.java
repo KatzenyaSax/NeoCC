@@ -38,6 +38,12 @@ public class SecurityConfig {
             .authorizeHttpRequests(auth -> auth
                 .requestMatchers("/api/sysUser/login", "/api/sysUser/page").permitAll()
                 .requestMatchers("/api/sysUser/dev/**").permitAll()
+                .requestMatchers("/api/sysUser/{id}").permitAll()
+                .requestMatchers("/api/sysUser/{id}/roles").permitAll()
+                .requestMatchers("/api/sysUser/{id}/permCodes").permitAll()
+                .requestMatchers("/auth/**").permitAll()
+                // doc04 修正后：Gateway StripPrefix=1，原始 /auth/login → auth服务收到 /login
+                .requestMatchers("/login", "/getInfo", "/getRouters", "/logout").permitAll()
                 .requestMatchers("/static/**", "/favicon.ico").permitAll()
                 .anyRequest().authenticated()
             )

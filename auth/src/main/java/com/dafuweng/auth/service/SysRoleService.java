@@ -14,6 +14,13 @@ public interface SysRoleService {
 
     List<SysRoleEntity> listByStatus(Short status);
 
+    /**
+     * 根据用户ID查询角色编码列表
+     * @param userId 用户ID
+     * @return 角色编码列表，如 ["SUPER_ADMIN", "ZONE_DIRECTOR"]
+     */
+    List<String> getRoleCodesByUserId(Long userId);
+
     List<Long> getPermissionIdsByRoleId(Long roleId);
 
     void assignPermissions(Long roleId, List<Long> permissionIds);

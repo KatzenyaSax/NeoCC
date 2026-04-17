@@ -37,3 +37,8 @@ build/
 
 ### Mac OS ###
 .DS_Store
+
+### Node / npm ###
+node_modules/
+frontEnd_OLD/node_modules/
+.gstack/

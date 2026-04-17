@@ -6,7 +6,7 @@ import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
 
-@FeignClient(name = "dafuweng-auth", contextId = "authClient")
+@FeignClient(name = "auth", url = "http://localhost:8085", contextId = "authClient")
 public interface AuthFeignClient {
 
     /**

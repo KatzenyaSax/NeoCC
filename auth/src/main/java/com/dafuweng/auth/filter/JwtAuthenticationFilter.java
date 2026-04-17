@@ -32,8 +32,12 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
 
         String path = request.getRequestURI();
 
-        // 放行公开路径
-        if (path.contains("/api/sysUser/login") || path.contains("/api/sysUser/page")) {
+        // 放行公开路径（doc04 修正后：Gateway StripPrefix=0，/auth/login 完整转发到 auth:8085/auth/login）
+        if (path.contains("/api/sysUser/login") || path.contains("/api/sysUser/page") ||
+            path.equals("/auth/login") || path.startsWith("/auth/login") ||
+            path.equals("/auth/getInfo") || path.startsWith("/auth/getInfo") ||
+            path.equals("/auth/getRouters") || path.startsWith("/auth/getRouters") ||
+            path.equals("/auth/logout") || path.startsWith("/auth/logout")) {
             filterChain.doFilter(request, response);
             return;
         }

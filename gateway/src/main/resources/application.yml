@@ -14,36 +14,84 @@ spring:
         password: nacos
         username: nacos
         namespace: afae1f3f-8800-48c4-a161-c525a45538c9
+    openfeign:
+      lb:
+        enabled: false
+    loadbalancer:
+      enabled: false
     gateway:
+      discovery:
+        locator:
+          enabled: false
       routes:
         - id: "gateway-test"
           uri: "http://www.bilibili.com"
           predicates:
             - Path=/bilibili
 
-        - id: auth-route
-          uri: lb://auth
+        - id: auth-api-rewrite-route
+          uri: http://localhost:8085
           predicates:
-            - Path=/auth/**
+            - Path=/auth/api/**
           filters:
             - StripPrefix=1
 
+        - id: auth-api-route
+          uri: http://localhost:8085
+          predicates:
+            - Path=/api/sysUser/**
+            - Path=/api/sysRole/**
+            - Path=/api/sysPermission/**
+            - Path=/api/sysDept/**
+            - Path=/api/sysZone/**
+            - Path=/api/sysOperationLog/**
+          filters:
+            - StripPrefix=0
+
+        - id: auth-route
+          uri: http://localhost:8085
+          predicates:
+            - Path=/auth/**
+          filters:
+            - StripPrefix=0
+
+        - id: sales-api-route
+          uri: http://localhost:8083
+          predicates:
+            - Path=/api/customer/**
+            - Path=/api/contract/**
+            - Path=/api/contactRecord/**
+            - Path=/api/workLog/**
+          filters:
+            - StripPrefix=0
+
+        - id: finance-api-route
+          uri: http://localhost:8084
+          predicates:
+            - Path=/api/loanAudit/**
+            - Path=/api/bank/**
+            - Path=/api/financeProduct/**
+            - Path=/api/commission/**
+            - Path=/api/serviceFee/**
+          filters:
+            - StripPrefix=0
+
         - id: finance-route
-          uri: lb://finance
+          uri: http://localhost:8084
           predicates:
             - Path=/finance/**
           filters:
             - StripPrefix=1
 
         - id: sales-route
-          uri: lb://sales
+          uri: http://localhost:8083
           predicates:
             - Path=/sales/**
           filters:
             - StripPrefix=1
 
         - id: system-route
-          uri: lb://system
+          uri: http://localhost:8082
           predicates:
             - Path=/system/**
           filters:
@@ -52,7 +100,7 @@ spring:
       globalcors:
         corsConfigurations:
           '[/**]':
-            allowedOrigins: "http://localhost:3000"
+            allowedOrigins: "http://localhost:3000,http://localhost:3001"
             allowedMethods:
               - GET
               - POST
@@ -62,18 +110,6 @@ spring:
             allowedHeaders: "*"
             allowCredentials: true
             maxAge: 3600
-
-
-
-
-
-
-
-
-
-
-
-
 
 logging:
   level:
