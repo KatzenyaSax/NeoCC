@@ -8,6 +8,7 @@
         <result property="customerId" column="customer_id"/>
         <result property="salesRepId" column="sales_rep_id"/>
         <result property="deptId" column="dept_id"/>
+        <result property="zoneId" column="zone_id"/>
         <result property="productId" column="product_id"/>
         <result property="contractAmount" column="contract_amount"/>
         <result property="actualLoanAmount" column="actual_loan_amount"/>

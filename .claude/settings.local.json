@@ -73,7 +73,9 @@
       "Bash(powershell -Command \"Get-Item C:\\\\\\\\Users\\\\\\\\a1829\\\\\\\\Desktop\\\\\\\\NeoCC\\\\\\\\gateway\\\\\\\\target\\\\\\\\classes\\\\\\\\com\\\\\\\\dafuweng\\\\\\\\gateway\\\\\\\\filter\\\\\\\\AuthFilter.class | Select-Object Name, Length, LastWriteTime\")",
       "Bash(ls:*)",
       "Bash(xargs cat:*)",
-      "Bash(~/.claude/skills/gstack/browse/dist/browse network:*)"
+      "Bash(~/.claude/skills/gstack/browse/dist/browse network:*)",
+      "Bash(/c/Users/a1829/.claude/skills/gstack/browse/dist/browse js:*)",
+      "Bash(/c/Users/a1829/.claude/skills/gstack/browse/dist/browse screenshot:*)"
     ]
   }
 }

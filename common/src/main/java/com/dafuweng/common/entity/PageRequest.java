@@ -8,4 +8,5 @@ public class PageRequest {
     private Integer size = 10;
     private String sortField;
     private String sortOrder = "asc";
+    private String name;
 }

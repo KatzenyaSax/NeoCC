@@ -50,3 +50,11 @@ export function delCustomer(id) {
     method: 'delete'
   })
 }
+
+// 获取客户详情（聚合所有相关数据）
+export function getCustomerView(id) {
+  return request({
+    url: '/customer/view/' + id,
+    method: 'get'
+  })
+}

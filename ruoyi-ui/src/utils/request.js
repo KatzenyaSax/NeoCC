@@ -34,7 +34,8 @@ function getBaseURL(url) {
   if (url.startsWith('/customer') || url.startsWith('/contract') ||
       url.startsWith('/contactRecord') || url.startsWith('/workLog') ||
       url.startsWith('/performanceRecord') || url.startsWith('/customerTransferLog') ||
-      url.startsWith('/contractAttachment')) {
+      url.startsWith('/contractAttachment') ||
+      url.startsWith('/perfSummary') || url.startsWith('/perfRanking')) {
     return '/sales/api'
   }
   // finance 模块

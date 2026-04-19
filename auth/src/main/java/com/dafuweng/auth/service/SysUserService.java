@@ -32,6 +32,8 @@ public interface SysUserService {
 
     void delete(Long id);
 
+    List<SysUserEntity> listSalesReps();
+
     boolean changePassword(Long userId, String oldPassword, String newPassword);
 
     void resetPassword(Long userId, String newPassword);

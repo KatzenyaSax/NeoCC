@@ -5,8 +5,9 @@ import org.springframework.cloud.openfeign.FeignClient;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
+import java.util.Map;
 
-@FeignClient(name = "dafuweng-auth", contextId = "authClientForSales")
+@FeignClient(name = "dafuweng-auth", contextId = "authClientForSales", url = "http://localhost:8085")
 public interface AuthFeignClient {
 
     /**
@@ -20,4 +21,10 @@ public interface AuthFeignClient {
      */
     @GetMapping("/api/sysUser/{id}/permCodes")
     Result<List<String>> getPermCodes(@PathVariable Long id);
+
+    /**
+     * 获取销售代表列表
+     */
+    @GetMapping("/api/sysUser/sales-reps")
+    Result<List<Map<String, Object>>> listSalesReps();
 }

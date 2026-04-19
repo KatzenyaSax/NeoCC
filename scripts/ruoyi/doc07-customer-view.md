@@ -175,7 +175,7 @@ public Result<?> view(@PathVariable Long id)
   path: '/sales/customer',
   component: Layout,
   children: [
-    { path: 'view', component: () => import('@/views/sales/customer/view.vue') }
+    { path: 'view', component: () => import('@/views/sales/customer/customer-view.vue') }
   ]
 }
 ```

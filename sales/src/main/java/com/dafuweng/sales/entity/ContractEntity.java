@@ -27,6 +27,7 @@ public class ContractEntity implements Serializable {
 
     private Long deptId;
 
+
     private Long productId;
 
     /** 战区ID */
@@ -38,16 +39,22 @@ public class ContractEntity implements Serializable {
 
     private BigDecimal serviceFeeRate;
 
+    @TableField("service_fee_1")
     private BigDecimal serviceFee1;
 
+    @TableField("service_fee_2")
     private BigDecimal serviceFee2;
 
+    @TableField("service_fee_1_paid")
     private Short serviceFee1Paid;
 
+    @TableField("service_fee_2_paid")
     private Short serviceFee2Paid;
 
+    @TableField("service_fee_1_pay_date")
     private Date serviceFee1PayDate;
 
+    @TableField("service_fee_2_pay_date")
     private Date serviceFee2PayDate;
 
     private Short status;

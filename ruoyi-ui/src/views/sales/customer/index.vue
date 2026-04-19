@@ -31,8 +31,9 @@
       <el-table-column label="创建时间" align="center" prop="createdAt" width="180" />
       <el-table-column label="操作" align="center" class-name="small-padding fixed-width">
         <template #default="scope">
+          <el-button link type="primary" icon="View" @click="handleDetail(scope.row)">详情</el-button>
           <el-button link type="primary" icon="Edit" @click="handleUpdate(scope.row)">修改</el-button>
-          <el-button link type="primary" icon="Delete" @click="handleDelete(scope.row)">删除</el-button>
+          <el-button link type="danger" icon="Delete" @click="handleDelete(scope.row)">删除</el-button>
         </template>
       </el-table-column>
     </el-table>
@@ -40,8 +41,8 @@
     <pagination v-show="total > 0" :total="total" v-model:page="queryParams.pageNum" v-model:limit="queryParams.pageSize" @pagination="getList" />
 
     <!-- 添加或修改客户对话框 -->
-    <el-dialog :title="title" v-model="open" width="500px" append-to-body>
-      <el-form ref="customerRef" :model="form" :rules="rules" label-width="80px">
+    <el-dialog :title="title" v-model="open" width="600px" append-to-body>
+      <el-form ref="customerRef" :model="form" :rules="rules" label-width="100px">
         <el-form-item label="客户名称" prop="name">
           <el-input v-model="form.name" placeholder="请输入客户名称" />
         </el-form-item>
@@ -51,11 +52,54 @@
         <el-form-item label="身份证号" prop="idCard">
           <el-input v-model="form.idCard" placeholder="请输入身份证号" />
         </el-form-item>
+        <el-form-item label="公司名称" prop="companyName">
+          <el-input v-model="form.companyName" placeholder="请输入公司名称" />
+        </el-form-item>
+        <el-form-item label="客户类型" prop="customerType">
+          <el-select v-model="form.customerType" placeholder="请选择">
+            <el-option label="个人" :value="1" />
+            <el-option label="企业" :value="2" />
+          </el-select>
+        </el-form-item>
+        <el-form-item label="意向等级" prop="intentionLevel">
+          <el-select v-model="form.intentionLevel" placeholder="请选择">
+            <el-option label="低" :value="1" />
+            <el-option label="中" :value="2" />
+            <el-option label="高" :value="3" />
+            <el-option label="很有意向" :value="4" />
+            <el-option label="已签约" :value="5" />
+          </el-select>
+        </el-form-item>
         <el-form-item label="状态" prop="status">
           <el-select v-model="form.status" placeholder="请选择状态">
             <el-option label="有效" :value="1" />
             <el-option label="无效" :value="0" />
+            <el-option label="公海" :value="5" />
           </el-select>
+        </el-form-item>
+        <el-form-item label="来源" prop="source">
+          <el-input v-model="form.source" placeholder="请输入来源" />
+        </el-form-item>
+        <el-form-item label="贷款意向金额" prop="loanIntentionAmount">
+          <el-input-number v-model="form.loanIntentionAmount" :min="0" style="width: 100%" />
+        </el-form-item>
+        <el-form-item label="贷款意向产品" prop="loanIntentionProduct">
+          <el-input v-model="form.loanIntentionProduct" placeholder="请输入贷款意向产品" />
+        </el-form-item>
+        <el-form-item label="最后联系" prop="lastContactDate">
+          <el-date-picker v-model="form.lastContactDate" type="date" value-format="YYYY-MM-DD" placeholder="选择日期" style="width: 100%" />
+        </el-form-item>
+        <el-form-item label="下次跟进" prop="nextFollowUpDate">
+          <el-date-picker v-model="form.nextFollowUpDate" type="date" value-format="YYYY-MM-DD" placeholder="选择日期" style="width: 100%" />
+        </el-form-item>
+        <el-form-item label="公海时间" prop="publicSeaTime">
+          <el-date-picker v-model="form.publicSeaTime" type="date" value-format="YYYY-MM-DD" placeholder="选择日期" style="width: 100%" />
+        </el-form-item>
+        <el-form-item label="公海原因" prop="publicSeaReason">
+          <el-input v-model="form.publicSeaReason" type="textarea" placeholder="请输入公海原因" />
+        </el-form-item>
+        <el-form-item label="批注" prop="annotation">
+          <el-input v-model="form.annotation" type="textarea" placeholder="请输入批注" />
         </el-form-item>
       </el-form>
       <template #footer>
@@ -65,13 +109,47 @@
         </div>
       </template>
     </el-dialog>
+
+    <!-- 客户详情对话框 -->
+    <el-dialog title="客户详情" v-model="detailOpen" width="700px" append-to-body>
+      <el-descriptions :column="2" border size="small">
+        <el-descriptions-item label="客户名称">{{ detailForm.name || '-' }}</el-descriptions-item>
+        <el-descriptions-item label="联系电话">{{ detailForm.phone || '-' }}</el-descriptions-item>
+        <el-descriptions-item label="身份证号">{{ detailForm.idCard || '-' }}</el-descriptions-item>
+        <el-descriptions-item label="公司名称">{{ detailForm.companyName || '-' }}</el-descriptions-item>
+        <el-descriptions-item label="公司法人">{{ detailForm.companyLegalPerson || '-' }}</el-descriptions-item>
+        <el-descriptions-item label="注册资本">{{ formatMoney(detailForm.companyRegCapital) }}</el-descriptions-item>
+        <el-descriptions-item label="客户类型">{{ customerTypeText(detailForm.customerType) }}</el-descriptions-item>
+        <el-descriptions-item label="意向等级">{{ intentionText(detailForm.intentionLevel) }}</el-descriptions-item>
+        <el-descriptions-item label="状态">{{ statusText(detailForm.status) }}</el-descriptions-item>
+        <el-descriptions-item label="来源">{{ detailForm.source || '-' }}</el-descriptions-item>
+        <el-descriptions-item label="贷款意向金额">{{ formatMoney(detailForm.loanIntentionAmount) }}</el-descriptions-item>
+        <el-descriptions-item label="贷款意向产品">{{ detailForm.loanIntentionProduct || '-' }}</el-descriptions-item>
+        <el-descriptions-item label="最后联系">{{ detailForm.lastContactDate || '-' }}</el-descriptions-item>
+        <el-descriptions-item label="下次跟进">{{ detailForm.nextFollowUpDate || '-' }}</el-descriptions-item>
+        <el-descriptions-item label="公海时间">{{ detailForm.publicSeaTime || '-' }}</el-descriptions-item>
+        <el-descriptions-item label="公海原因">{{ detailForm.publicSeaReason || '-' }}</el-descriptions-item>
+        <el-descriptions-item label="批注" :span="2">{{ detailForm.annotation || '-' }}</el-descriptions-item>
+        <el-descriptions-item label="创建时间" :span="2">{{ detailForm.createdAt || '-' }}</el-descriptions-item>
+      </el-descriptions>
+      <template #footer>
+        <el-button @click="detailOpen = false">关 闭</el-button>
+      </template>
+    </el-dialog>
   </div>
 </template>
 
 <script setup>
 import { listCustomer, getCustomer, delCustomer, addCustomer, updateCustomer } from "@/api/sales/customer"
+import useUserStore from '@/store/modules/user'
 
 const { proxy } = getCurrentInstance()
+
+const userStore = useUserStore()
+const isManager = computed(() => {
+  const roles = userStore.roles || []
+  return roles.some(r => ['ROLE_sales_manager', 'ROLE_admin'].includes(r))
+})
 
 const customerList = ref([])
 const loading = ref(true)
@@ -79,6 +157,8 @@ const showSearch = ref(true)
 const total = ref(0)
 const title = ref("")
 const open = ref(false)
+const detailOpen = ref(false)
+const detailForm = ref({})
 
 const data = reactive({
   form: {},
@@ -117,9 +197,49 @@ function reset() {
     name: undefined,
     phone: undefined,
     idCard: undefined,
-    status: 1
+    companyName: undefined,
+    companyLegalPerson: undefined,
+    companyRegCapital: undefined,
+    customerType: undefined,
+    intentionLevel: undefined,
+    status: 1,
+    source: undefined,
+    loanIntentionAmount: undefined,
+    loanIntentionProduct: undefined,
+    lastContactDate: undefined,
+    nextFollowUpDate: undefined,
+    publicSeaTime: undefined,
+    publicSeaReason: undefined,
+    annotation: undefined
   }
   proxy.resetForm("customerRef")
+}
+
+function customerTypeText(val) {
+  return { 1: '个人', 2: '企业' }[val] || '-'
+}
+
+function intentionText(val) {
+  return { 1: '低', 2: '中', 3: '高', 4: '很有意向', 5: '已签约' }[val] || '-'
+}
+
+function statusText(val) {
+  return { 0: '无效', 1: '有效', 5: '公海' }[val] || '-'
+}
+
+function formatMoney(val) {
+  if (val == null || val === '') return '-'
+  const num = parseFloat(val)
+  if (isNaN(num)) return '-'
+  return num.toLocaleString('zh-CN', { minimumFractionDigits: 2, maximumFractionDigits: 2 })
+}
+
+/** 详情按钮 */
+function handleDetail(row) {
+  getCustomer(row.id).then(res => {
+    detailForm.value = res.data || res
+    detailOpen.value = true
+  })
 }
 
 /** 搜索按钮操作 */

@@ -203,6 +203,13 @@ public class SysUserServiceImpl implements SysUserService {
     }
 
     @Override
+    public List<SysUserEntity> listSalesReps() {
+        List<SysUserEntity> list = sysUserDao.selectByRoleCode("sales_rep");
+        list.forEach(u -> u.setPassword(null));
+        return list;
+    }
+
+    @Override
     @Transactional
     public boolean changePassword(Long userId, String oldPassword, String newPassword) {
         SysUserEntity user = sysUserDao.selectById(userId);

@@ -43,10 +43,22 @@ spring:
             - Path=/api/sysRole/**
             - Path=/api/sysPermission/**
             - Path=/api/sysDept/**
-            - Path=/api/sysZone/**
-            - Path=/api/sysOperationLog/**
+            - Path=/sysUser/**
+            - Path=/sysRole/**
+            - Path=/sysPermission/**
+            - Path=/sysDept/**
+            - Path=/sysOperationLog/**
           filters:
             - StripPrefix=0
+
+        - id: system-api-zone-dept-route
+          uri: http://localhost:8082
+          predicates:
+            - Path=/sysZone/**
+            - Path=/sysDepartment/**
+          filters:
+            - StripPrefix=0
+            - PrefixPath=/api
 
         - id: auth-route
           uri: http://localhost:8085
@@ -62,6 +74,14 @@ spring:
             - Path=/api/contract/**
             - Path=/api/contactRecord/**
             - Path=/api/workLog/**
+            - Path=/customer/**
+            - Path=/contract/**
+            - Path=/contactRecord/**
+            - Path=/workLog/**
+            - Path=/performanceRecord/**
+            - Path=/customerTransferLog/**
+            - Path=/api/perfSummary/**
+            - Path=/api/perfRanking/**
           filters:
             - StripPrefix=0
 
@@ -73,6 +93,13 @@ spring:
             - Path=/api/financeProduct/**
             - Path=/api/commission/**
             - Path=/api/serviceFee/**
+            - Path=/loanAudit/**
+            - Path=/bank/**
+            - Path=/financeProduct/**
+            - Path=/commission/**
+            - Path=/commissionRecord/**
+            - Path=/serviceFee/**
+            - Path=/serviceFeeRecord/**
           filters:
             - StripPrefix=0
 

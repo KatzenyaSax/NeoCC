@@ -86,6 +86,15 @@ public class SysUserController {
         return Result.success();
     }
 
+    /**
+     * 获取所有销售代表列表（下拉用）
+     * GET /api/sysUser/sales-reps
+     */
+    @GetMapping("/sales-reps")
+    public Result<List<SysUserEntity>> listSalesReps() {
+        return Result.success(sysUserService.listSalesReps());
+    }
+
     // ===== 临时调试接口（开发环境用），后续删除 =====
     @PostMapping("/dev/reset-password")
     public Result<Void> resetPassword(@RequestBody Map<String, Object> req) {
