@@ -3,7 +3,7 @@ import request from '@/utils/request'
 // 查询部门列表（分页）
 export function listDepartment(query) {
   return request({
-    url: '/api/sysDepartment/page',
+    url: '/sysDepartment/page',
     method: 'get',
     params: query
   })
@@ -12,7 +12,7 @@ export function listDepartment(query) {
 // 查询部门详细
 export function getDepartment(id) {
   return request({
-    url: '/api/sysDepartment/' + id,
+    url: '/sysDepartment/' + id,
     method: 'get'
   })
 }
@@ -20,7 +20,7 @@ export function getDepartment(id) {
 // 按父级ID查询
 export function listByParentId(parentId) {
   return request({
-    url: '/api/sysDepartment/listByParentId/' + parentId,
+    url: '/sysDepartment/listByParentId/' + parentId,
     method: 'get'
   })
 }
@@ -28,7 +28,7 @@ export function listByParentId(parentId) {
 // 按区域ID查询
 export function listByZoneId(zoneId) {
   return request({
-    url: '/api/sysDepartment/listByZoneId/' + zoneId,
+    url: '/sysDepartment/listByZoneId/' + zoneId,
     method: 'get'
   })
 }
@@ -36,7 +36,7 @@ export function listByZoneId(zoneId) {
 // 新增部门
 export function addDepartment(data) {
   return request({
-    url: '/api/sysDepartment',
+    url: '/sysDepartment',
     method: 'post',
     data: data
   })
@@ -45,7 +45,7 @@ export function addDepartment(data) {
 // 修改部门
 export function updateDepartment(data) {
   return request({
-    url: '/api/sysDepartment',
+    url: '/sysDepartment',
     method: 'put',
     data: data
   })
@@ -54,7 +54,7 @@ export function updateDepartment(data) {
 // 删除部门
 export function delDepartment(id) {
   return request({
-    url: '/api/sysDepartment/' + id,
+    url: '/sysDepartment/' + id,
     method: 'delete'
   })
 }

@@ -3,7 +3,7 @@ import request from '@/utils/request'
 // 查询业绩记录列表（分页）
 export function listPerformanceRecord(query) {
   return request({
-    url: '/api/performanceRecord/page',
+    url: '/performanceRecord/page',
     method: 'get',
     params: query
   })
@@ -12,7 +12,7 @@ export function listPerformanceRecord(query) {
 // 查询业绩记录详细
 export function getPerformanceRecord(id) {
   return request({
-    url: '/api/performanceRecord/' + id,
+    url: '/performanceRecord/' + id,
     method: 'get'
   })
 }
@@ -20,7 +20,7 @@ export function getPerformanceRecord(id) {
 // 按销售代表ID查询
 export function listPerformanceBySalesRepId(salesRepId) {
   return request({
-    url: '/api/performanceRecord/listBySalesRepId/' + salesRepId,
+    url: '/performanceRecord/listBySalesRepId/' + salesRepId,
     method: 'get'
   })
 }
@@ -28,7 +28,7 @@ export function listPerformanceBySalesRepId(salesRepId) {
 // 新增业绩记录
 export function addPerformanceRecord(data) {
   return request({
-    url: '/api/performanceRecord',
+    url: '/performanceRecord',
     method: 'post',
     data: data
   })
@@ -37,7 +37,7 @@ export function addPerformanceRecord(data) {
 // 修改业绩记录
 export function updatePerformanceRecord(data) {
   return request({
-    url: '/api/performanceRecord',
+    url: '/performanceRecord',
     method: 'put',
     data: data
   })
@@ -46,7 +46,7 @@ export function updatePerformanceRecord(data) {
 // 删除业绩记录
 export function delPerformanceRecord(id) {
   return request({
-    url: '/api/performanceRecord/' + id,
+    url: '/performanceRecord/' + id,
     method: 'delete'
   })
 }

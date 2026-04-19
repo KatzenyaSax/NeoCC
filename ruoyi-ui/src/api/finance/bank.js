@@ -3,7 +3,7 @@ import request from '@/utils/request'
 // 查询银行列表（分页）
 export function listBank(query) {
   return request({
-    url: '/api/bank/page',
+    url: '/bank/page',
     method: 'get',
     params: query
   })
@@ -12,7 +12,7 @@ export function listBank(query) {
 // 查询银行详细
 export function getBank(id) {
   return request({
-    url: '/api/bank/' + id,
+    url: '/bank/' + id,
     method: 'get'
   })
 }
@@ -20,7 +20,7 @@ export function getBank(id) {
 // 按状态查询银行列表
 export function listBankByStatus(status) {
   return request({
-    url: '/api/bank/listByStatus',
+    url: '/bank/listByStatus',
     method: 'get',
     params: { status }
   })
@@ -29,7 +29,7 @@ export function listBankByStatus(status) {
 // 新增银行
 export function addBank(data) {
   return request({
-    url: '/api/bank',
+    url: '/bank',
     method: 'post',
     data: data
   })
@@ -38,7 +38,7 @@ export function addBank(data) {
 // 修改银行
 export function updateBank(data) {
   return request({
-    url: '/api/bank',
+    url: '/bank',
     method: 'put',
     data: data
   })
@@ -47,7 +47,7 @@ export function updateBank(data) {
 // 删除银行
 export function delBank(id) {
   return request({
-    url: '/api/bank/' + id,
+    url: '/bank/' + id,
     method: 'delete'
   })
 }

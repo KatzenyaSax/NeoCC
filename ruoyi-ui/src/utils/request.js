@@ -19,34 +19,31 @@ function getBaseURL(url) {
   // doc04 修正后：/auth/* 路径直接走 Vite 代理，由 Gateway 按 Path=/auth/** 路由
   // AuthController: @RequestMapping("/auth") + @PostMapping("/login") = /auth/login
   if (url.startsWith('/auth/')) return ''
-  // auth 模块业务接口（sysUser/sysRole/sysPermission/sysDept/sysZone → /auth/api）
+  // auth 模块业务接口（sysUser/sysRole/sysPermission/sysOperationLog → /auth/api）
   // /api/sysRole/** 等走 /auth/api 代理到 Gateway，由 auth-api-route 路由到 auth:8085
   if (url.startsWith('/sysUser') || url.startsWith('/sysRole') ||
-      url.startsWith('/sysPermission') || url.startsWith('/sysDept') ||
-      url.startsWith('/sysZone') || url.startsWith('/sysOperationLog')) {
+      url.startsWith('/sysPermission') || url.startsWith('/sysOperationLog')) {
     return '/auth/api'
   }
-  // system 模块（sysDict/sysParam → system:8082）
-  if (url.startsWith('/sysDict') || url.startsWith('/sysParam')) {
+  // system 模块（sysDict/sysParam/sysZone/sysDepartment → system:8082）
+  if (url.startsWith('/sysDict') || url.startsWith('/sysParam') ||
+      url.startsWith('/sysZone') || url.startsWith('/sysDepartment')) {
     return '/system/api'
   }
-  // sales 模块（stat API 用 /api 前缀）
+  // sales 模块
   if (url.startsWith('/customer') || url.startsWith('/contract') ||
       url.startsWith('/contactRecord') || url.startsWith('/workLog') ||
       url.startsWith('/performanceRecord') || url.startsWith('/customerTransferLog') ||
-      url.startsWith('/contractAttachment') ||
-      url.startsWith('/api/customer') || url.startsWith('/api/contract')) {
+      url.startsWith('/contractAttachment')) {
     return '/sales/api'
   }
-  // finance 模块（stat API 用 /api 前缀）
+  // finance 模块
   if (url.startsWith('/bank') || url.startsWith('/financeProduct') ||
       url.startsWith('/loanAudit') || url.startsWith('/loanAuditRecord') ||
-      url.startsWith('/commission') || url.startsWith('/serviceFee') ||
-      url.startsWith('/api/loanAudit') || url.startsWith('/api/commission')) {
+      url.startsWith('/commission') || url.startsWith('/commissionRecord') ||
+      url.startsWith('/serviceFee') || url.startsWith('/serviceFeeRecord')) {
     return '/finance/api'
   }
-  // auth 模块（role/stat 等走 /auth/api 代理到 Gateway /api/role/** 再路由到 auth:8085）
-  if (url.startsWith('/api/role')) return '/auth/api'
   return '/dev-api'
 }
 

@@ -63,6 +63,10 @@ function filterAsyncRouter(asyncRouterMap, lastRouter = false, type = false) {
     if (type && route.children) {
       route.children = filterChildren(route.children)
     }
+    // Vue Router 要求 path 必须以 / 开头，后端返回的是 "dashboard" 需要变为 "/dashboard"
+    if (route.path && !route.path.startsWith('/')) {
+      route.path = '/' + route.path
+    }
     if (route.component) {
       // Layout ParentView 组件特殊处理
       if (route.component === 'Layout') {
@@ -85,17 +89,13 @@ function filterAsyncRouter(asyncRouterMap, lastRouter = false, type = false) {
   })
 }
 
-function filterChildren(childrenMap, lastRouter = false) {
-  var children = []
-  childrenMap.forEach(el => {
-    el.path = lastRouter ? lastRouter.path + '/' + el.path : el.path
+function filterChildren(childrenMap) {
+  return childrenMap.map(el => {
     if (el.children && el.children.length && el.component === 'ParentView') {
-      children = children.concat(filterChildren(el.children, el))
-    } else {
-      children.push(el)
+      el.children = filterChildren(el.children)
     }
+    return el
   })
-  return children
 }
 
 // 动态路由遍历，验证是否具备权限

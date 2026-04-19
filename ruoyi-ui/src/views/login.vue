@@ -104,7 +104,9 @@ function handleLogin() {
         }, {})
         const redirectPath = redirect.value || "/"
         const qs = new URLSearchParams(otherQueryParams).toString()
-        location.href = qs ? `${redirectPath}?${qs}` : redirectPath
+        const target = qs ? `${redirectPath}?${qs}` : redirectPath
+        window.history.pushState({}, '', target)
+        router.push('/index')
       }).catch(() => {
         loading.value = false
       })

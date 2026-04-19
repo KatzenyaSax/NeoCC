@@ -3,7 +3,7 @@ import request from '@/utils/request'
 // 查询合同列表（分页）
 export function listContract(query) {
   return request({
-    url: '/api/contract/page',
+    url: '/contract/page',
     method: 'get',
     params: query
   })
@@ -12,7 +12,7 @@ export function listContract(query) {
 // 查询合同详细
 export function getContract(id) {
   return request({
-    url: '/api/contract/' + id,
+    url: '/contract/' + id,
     method: 'get'
   })
 }
@@ -20,7 +20,7 @@ export function getContract(id) {
 // 根据合同编号查询
 export function getContractByNo(contractNo) {
   return request({
-    url: '/api/contract/getByContractNo/' + contractNo,
+    url: '/contract/getByContractNo/' + contractNo,
     method: 'get'
   })
 }
@@ -28,7 +28,7 @@ export function getContractByNo(contractNo) {
 // 新增合同
 export function addContract(data) {
   return request({
-    url: '/api/contract',
+    url: '/contract',
     method: 'post',
     data: data
   })
@@ -37,7 +37,7 @@ export function addContract(data) {
 // 修改合同
 export function updateContract(data) {
   return request({
-    url: '/api/contract',
+    url: '/contract',
     method: 'put',
     data: data
   })
@@ -46,7 +46,7 @@ export function updateContract(data) {
 // 删除合同
 export function delContract(id) {
   return request({
-    url: '/api/contract/' + id,
+    url: '/contract/' + id,
     method: 'delete'
   })
 }
@@ -54,7 +54,7 @@ export function delContract(id) {
 // 签署合同
 export function signContract(id) {
   return request({
-    url: '/api/contract/' + id + '/sign',
+    url: '/contract/' + id + '/sign',
     method: 'post'
   })
 }

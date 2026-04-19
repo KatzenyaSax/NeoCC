@@ -3,7 +3,7 @@ import request from '@/utils/request'
 // 查询跟进记录列表（分页）
 export function listContactRecord(query) {
   return request({
-    url: '/api/contactRecord/page',
+    url: '/contactRecord/page',
     method: 'get',
     params: query
   })
@@ -12,7 +12,7 @@ export function listContactRecord(query) {
 // 查询跟进记录详细
 export function getContactRecord(id) {
   return request({
-    url: '/api/contactRecord/' + id,
+    url: '/contactRecord/' + id,
     method: 'get'
   })
 }
@@ -20,7 +20,7 @@ export function getContactRecord(id) {
 // 按客户ID查询
 export function listByCustomerId(customerId) {
   return request({
-    url: '/api/contactRecord/listByCustomerId/' + customerId,
+    url: '/contactRecord/listByCustomerId/' + customerId,
     method: 'get'
   })
 }
@@ -28,7 +28,7 @@ export function listByCustomerId(customerId) {
 // 按销售代表ID查询
 export function listBySalesRepId(salesRepId) {
   return request({
-    url: '/api/contactRecord/listBySalesRepId/' + salesRepId,
+    url: '/contactRecord/listBySalesRepId/' + salesRepId,
     method: 'get'
   })
 }
@@ -36,7 +36,7 @@ export function listBySalesRepId(salesRepId) {
 // 新增跟进记录
 export function addContactRecord(data) {
   return request({
-    url: '/api/contactRecord',
+    url: '/contactRecord',
     method: 'post',
     data: data
   })
@@ -45,7 +45,7 @@ export function addContactRecord(data) {
 // 修改跟进记录
 export function updateContactRecord(data) {
   return request({
-    url: '/api/contactRecord',
+    url: '/contactRecord',
     method: 'put',
     data: data
   })
@@ -54,7 +54,7 @@ export function updateContactRecord(data) {
 // 删除跟进记录
 export function delContactRecord(id) {
   return request({
-    url: '/api/contactRecord/' + id,
+    url: '/contactRecord/' + id,
     method: 'delete'
   })
 }

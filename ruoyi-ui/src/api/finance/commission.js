@@ -3,7 +3,7 @@ import request from '@/utils/request'
 // 查询佣金记录列表（分页）
 export function listCommission(query) {
   return request({
-    url: '/api/commissionRecord/page',
+    url: '/commissionRecord/page',
     method: 'get',
     params: query
   })
@@ -12,7 +12,7 @@ export function listCommission(query) {
 // 查询佣金记录详细
 export function getCommission(id) {
   return request({
-    url: '/api/commissionRecord/' + id,
+    url: '/commissionRecord/' + id,
     method: 'get'
   })
 }
@@ -20,7 +20,7 @@ export function getCommission(id) {
 // 新增佣金记录
 export function addCommission(data) {
   return request({
-    url: '/api/commissionRecord',
+    url: '/commissionRecord',
     method: 'post',
     data: data
   })
@@ -29,7 +29,7 @@ export function addCommission(data) {
 // 修改佣金记录
 export function updateCommission(data) {
   return request({
-    url: '/api/commissionRecord',
+    url: '/commissionRecord',
     method: 'put',
     data: data
   })
@@ -38,7 +38,7 @@ export function updateCommission(data) {
 // 删除佣金记录
 export function delCommission(id) {
   return request({
-    url: '/api/commissionRecord/' + id,
+    url: '/commissionRecord/' + id,
     method: 'delete'
   })
 }
@@ -46,7 +46,7 @@ export function delCommission(id) {
 // 确认佣金
 export function confirmCommission(id) {
   return request({
-    url: '/api/commissionRecord/' + id + '/confirm',
+    url: '/commissionRecord/' + id + '/confirm',
     method: 'post'
   })
 }
@@ -54,7 +54,7 @@ export function confirmCommission(id) {
 // 发放佣金
 export function grantCommission(id, data) {
   return request({
-    url: '/api/commissionRecord/' + id + '/grant',
+    url: '/commissionRecord/' + id + '/grant',
     method: 'post',
     data: data
   })

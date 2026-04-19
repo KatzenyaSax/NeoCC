@@ -3,7 +3,7 @@ import request from '@/utils/request'
 // 查询客户列表（分页）
 export function listCustomer(query) {
   return request({
-    url: '/api/customer/page',
+    url: '/customer/page',
     method: 'get',
     params: query
   })
@@ -12,7 +12,7 @@ export function listCustomer(query) {
 // 查询客户详细
 export function getCustomer(id) {
   return request({
-    url: '/api/customer/' + id,
+    url: '/customer/' + id,
     method: 'get'
   })
 }
@@ -20,7 +20,7 @@ export function getCustomer(id) {
 // 根据销售代表ID查询客户列表
 export function listBySalesRepId(salesRepId) {
   return request({
-    url: '/api/customer/listBySalesRepId/' + salesRepId,
+    url: '/customer/listBySalesRepId/' + salesRepId,
     method: 'get'
   })
 }
@@ -28,7 +28,7 @@ export function listBySalesRepId(salesRepId) {
 // 新增客户
 export function addCustomer(data) {
   return request({
-    url: '/api/customer',
+    url: '/customer',
     method: 'post',
     data: data
   })
@@ -37,7 +37,7 @@ export function addCustomer(data) {
 // 修改客户
 export function updateCustomer(data) {
   return request({
-    url: '/api/customer',
+    url: '/customer',
     method: 'put',
     data: data
   })
@@ -46,7 +46,7 @@ export function updateCustomer(data) {
 // 删除客户
 export function delCustomer(id) {
   return request({
-    url: '/api/customer/' + id,
+    url: '/customer/' + id,
     method: 'delete'
   })
 }

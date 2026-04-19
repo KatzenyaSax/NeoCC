@@ -25,7 +25,7 @@
           <div class="stat-info">
             <div class="stat-value">
               <span v-if="card.loading">—</span>
-              <count-to v-else :start-val="0" :end-val="card.value" :duration="1500" />
+              <span v-else>{{ card.value }}</span>
             </div>
             <div class="stat-label">{{ card.label }}</div>
           </div>
@@ -139,10 +139,10 @@ const currentDate = computed(() => {
 
 // 统计卡片
 const statCards = reactive([
-  { key: 'customer', label: '客户总数', value: 0, loading: true, icon: 'User', color: 'blue', path: '/sales/customer' },
+  { key: 'customer', label: '客户总数', value: 0, loading: true, icon: 'User', color: 'blue', path: '/customer-list' },
   { key: 'contract', label: '合同总数', value: 0, loading: true, icon: 'Document', color: 'green', path: '/sales/contract' },
-  { key: 'loan', label: '待审贷款', value: 0, loading: true, icon: 'Finished', color: 'orange', path: '/finance/loan-audit' },
-  { key: 'role', label: '角色数量', value: 0, loading: true, icon: 'Avatar', color: 'purple', path: '/system/role' },
+  { key: 'loan', label: '待审贷款', value: 0, loading: true, icon: 'Finished', color: 'orange', path: '/loan-audit' },
+  { key: 'role', label: '角色数量', value: 0, loading: true, icon: 'Avatar', color: 'purple', path: '/role' },
 ])
 
 // 加载统计数据
@@ -174,12 +174,12 @@ function loadStats() {
 
 // 快捷功能
 const quickLinks = [
-  { name: '客户管理', path: '/sales/customer', icon: 'User', bg: 'linear-gradient(135deg,#667eea,#764ba2)' },
-  { name: '合同管理', path: '/sales/contract', icon: 'Document', bg: 'linear-gradient(135deg,#f093fb,#f5576c)' },
-  { name: '工作日志', path: '/sales/work-log', icon: 'Notebook', bg: 'linear-gradient(135deg,#4facfe,#00f2fe)' },
-  { name: '贷款审核', path: '/finance/loan-audit', icon: 'Finished', bg: 'linear-gradient(135deg,#43e97b,#38f9d7)' },
-  { name: '佣金记录', path: '/finance/commission', icon: 'Money', bg: 'linear-gradient(135deg,#fa709a,#fee140)' },
-  { name: '用户管理', path: '/system/user', icon: 'Setting', bg: 'linear-gradient(135deg,#a18cd1,#fbc2eb)' },
+  { name: '客户管理', path: '/customer-list', icon: 'User', bg: 'linear-gradient(135deg,#667eea,#764ba2)' },
+  { name: '合同管理', path: '/contract-list', icon: 'Document', bg: 'linear-gradient(135deg,#f093fb,#f5576c)' },
+  { name: '工作日志', path: '/log', icon: 'Notebook', bg: 'linear-gradient(135deg,#4facfe,#00f2fe)' },
+  { name: '贷款审核', path: '/loan-audit', icon: 'Finished', bg: 'linear-gradient(135deg,#43e97b,#38f9d7)' },
+  { name: '佣金记录', path: '/commission', icon: 'Money', bg: 'linear-gradient(135deg,#fa709a,#fee140)' },
+  { name: '用户管理', path: '/user', icon: 'Setting', bg: 'linear-gradient(135deg,#a18cd1,#fbc2eb)' },
 ]
 
 // 系统信息
@@ -194,15 +194,15 @@ const sysInfo = [
 
 // 技术栈
 const techStack = [
-  { name: 'Spring Boot 3', type: '' },
-  { name: 'Spring Security', type: '' },
+  { name: 'Spring Boot 3', type: 'primary' },
+  { name: 'Spring Security', type: 'primary' },
   { name: 'Spring Cloud Gateway', type: 'info' },
   { name: 'MyBatis-Plus', type: 'success' },
   { name: 'MySQL 8', type: 'success' },
   { name: 'Redis', type: 'danger' },
   { name: 'Docker', type: 'info' },
   { name: 'RabbitMQ', type: 'warning' },
-  { name: 'Vue 3', type: '' },
+  { name: 'Vue 3', type: 'success' },
   { name: 'Element Plus', type: 'info' },
   { name: 'Vite', type: 'warning' },
   { name: 'Nginx', type: 'success' },

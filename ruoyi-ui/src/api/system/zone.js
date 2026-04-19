@@ -3,7 +3,7 @@ import request from '@/utils/request'
 // 查询区域列表（分页）
 export function listZone(query) {
   return request({
-    url: '/api/sysZone/page',
+    url: '/sysZone/page',
     method: 'get',
     params: query
   })
@@ -12,7 +12,7 @@ export function listZone(query) {
 // 查询区域详细
 export function getZone(id) {
   return request({
-    url: '/api/sysZone/' + id,
+    url: '/sysZone/' + id,
     method: 'get'
   })
 }
@@ -20,7 +20,7 @@ export function getZone(id) {
 // 查询全部区域
 export function listAllZone() {
   return request({
-    url: '/api/sysZone/listAll',
+    url: '/sysZone/listAll',
     method: 'get'
   })
 }
@@ -28,7 +28,7 @@ export function listAllZone() {
 // 按状态查询
 export function listZoneByStatus(status) {
   return request({
-    url: '/api/sysZone/listByStatus',
+    url: '/sysZone/listByStatus',
     method: 'get',
     params: { status }
   })
@@ -37,7 +37,7 @@ export function listZoneByStatus(status) {
 // 新增区域
 export function addZone(data) {
   return request({
-    url: '/api/sysZone',
+    url: '/sysZone',
     method: 'post',
     data: data
   })
@@ -46,7 +46,7 @@ export function addZone(data) {
 // 修改区域
 export function updateZone(data) {
   return request({
-    url: '/api/sysZone',
+    url: '/sysZone',
     method: 'put',
     data: data
   })
@@ -55,7 +55,7 @@ export function updateZone(data) {
 // 删除区域
 export function delZone(id) {
   return request({
-    url: '/api/sysZone/' + id,
+    url: '/sysZone/' + id,
     method: 'delete'
   })
 }

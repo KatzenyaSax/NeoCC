@@ -3,7 +3,7 @@ import request from '@/utils/request'
 // 查询服务费记录列表（分页）
 export function listServiceFeeRecord(query) {
   return request({
-    url: '/api/serviceFeeRecord/page',
+    url: '/serviceFeeRecord/page',
     method: 'get',
     params: query
   })
@@ -12,7 +12,7 @@ export function listServiceFeeRecord(query) {
 // 查询服务费记录详细
 export function getServiceFeeRecord(id) {
   return request({
-    url: '/api/serviceFeeRecord/' + id,
+    url: '/serviceFeeRecord/' + id,
     method: 'get'
   })
 }
@@ -20,7 +20,7 @@ export function getServiceFeeRecord(id) {
 // 按合同ID查询
 export function listByContractId(contractId) {
   return request({
-    url: '/api/serviceFeeRecord/listByContractId/' + contractId,
+    url: '/serviceFeeRecord/listByContractId/' + contractId,
     method: 'get'
   })
 }
@@ -28,7 +28,7 @@ export function listByContractId(contractId) {
 // 新增服务费记录
 export function addServiceFeeRecord(data) {
   return request({
-    url: '/api/serviceFeeRecord',
+    url: '/serviceFeeRecord',
     method: 'post',
     data: data
   })
@@ -37,7 +37,7 @@ export function addServiceFeeRecord(data) {
 // 修改服务费记录
 export function updateServiceFeeRecord(data) {
   return request({
-    url: '/api/serviceFeeRecord',
+    url: '/serviceFeeRecord',
     method: 'put',
     data: data
   })
@@ -46,7 +46,7 @@ export function updateServiceFeeRecord(data) {
 // 删除服务费记录
 export function delServiceFeeRecord(id) {
   return request({
-    url: '/api/serviceFeeRecord/' + id,
+    url: '/serviceFeeRecord/' + id,
     method: 'delete'
   })
 }
@@ -54,7 +54,7 @@ export function delServiceFeeRecord(id) {
 // 确认付款
 export function confirmPay(id, data) {
   return request({
-    url: '/api/serviceFeeRecord/' + id + '/pay',
+    url: '/serviceFeeRecord/' + id + '/pay',
     method: 'put',
     data: data
   })

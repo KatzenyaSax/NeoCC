@@ -3,7 +3,7 @@ import request from '@/utils/request'
 // 查询工作日志列表（分页）
 export function listWorkLog(query) {
   return request({
-    url: '/api/workLog/page',
+    url: '/workLog/page',
     method: 'get',
     params: query
   })
@@ -12,7 +12,7 @@ export function listWorkLog(query) {
 // 查询工作日志详细
 export function getWorkLog(id) {
   return request({
-    url: '/api/workLog/' + id,
+    url: '/workLog/' + id,
     method: 'get'
   })
 }
@@ -20,7 +20,7 @@ export function getWorkLog(id) {
 // 按销售代表ID查询
 export function listWorkLogBySalesRepId(salesRepId) {
   return request({
-    url: '/api/workLog/listBySalesRepId/' + salesRepId,
+    url: '/workLog/listBySalesRepId/' + salesRepId,
     method: 'get'
   })
 }
@@ -28,7 +28,7 @@ export function listWorkLogBySalesRepId(salesRepId) {
 // 检查是否重复（同一销售代表同一日期）
 export function checkDuplicate(salesRepId, logDate) {
   return request({
-    url: '/api/workLog/checkDuplicate',
+    url: '/workLog/checkDuplicate',
     method: 'get',
     params: { salesRepId, logDate }
   })
@@ -37,7 +37,7 @@ export function checkDuplicate(salesRepId, logDate) {
 // 新增工作日志
 export function addWorkLog(data) {
   return request({
-    url: '/api/workLog',
+    url: '/workLog',
     method: 'post',
     data: data
   })
@@ -46,7 +46,7 @@ export function addWorkLog(data) {
 // 修改工作日志
 export function updateWorkLog(data) {
   return request({
-    url: '/api/workLog',
+    url: '/workLog',
     method: 'put',
     data: data
   })
@@ -55,7 +55,7 @@ export function updateWorkLog(data) {
 // 删除工作日志
 export function delWorkLog(id) {
   return request({
-    url: '/api/workLog/' + id,
+    url: '/workLog/' + id,
     method: 'delete'
   })
 }

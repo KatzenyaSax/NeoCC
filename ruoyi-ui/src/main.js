@@ -34,6 +34,7 @@ import Pagination from '@/components/Pagination'
 import RightToolbar from '@/components/RightToolbar'
 // 富文本组件
 import Editor from "@/components/Editor"
+// 数字动画组件 (vue-count-to 与 Vue3 不兼容，已移除)
 // 文件上传组件
 import FileUpload from "@/components/FileUpload"
 // 图片上传组件
@@ -64,6 +65,7 @@ app.component('ImageUpload', ImageUpload)
 app.component('ImagePreview', ImagePreview)
 app.component('RightToolbar', RightToolbar)
 app.component('Editor', Editor)
+
 
 app.use(router)
 app.use(store)

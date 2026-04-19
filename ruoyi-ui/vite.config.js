@@ -45,6 +45,7 @@ export default defineConfig(({ mode, command }) => {
       port: 3001,
       host: true,
       open: true,
+      historyApiFallback: true,
       proxy: {
         // https://cn.vitejs.dev/config/#server-proxy
         '/dev-api': {
@@ -73,6 +74,15 @@ export default defineConfig(({ mode, command }) => {
           changeOrigin: true,
         },
         '/system/api': {
+          target: baseUrl,
+          changeOrigin: true,
+        },
+        // system 模块业务接口（sysZone/sysDepartment → system:8082）
+        '/sysZone': {
+          target: baseUrl,
+          changeOrigin: true,
+        },
+        '/sysDepartment': {
           target: baseUrl,
           changeOrigin: true,
         }

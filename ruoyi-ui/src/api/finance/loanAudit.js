@@ -3,7 +3,7 @@ import request from '@/utils/request'
 // 查询贷款审核列表（分页）
 export function listLoanAudit(query) {
   return request({
-    url: '/api/loanAudit/page',
+    url: '/loanAudit/page',
     method: 'get',
     params: query
   })
@@ -12,7 +12,7 @@ export function listLoanAudit(query) {
 // 查询贷款审核详细
 export function getLoanAudit(id) {
   return request({
-    url: '/api/loanAudit/' + id,
+    url: '/loanAudit/' + id,
     method: 'get'
   })
 }
@@ -20,7 +20,7 @@ export function getLoanAudit(id) {
 // 根据合同ID查询
 export function getLoanAuditByContractId(contractId) {
   return request({
-    url: '/api/loanAudit/getByContractId/' + contractId,
+    url: '/loanAudit/getByContractId/' + contractId,
     method: 'get'
   })
 }
@@ -28,7 +28,7 @@ export function getLoanAuditByContractId(contractId) {
 // 新增贷款审核
 export function addLoanAudit(data) {
   return request({
-    url: '/api/loanAudit',
+    url: '/loanAudit',
     method: 'post',
     data: data
   })
@@ -37,7 +37,7 @@ export function addLoanAudit(data) {
 // 修改贷款审核
 export function updateLoanAudit(data) {
   return request({
-    url: '/api/loanAudit',
+    url: '/loanAudit',
     method: 'put',
     data: data
   })
@@ -46,7 +46,7 @@ export function updateLoanAudit(data) {
 // 删除贷款审核
 export function delLoanAudit(id) {
   return request({
-    url: '/api/loanAudit/' + id,
+    url: '/loanAudit/' + id,
     method: 'delete'
   })
 }
@@ -54,7 +54,7 @@ export function delLoanAudit(id) {
 // 接收申请
 export function receiveLoanAudit(id, data) {
   return request({
-    url: '/api/loanAudit/' + id + '/receive',
+    url: '/loanAudit/' + id + '/receive',
     method: 'post',
     data: data
   })
@@ -63,7 +63,7 @@ export function receiveLoanAudit(id, data) {
 // 审核
 export function reviewLoanAudit(id, data) {
   return request({
-    url: '/api/loanAudit/' + id + '/review',
+    url: '/loanAudit/' + id + '/review',
     method: 'post',
     data: data
   })
@@ -72,7 +72,7 @@ export function reviewLoanAudit(id, data) {
 // 提交银行
 export function submitBankLoanAudit(id, data) {
   return request({
-    url: '/api/loanAudit/' + id + '/submit-bank',
+    url: '/loanAudit/' + id + '/submit-bank',
     method: 'post',
     data: data
   })
@@ -81,7 +81,7 @@ export function submitBankLoanAudit(id, data) {
 // 银行结果
 export function bankResultLoanAudit(id, data) {
   return request({
-    url: '/api/loanAudit/' + id + '/bank-result',
+    url: '/loanAudit/' + id + '/bank-result',
     method: 'post',
     data: data
   })
@@ -90,7 +90,7 @@ export function bankResultLoanAudit(id, data) {
 // 批准
 export function approveLoanAudit(id, data) {
   return request({
-    url: '/api/loanAudit/' + id + '/approve',
+    url: '/loanAudit/' + id + '/approve',
     method: 'post',
     data: data
   })
@@ -99,7 +99,7 @@ export function approveLoanAudit(id, data) {
 // 拒绝
 export function rejectLoanAudit(id, data) {
   return request({
-    url: '/api/loanAudit/' + id + '/reject',
+    url: '/loanAudit/' + id + '/reject',
     method: 'post',
     data: data
   })

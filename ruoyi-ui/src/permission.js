@@ -45,10 +45,15 @@ router.beforeEach((to, from, next) => {
             // 根据roles权限生成可访问的路由表
             accessRoutes.forEach(route => {
               if (!isHttp(route.path)) {
-                router.addRoute(route) // 动态添加可访问路由表
+                router.addRoute(route)
               }
             })
             next({ ...to, replace: true }) // hack方法 确保addRoutes已完成
+          }).catch(err => {
+            // generateRoutes 失败（路由组件解析错误等）
+            console.error('generateRoutes error:', err)
+            ElMessage.error('加载菜单失败: ' + err)
+            next({ path: '/' })
           })
         }).catch(err => {
           useUserStore().logOut().then(() => {
