@@ -71,4 +71,22 @@ public class ContractController {
         contractSignService.sign(id);
         return Result.success();
     }
+
+    /**
+     * GET /api/contract/generateNo
+     * 生成新合同编号
+     */
+    @GetMapping("/generateNo")
+    public Result<String> generateNo() {
+        return Result.success(contractService.generateContractNo());
+    }
+
+    /**
+     * GET /api/contract/{id}/detail
+     * 获取合同详情（含关联信息）
+     */
+    @GetMapping("/{id}/detail")
+    public Result<ContractEntity> getDetail(@PathVariable Long id) {
+        return Result.success(contractService.getDetail(id));
+    }
 }

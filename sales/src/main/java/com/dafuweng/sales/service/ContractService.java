@@ -26,6 +26,11 @@ public interface ContractService {
 
     List<ContractEntity> listByStatus(Short status);
 
+    /**
+     * 按状态分页查询合同
+     */
+    PageResponse<ContractEntity> pageListByStatus(int pageNum, int pageSize, Short status);
+
     @Transactional
     ContractEntity save(ContractEntity entity);
 
@@ -34,4 +39,15 @@ public interface ContractService {
 
     @Transactional
     void delete(Long id);
+
+    /**
+     * 生成新合同编号
+     * 格式：HT-YYYYMMDD-XXXX
+     */
+    String generateContractNo();
+
+    /**
+     * 获取合同详情（含关联信息）
+     */
+    ContractEntity getDetail(Long id);
 }

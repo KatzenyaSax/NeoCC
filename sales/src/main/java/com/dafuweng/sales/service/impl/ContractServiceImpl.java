@@ -13,6 +13,8 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.StringUtils;
 
+import java.time.LocalDate;
+import java.time.format.DateTimeFormatter;
 import java.util.List;
 
 @Service
@@ -64,6 +66,21 @@ public class ContractServiceImpl implements ContractService {
     }
 
     @Override
+    public PageResponse<ContractEntity> pageListByStatus(int pageNum, int pageSize, Short status) {
+        IPage<ContractEntity> page = new Page<>(pageNum, pageSize);
+        LambdaQueryWrapper<ContractEntity> wrapper = new LambdaQueryWrapper<>();
+
+        if (status != null) {
+            wrapper.eq(ContractEntity::getStatus, status);
+        }
+
+        wrapper.orderByDesc(ContractEntity::getCreatedAt);
+        IPage<ContractEntity> result = contractDao.selectPage(page, wrapper);
+        return PageResponse.of(result.getTotal(), result.getRecords(),
+            (int) page.getCurrent(), (int) page.getSize());
+    }
+
+    @Override
     @Transactional
     public ContractEntity save(ContractEntity entity) {
         contractDao.insert(entity);
@@ -81,5 +98,30 @@ public class ContractServiceImpl implements ContractService {
     @Transactional
     public void delete(Long id) {
         contractDao.deleteById(id);
+    }
+
+    @Override
+    public String generateContractNo() {
+        String dateStr = LocalDate.now().format(DateTimeFormatter.ofPattern("yyyyMMdd"));
+        String prefix = "HT-" + dateStr + "-";
+        LambdaQueryWrapper<ContractEntity> wrapper = new LambdaQueryWrapper<>();
+        wrapper.likeRight(ContractEntity::getContractNo, prefix)
+               .orderByDesc(ContractEntity::getId)
+               .last("LIMIT 1");
+        ContractEntity lastContract = contractDao.selectOne(wrapper);
+        int sequence = 1;
+        if (lastContract != null && lastContract.getContractNo() != null) {
+            String lastNo = lastContract.getContractNo();
+            String lastSeqStr = lastNo.substring(lastNo.lastIndexOf("-") + 1);
+            try {
+                sequence = Integer.parseInt(lastSeqStr) + 1;
+            } catch (NumberFormatException ignored) {}
+        }
+        return prefix + String.format("%04d", sequence);
+    }
+
+    @Override
+    public ContractEntity getDetail(Long id) {
+        return contractDao.selectById(id);
     }
 }

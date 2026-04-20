@@ -1,14 +1,9 @@
 <template>
   <div class="app-container">
+    <!-- 搜索区域 -->
     <el-form :model="queryParams" ref="queryRef" :inline="true" v-show="showSearch">
-      <el-form-item label="状态" prop="status">
-        <el-select v-model="queryParams.status" placeholder="请选择状态" clearable>
-          <el-option label="待接收" :value="0" />
-          <el-option label="审核中" :value="1" />
-          <el-option label="银行审核" :value="2" />
-          <el-option label="已批准" :value="3" />
-          <el-option label="已拒绝" :value="4" />
-        </el-select>
+      <el-form-item label="合同编号" prop="contractNo">
+        <el-input v-model="queryParams.contractNo" placeholder="请输入合同编号" clearable @keyup.enter="handleQuery" />
       </el-form-item>
       <el-form-item>
         <el-button type="primary" icon="Search" @click="handleQuery">搜索</el-button>
@@ -16,11 +11,13 @@
       </el-form-item>
     </el-form>
 
-    <el-table v-loading="loading" :data="loanAuditList">
+    <!-- 合同表格 -->
+    <el-table v-loading="loading" :data="contractList">
       <el-table-column label="ID" align="center" prop="id" width="80" />
-      <el-table-column label="合同ID" align="center" prop="contractId" />
-      <el-table-column label="申请金额" align="center" prop="loanAmount" />
-      <el-table-column label="利率" align="center" prop="interestRate" />
+      <el-table-column label="合同编号" align="center" prop="contractNo" />
+      <el-table-column label="客户ID" align="center" prop="customerId" />
+      <el-table-column label="销售代表ID" align="center" prop="salesRepId" />
+      <el-table-column label="合同金额" align="center" prop="contractAmount" />
       <el-table-column label="状态" align="center" prop="status">
         <template #default="scope">
           <el-tag :type="getStatusType(scope.row.status)">
@@ -29,11 +26,9 @@
         </template>
       </el-table-column>
       <el-table-column label="创建时间" align="center" prop="createdAt" width="180" />
-      <el-table-column label="操作" align="center" class-name="small-padding fixed-width" width="200">
+      <el-table-column label="操作" align="center" class-name="small-padding fixed-width">
         <template #default="scope">
           <el-button link type="primary" icon="View" @click="handleView(scope.row)">查看</el-button>
-          <el-button link type="primary" icon="Check" @click="handleApprove(scope.row)" v-if="scope.row.status === 2">批准</el-button>
-          <el-button link type="primary" icon="Close" @click="handleReject(scope.row)" v-if="scope.row.status === 2">拒绝</el-button>
         </template>
       </el-table-column>
     </el-table>
@@ -41,51 +36,50 @@
     <pagination v-show="total > 0" :total="total" v-model:page="queryParams.pageNum" v-model:limit="queryParams.pageSize" @pagination="getList" />
 
     <!-- 详情对话框 -->
-    <el-dialog title="贷款审核详情" v-model="detailOpen" width="600px" append-to-body>
+    <el-dialog title="合同详情" v-model="detailVisible" width="800px" append-to-body>
       <el-descriptions :column="2" border>
-        <el-descriptions-item label="ID">{{ detailForm.id }}</el-descriptions-item>
-        <el-descriptions-item label="合同ID">{{ detailForm.contractId }}</el-descriptions-item>
-        <el-descriptions-item label="申请金额">{{ detailForm.loanAmount }}</el-descriptions-item>
-        <el-descriptions-item label="利率">{{ detailForm.interestRate }}</el-descriptions-item>
-        <el-descriptions-item label="期限（月）">{{ detailForm.termMonths }}</el-descriptions-item>
-        <el-descriptions-item label="状态">{{ getStatusLabel(detailForm.status) }}</el-descriptions-item>
-        <el-descriptions-item label="创建时间">{{ detailForm.createdAt }}</el-descriptions-item>
-        <el-descriptions-item label="更新时间">{{ detailForm.updatedAt }}</el-descriptions-item>
+        <el-descriptions-item label="合同编号">{{ detailForm.contract?.contractNo }}</el-descriptions-item>
+        <el-descriptions-item label="状态">
+          <el-tag :type="getStatusType(detailForm.contract?.status)">{{ getStatusLabel(detailForm.contract?.status) }}</el-tag>
+        </el-descriptions-item>
+        <el-descriptions-item label="客户ID">{{ detailForm.customerId }}</el-descriptions-item>
+        <el-descriptions-item label="销售代表ID">{{ detailForm.salesRepId }}</el-descriptions-item>
+        <el-descriptions-item label="部门ID">{{ detailForm.deptId }}</el-descriptions-item>
+        <el-descriptions-item label="战区ID">{{ detailForm.zoneId }}</el-descriptions-item>
+        <el-descriptions-item label="合同金额">{{ detailForm.contract?.contractAmount }}</el-descriptions-item>
+        <el-descriptions-item label="实际贷款金额">{{ detailForm.contract?.actualLoanAmount }}</el-descriptions-item>
+        <el-descriptions-item label="服务费率">{{ detailForm.contract?.serviceFeeRate }}</el-descriptions-item>
+        <el-descriptions-item label="服务费1">{{ detailForm.contract?.serviceFee1 }}</el-descriptions-item>
+        <el-descriptions-item label="服务费2">{{ detailForm.contract?.serviceFee2 }}</el-descriptions-item>
+        <el-descriptions-item label="服务费1已付">{{ detailForm.contract?.serviceFee1Paid === 1 ? '是' : '否' }}</el-descriptions-item>
+        <el-descriptions-item label="服务费2已付">{{ detailForm.contract?.serviceFee2Paid === 1 ? '是' : '否' }}</el-descriptions-item>
+        <el-descriptions-item label="签署日期">{{ detailForm.contract?.signDate }}</el-descriptions-item>
+        <el-descriptions-item label="纸质合同编号">{{ detailForm.contract?.paperContractNo }}</el-descriptions-item>
+        <el-descriptions-item label="贷款用途" :span="2">{{ detailForm.contract?.loanUse }}</el-descriptions-item>
+        <el-descriptions-item label="担保信息" :span="2">{{ detailForm.contract?.guaranteeInfo }}</el-descriptions-item>
+        <el-descriptions-item label="拒绝原因" :span="2">{{ detailForm.contract?.rejectReason }}</el-descriptions-item>
+        <el-descriptions-item label="备注" :span="2">{{ detailForm.contract?.remark }}</el-descriptions-item>
       </el-descriptions>
-    </el-dialog>
-
-    <!-- 批准对话框 -->
-    <el-dialog title="批准贷款" v-model="approveOpen" width="500px" append-to-body>
-      <el-form ref="approveRef" :model="approveForm" label-width="120px">
-        <el-form-item label="实际放款金额">
-          <el-input v-model="approveForm.actualLoanAmount" placeholder="请输入实际放款金额" />
-        </el-form-item>
-        <el-form-item label="实际利率">
-          <el-input v-model="approveForm.actualInterestRate" placeholder="请输入实际利率" />
-        </el-form-item>
-        <el-form-item label="备注">
-          <el-input v-model="approveForm.comment" type="textarea" placeholder="请输入备注" />
-        </el-form-item>
-      </el-form>
       <template #footer>
         <div class="dialog-footer">
-          <el-button type="primary" @click="submitApprove">确 定</el-button>
-          <el-button @click="approveOpen = false">取 消</el-button>
+          <el-button type="success" @click="handleApprove">通 过</el-button>
+          <el-button type="danger" @click="handleReject">拒 绝</el-button>
+          <el-button @click="detailVisible = false">关 闭</el-button>
         </div>
       </template>
     </el-dialog>
 
     <!-- 拒绝对话框 -->
-    <el-dialog title="拒绝贷款" v-model="rejectOpen" width="500px" append-to-body>
+    <el-dialog title="拒绝合同" v-model="rejectVisible" width="500px" append-to-body>
       <el-form ref="rejectRef" :model="rejectForm" label-width="80px">
-        <el-form-item label="拒绝原因">
-          <el-input v-model="rejectForm.comment" type="textarea" placeholder="请输入拒绝原因" />
+        <el-form-item label="拒绝原因" prop="rejectReason">
+          <el-input v-model="rejectForm.rejectReason" type="textarea" placeholder="请输入拒绝原因" rows="4" />
         </el-form-item>
       </el-form>
       <template #footer>
         <div class="dialog-footer">
           <el-button type="primary" @click="submitReject">确 定</el-button>
-          <el-button @click="rejectOpen = false">取 消</el-button>
+          <el-button @click="rejectVisible = false">取 消</el-button>
         </div>
       </template>
     </el-dialog>
@@ -93,30 +87,31 @@
 </template>
 
 <script setup>
-import { listLoanAudit, getLoanAudit, approveLoanAudit, rejectLoanAudit } from "@/api/finance/loanAudit"
-import useUserStore from '@/store/modules/user'
+import { pageContractAudit, getContractAuditDetail, approveContractAudit, rejectContractAudit } from
+      "@/api/finance/contractAudit.js"
 
 const { proxy } = getCurrentInstance()
-const userStore = useUserStore()
 
-const loanAuditList = ref([])
+const contractList = ref([])
 const loading = ref(true)
 const showSearch = ref(true)
 const total = ref(0)
-const detailOpen = ref(false)
-const approveOpen = ref(false)
-const rejectOpen = ref(false)
+const detailVisible = ref(false)
+const rejectVisible = ref(false)
 const detailForm = ref({})
-const approveForm = ref({})
 const rejectForm = ref({})
-const currentId = ref(null)
+const currentContractId = ref(null)
 
 const statusOptions = {
-  0: '待接收',
-  1: '审核中',
-  2: '银行审核',
-  3: '已批准',
-  4: '已拒绝'
+  0: '待签署',
+  1: '草稿',
+  2: '已签署',
+  3: '已付首期',
+  4: '审核中',
+  5: '已通过',
+  6: '已拒绝',
+  7: '已放款',
+  8: '完成'
 }
 
 function getStatusLabel(status) {
@@ -124,7 +119,7 @@ function getStatusLabel(status) {
 }
 
 function getStatusType(status) {
-  const types = { 0: 'info', 1: 'warning', 2: 'warning', 3: 'success', 4: 'danger' }
+  const types = { 0: 'info', 1: 'success', 2: 'warning', 3: 'success', 4: 'warning', 5: 'success', 6: 'danger', 7: 'primary', 8: 'info' }
   return types[status] || 'info'
 }
 
@@ -132,17 +127,17 @@ const data = reactive({
   queryParams: {
     pageNum: 1,
     pageSize: 10,
-    status: undefined
+    contractNo: undefined
   }
 })
 
 const { queryParams } = toRefs(data)
 
-/** 查询贷款审核列表 */
+/** 查询审核中合同列表 */
 function getList() {
   loading.value = true
-  listLoanAudit(queryParams.value).then(response => {
-    loanAuditList.value = response.data?.records || response.records || []
+  pageContractAudit(queryParams.value).then(response => {
+    contractList.value = response.data?.records || response.records || []
     total.value = response.data?.total || response.total || 0
     loading.value = false
   })
@@ -162,50 +157,39 @@ function resetQuery() {
 
 /** 查看详情 */
 function handleView(row) {
-  getLoanAudit(row.id).then(response => {
+  currentContractId.value = row.id
+  getContractAuditDetail(row.id).then(response => {
     detailForm.value = response.data || response
-    detailOpen.value = true
+    detailVisible.value = true
   })
 }
 
-/** 批准 */
-function handleApprove(row) {
-  currentId.value = row.id
-  approveForm.value = {
-    actualLoanAmount: row.loanAmount,
-    actualInterestRate: row.interestRate,
-    comment: '',
-    operatorId: userStore.id,
-    operatorName: userStore.name,
-    operatorRole: 'finance'
-  }
-  approveOpen.value = true
-}
-
-function submitApprove() {
-  approveLoanAudit(currentId.value, approveForm.value).then(() => {
-    proxy.$modal.msgSuccess("批准成功")
-    approveOpen.value = false
+/** 通过审核 */
+function handleApprove() {
+  proxy.$modal.confirm('确认通过该合同？').then(() => {
+    return approveContractAudit(currentContractId.value, { auditOpinion: '' })
+  }).then(() => {
+    proxy.$modal.msgSuccess("审核通过")
+    detailVisible.value = false
     getList()
-  })
+  }).catch(() => {})
 }
 
-/** 拒绝 */
-function handleReject(row) {
-  currentId.value = row.id
-  rejectForm.value = {
-    comment: '',
-    operatorId: userStore.id,
-    operatorName: userStore.name,
-    operatorRole: 'finance'
-  }
-  rejectOpen.value = true
+/** 拒绝审核 */
+function handleReject() {
+  rejectForm.value = { rejectReason: '' }
+  rejectVisible.value = true
 }
 
 function submitReject() {
-  rejectLoanAudit(currentId.value, rejectForm.value).then(() => {
+  if (!rejectForm.value.rejectReason) {
+    proxy.$modal.msgError("请输入拒绝原因")
+    return
+  }
+  rejectContractAudit(currentContractId.value, rejectForm.value).then(() => {
     proxy.$modal.msgSuccess("已拒绝")
-    rejectOpen.value = false
+    rejectVisible.value = false
+    detailVisible.value = false
     getList()
   })
 }

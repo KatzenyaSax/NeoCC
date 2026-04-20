@@ -5,7 +5,7 @@
     <div class="welcome-banner">
       <div class="banner-left">
         <div class="banner-title">
-          <span class="brand">NeoCC</span>
+          <span class="brand">大富翁</span>
           <span class="subtitle">信贷管理系统</span>
         </div>
         <div class="banner-desc">欢迎回来，<strong>{{ nickName }}</strong> &nbsp;·&nbsp; {{ currentDate }}</div>
@@ -184,7 +184,7 @@ const quickLinks = [
 
 // 系统信息
 const sysInfo = [
-  { label: '系统名称', value: 'NeoCC 信贷管理系统' },
+  { label: '系统名称', value: '大富翁管理系统' },
   { label: '当前版本', value: 'v1.0.0' },
   { label: '后端框架', value: 'Spring Boot 3 + Spring Cloud' },
   { label: '前端框架', value: 'Vue 3 + Element Plus' },

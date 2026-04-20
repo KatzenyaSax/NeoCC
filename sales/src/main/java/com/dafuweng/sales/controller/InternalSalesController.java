@@ -1,6 +1,7 @@
 package com.dafuweng.sales.controller;
 
 import com.dafuweng.common.entity.Result;
+import com.dafuweng.common.entity.PageResponse;
 import com.dafuweng.common.entity.dto.PerformanceCreateDTO;
 import com.dafuweng.common.entity.vo.ContractVO;
 import com.dafuweng.sales.entity.ContractEntity;
@@ -124,6 +125,38 @@ public class InternalSalesController {
             entity.setServiceFee1Paid((short) 1);
         } else if (feeType == 2) {
             entity.setServiceFee2Paid((short) 1);
+        }
+        contractService.update(entity);
+        return Result.success();
+    }
+
+    /**
+     * GET /sales/internal/contracts/status/{status}/page
+     * 按状态分页查询合同
+     */
+    @GetMapping("/contracts/status/{status}/page")
+    public Result<PageResponse<ContractEntity>> pageContractsByStatus(
+            @RequestParam("pageNum") int pageNum,
+            @RequestParam("pageSize") int pageSize,
+            @PathVariable("status") Short status) {
+        return Result.success(contractService.pageListByStatus(pageNum, pageSize, status));
+    }
+
+    /**
+     * PUT /sales/internal/contracts/{id}/status-with-reason
+     * 更新合同状态并设置拒绝原因（供 finance 服务调用）
+     */
+    @PutMapping("/contracts/{id}/status-with-reason")
+    public Result<?> updateContractStatusWithReason(@PathVariable Long id,
+                                                     @RequestParam Short status,
+                                                     @RequestParam(required = false) String rejectReason) {
+        ContractEntity entity = contractService.getById(id);
+        if (entity == null) {
+            return Result.error("合同不存在");
+        }
+        entity.setStatus(status);
+        if (rejectReason != null && !rejectReason.isEmpty()) {
+            entity.setRejectReason(rejectReason);
         }
         contractService.update(entity);
         return Result.success();

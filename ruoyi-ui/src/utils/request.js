@@ -30,6 +30,13 @@ function getBaseURL(url) {
       url.startsWith('/sysZone') || url.startsWith('/sysDepartment')) {
     return '/system/api'
   }
+  // finance 模块
+  if (url.startsWith('/bank') || url.startsWith('/financeProduct') ||
+      url.startsWith('/contractAudit') || url.startsWith('/loanAudit') || url.startsWith('/loanAuditRecord') ||
+      url.startsWith('/commission') || url.startsWith('/commissionRecord') ||
+      url.startsWith('/serviceFee') || url.startsWith('/serviceFeeRecord')) {
+    return '/finance/api'
+  }
   // sales 模块
   if (url.startsWith('/customer') || url.startsWith('/contract') ||
       url.startsWith('/contactRecord') || url.startsWith('/workLog') ||
@@ -37,13 +44,6 @@ function getBaseURL(url) {
       url.startsWith('/contractAttachment') ||
       url.startsWith('/perfSummary') || url.startsWith('/perfRanking')) {
     return '/sales/api'
-  }
-  // finance 模块
-  if (url.startsWith('/bank') || url.startsWith('/financeProduct') ||
-      url.startsWith('/loanAudit') || url.startsWith('/loanAuditRecord') ||
-      url.startsWith('/commission') || url.startsWith('/commissionRecord') ||
-      url.startsWith('/serviceFee') || url.startsWith('/serviceFeeRecord')) {
-    return '/finance/api'
   }
   return '/dev-api'
 }

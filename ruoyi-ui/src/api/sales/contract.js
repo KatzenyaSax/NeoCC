@@ -58,3 +58,19 @@ export function signContract(id) {
     method: 'post'
   })
 }
+
+// 生成合同编号
+export function generateNo() {
+  return request({
+    url: '/contract/generateNo',
+    method: 'get'
+  })
+}
+
+// 获取合同详情
+export function getContractDetail(id) {
+  return request({
+    url: '/contract/' + id + '/detail',
+    method: 'get'
+  })
+}

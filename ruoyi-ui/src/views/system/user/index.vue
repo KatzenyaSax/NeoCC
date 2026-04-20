@@ -40,7 +40,7 @@
           </el-tag>
         </template>
       </el-table-column>
-      <el-table-column label="最后登录时间" align="center" prop="lastLoginAt" width="160" />
+      <el-table-column label="最后登录时间" align="center" prop="lastLoginTime" width="160" />
       <el-table-column label="操作" align="center" width="240" fixed="right">
         <template #default="scope">
           <el-button link type="primary" icon="Edit" @click="handleUpdate(scope.row)">修改</el-button>

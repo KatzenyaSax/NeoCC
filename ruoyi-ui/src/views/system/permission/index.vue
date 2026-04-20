@@ -40,7 +40,6 @@
       </el-table-column>
       <el-table-column label="路由路径" align="center" prop="path" />
       <el-table-column label="组件" align="center" prop="component" />
-      <el-table-column label="图标" align="center" prop="icon" width="80" />
       <el-table-column label="排序" align="center" prop="sortOrder" width="70" />
       <el-table-column label="状态" align="center" prop="status" width="80">
         <template #default="scope">
