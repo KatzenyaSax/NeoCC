@@ -113,6 +113,9 @@
         <el-form-item label="贷款意向产品" prop="loanIntentionProduct">
           <el-input v-model="editForm.loanIntentionProduct" placeholder="请输入贷款意向产品" />
         </el-form-item>
+        <el-form-item label="公海原因" prop="publicSeaReason">
+          <el-input v-model="editForm.publicSeaReason" type="textarea" placeholder="请输入公海原因" />
+        </el-form-item>
       </el-form>
       <template #footer>
         <div class="dialog-footer">

@@ -26,8 +26,12 @@
 
     <el-table v-loading="loading" :data="dataList">
       <el-table-column label="ID" align="center" prop="id" width="80" />
-      <el-table-column label="客户ID" align="center" prop="customerId" width="90" />
-      <el-table-column label="销售代表ID" align="center" prop="salesRepId" width="100" />
+      <el-table-column label="客户" align="center" prop="customerName" width="120">
+        <template #default="scope">{{ customerNameMap[scope.row.customerId] || scope.row.customerId }}</template>
+      </el-table-column>
+      <el-table-column label="对接销售代表" align="center" prop="salesRepName" width="120">
+        <template #default="scope">{{ salesRepNameMap[scope.row.salesRepId] || scope.row.salesRepId }}</template>
+      </el-table-column>
       <el-table-column label="跟进方式" align="center" prop="contactType" width="100">
         <template #default="scope">
           <el-tag>{{ contactTypeLabel(scope.row.contactType) }}</el-tag>
@@ -117,6 +121,7 @@
 <script setup>
 import { listContactRecord, getContactRecord, addContactRecord, updateContactRecord, delContactRecord } from "@/api/sales/contactRecord"
 import { listCustomer } from "@/api/sales/customer"
+import { listSalesReps } from "@/api/sales/publicSea"
 import useUserStore from '@/store/modules/user'
 
 const { proxy } = getCurrentInstance()
@@ -135,6 +140,11 @@ const intentionMap = { 0: '无意向', 1: '低意向', 2: '中意向', 3: '高�
 function contactTypeLabel(val) { return contactTypeMap[val] || '未知' }
 function intentionLabel(val) { return intentionMap[val] || '-' }
 
+// 客户名称映射
+const customerNameMap = ref({})
+// 销售代表名称映射
+const salesRepNameMap = ref({})
+
 const data = reactive({
   form: {},
   queryParams: { pageNum: 1, pageSize: 10, customerId: undefined, contactType: undefined },
@@ -152,6 +162,24 @@ function getList() {
     dataList.value = response.data?.records || response.records || []
     total.value = response.data?.total || response.total || 0
     loading.value = false
+  })
+}
+
+/** 加载客户和销售代表名称映射 */
+function loadNameMaps() {
+  // 加载客户列表
+  listCustomer({ pageNum: 1, pageSize: 1000, name: '' }).then(response => {
+    const records = response.data?.records || response.records || []
+    const map = {}
+    records.forEach(c => { map[c.id] = c.name })
+    customerNameMap.value = map
+  })
+  // 加载销售代表列表
+  listSalesReps().then(response => {
+    const reps = response.data || []
+    const map = {}
+    reps.forEach(r => { map[r.id] = r.realName })
+    salesRepNameMap.value = map
   })
 }
 
@@ -223,5 +251,6 @@ function handleDelete(row) {
   }).catch(() => {})
 }
 
+loadNameMaps()
 getList()
 </script>

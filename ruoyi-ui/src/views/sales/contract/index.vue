@@ -22,7 +22,9 @@
     <el-table v-loading="loading" :data="contractList">
       <el-table-column label="ID" align="center" prop="id" width="80" />
       <el-table-column label="合同编号" align="center" prop="contractNo" />
-      <el-table-column label="客户ID" align="center" prop="customerId" />
+      <el-table-column label="客户" align="center" prop="customerId">
+        <template #default="scope">{{ customerNameMap[scope.row.customerId] || scope.row.customerId }}</template>
+      </el-table-column>
       <el-table-column label="合同金额" align="center" prop="contractAmount" />
       <el-table-column label="实际贷款金额" align="center" prop="actualLoanAmount" />
       <el-table-column label="状态" align="center" prop="status">
@@ -36,8 +38,8 @@
       <el-table-column label="操作" align="center" class-name="small-padding fixed-width">
         <template #default="scope">
           <el-button link type="primary" icon="View" @click="handleDetail(scope.row)">详情</el-button>
-          <el-button link type="primary" icon="Edit" @click="handleEdit(scope.row)" v-if="scope.row.status === 0 || scope.row.status === 1">编辑</el-button>
-          <el-button link type="success" icon="Check" @click="handleSignRow(scope.row)" v-if="scope.row.status === 0">签署</el-button>
+          <el-button link type="primary" icon="Edit" @click="handleEdit(scope.row)">编辑</el-button>
+          <el-button link type="success" icon="Check" @click="handleSignRow(scope.row)" v-if="scope.row.status === 1">签署</el-button>
           <el-button link type="danger" icon="Delete" @click="handleDelete(scope.row)" v-if="scope.row.status === 0 || scope.row.status === 1">删除</el-button>
         </template>
       </el-table-column>
@@ -53,22 +55,78 @@
         <el-row :gutter="20">
           <el-col :span="12">
             <el-form-item label="销售代表" prop="salesRepId">
-              <el-input v-model="form.salesRepId" placeholder="请输入销售代表ID" />
+              <el-select
+                v-model="form.salesRepName"
+                placeholder="请搜索销售代表"
+                filterable
+                remote
+                :remote-method="loadSalesRepOptions"
+                :loading="salesRepLoading"
+                style="width: 100%">
+                <el-option
+                  v-for="item in salesRepOptions"
+                  :key="item.id"
+                  :label="item.realName"
+                  :value="item.id"
+                />
+              </el-select>
             </el-form-item>
           </el-col>
           <el-col :span="12">
             <el-form-item label="部门" prop="deptId">
-              <el-input v-model="form.deptId" placeholder="请输入部门ID" />
+              <el-select
+                v-model="form.deptName"
+                placeholder="请搜索部门"
+                filterable
+                remote
+                :remote-method="loadDeptOptions"
+                :loading="deptLoading"
+                style="width: 100%">
+                <el-option
+                  v-for="item in deptOptions"
+                  :key="item.id"
+                  :label="item.name"
+                  :value="item.id"
+                />
+              </el-select>
             </el-form-item>
           </el-col>
           <el-col :span="12">
             <el-form-item label="战区" prop="zoneId">
-              <el-input v-model="form.zoneId" placeholder="请输入战区ID" />
+              <el-select
+                v-model="form.zoneName"
+                placeholder="请搜索战区"
+                filterable
+                remote
+                :remote-method="loadZoneOptions"
+                :loading="zoneLoading"
+                style="width: 100%">
+                <el-option
+                  v-for="item in zoneOptions"
+                  :key="item.id"
+                  :label="item.name"
+                  :value="item.id"
+                />
+              </el-select>
             </el-form-item>
           </el-col>
           <el-col :span="12">
-            <el-form-item label="产品" prop="productId">
-              <el-input v-model="form.productId" placeholder="请输入产品ID" />
+            <el-form-item label="产品" prop="productName">
+              <el-select
+                v-model="form.productName"
+                placeholder="请搜索产品"
+                filterable
+                remote
+                :remote-method="loadProductOptions"
+                :loading="productLoading"
+                style="width: 100%">
+                <el-option
+                  v-for="item in productOptions"
+                  :key="item.id"
+                  :label="item.name"
+                  :value="item.id"
+                />
+              </el-select>
             </el-form-item>
           </el-col>
         </el-row>
@@ -78,7 +136,21 @@
         <el-row :gutter="20">
           <el-col :span="12">
             <el-form-item label="客户" prop="customerId">
-              <el-input v-model="form.customerId" placeholder="请输入客户ID" />
+              <el-select
+                v-model="form.customerId"
+                placeholder="请搜索客户"
+                filterable
+                remote
+                :remote-method="loadCustomerOptions"
+                :loading="customerLoading"
+                style="width: 100%">
+                <el-option
+                  v-for="item in customerOptions"
+                  :key="item.id"
+                  :label="item.name"
+                  :value="item.id"
+                />
+              </el-select>
             </el-form-item>
           </el-col>
         </el-row>
@@ -94,8 +166,7 @@
           <el-col :span="12">
             <el-form-item label="状态" prop="status">
               <el-select v-model="form.status" placeholder="请选择状态" style="width: 100%">
-                <el-option label="待签署" :value="0" />
-                <el-option label="草稿" :value="1" />
+                <el-option label="待签署" :value="1" />
                 <el-option label="已签署" :value="2" />
                 <el-option label="已付首期" :value="3" />
                 <el-option label="审核中" :value="4" />
@@ -182,29 +253,29 @@
       </template>
     </el-dialog>
 
-    <!-- 详情对话框（可编辑） -->
+    <!-- 详情对话框 -->
     <el-dialog title="合同详情" v-model="detailVisible" width="800px" append-to-body>
       <el-form ref="detailFormRef" :model="detailForm" label-width="120px">
         <el-divider content-position="left">销售信息</el-divider>
         <el-row :gutter="20">
           <el-col :span="12">
-            <el-form-item label="销售代表">{{ detailForm.salesRepId }}</el-form-item>
+            <el-form-item label="销售代表">{{ detailForm.salesRepName || detailForm.salesRepId }}</el-form-item>
           </el-col>
           <el-col :span="12">
-            <el-form-item label="部门">{{ detailForm.deptId }}</el-form-item>
+            <el-form-item label="部门">{{ detailForm.deptName}}</el-form-item>
           </el-col>
           <el-col :span="12">
-            <el-form-item label="战区">{{ detailForm.zoneId }}</el-form-item>
+            <el-form-item label="战区">{{ detailForm.zoneName }}</el-form-item>
           </el-col>
           <el-col :span="12">
-            <el-form-item label="产品">{{ detailForm.productId }}</el-form-item>
+            <el-form-item label="产品">{{ detailForm.productName }}</el-form-item>
           </el-col>
         </el-row>
 
         <el-divider content-position="left">客户信息</el-divider>
         <el-row :gutter="20">
           <el-col :span="12">
-            <el-form-item label="客户">{{ detailForm.customerId }}</el-form-item>
+            <el-form-item label="客户">{{ detailForm.customerName || detailForm.customerId }}</el-form-item>
           </el-col>
         </el-row>
 
@@ -300,7 +371,12 @@
 </template>
 
 <script setup>
-import { listContract, getContract, delContract, addContract, updateContract, signContract, generateNo, getContractDetail } from "@/api/sales/contract"
+import { listContract, getContract, delContract, addContract, updateContract, signContract, generateNo, getContractDetail, getContractDetailWithNames } from "@/api/sales/contract"
+import { listSalesReps } from "@/api/sales/publicSea"
+import { listCustomer } from "@/api/sales/customer"
+import { listAllDepartment } from "@/api/system/department"
+import { listAllZone } from "@/api/system/zone"
+import { listFinanceProduct } from "@/api/finance/financeProduct"
 import useUserStore from '@/store/modules/user'
 
 const { proxy } = getCurrentInstance()
@@ -315,9 +391,30 @@ const dialogVisible = ref(false)
 const detailVisible = ref(false)
 const isEdit = ref(false)
 
+// 下拉搜索加载状态
+const salesRepLoading = ref(false)
+const deptLoading = ref(false)
+const zoneLoading = ref(false)
+const productLoading = ref(false)
+const customerLoading = ref(false)
+
+// 下拉选项数据
+const salesRepOptions = ref([])
+const deptOptions = ref([])
+const zoneOptions = ref([])
+const productOptions = ref([])
+const customerOptions = ref([])
+
+// 名称映射Map（用于详情和表格显示）
+const customerNameMap = ref({})
+const salesRepNameMap = ref({})
+const deptNameMap = ref({})
+const zoneNameMap = ref({})
+const productNameMap = ref({})
+
 const statusOptions = {
-  0: '待签署',
-  1: '草稿',
+  1: '待签署',
+  0: '草稿',
   2: '已签署',
   3: '已付首期',
   4: '审核中',
@@ -346,8 +443,8 @@ const data = reactive({
     contractNo: undefined
   },
   rules: {
-    customerId: [{ required: true, message: "客户不能为空", trigger: "blur" }],
-    salesRepId: [{ required: true, message: "销售代表不能为空", trigger: "blur" }]
+    customerId: [{ required: true, message: "客户不能为空", trigger: "change" }],
+    salesRepId: [{ required: true, message: "销售代表不能为空", trigger: "change" }]
   }
 })
 
@@ -363,19 +460,16 @@ function getList() {
     const deptId = userStore.deptId
     const zoneId = userStore.zoneId
     const roles = userStore.roles || []
-    const isSalesRep = roles.some(r => r === 'ROLE_sales_rep')
-    const isDeptManager = roles.some(r => r === 'ROLE_dept_manager')
-    const isZoneDirector = roles.some(r => r === 'ROLE_zone_director')
-    const isAdmin = roles.some(r => ['ROLE_admin', 'ROLE_super'].includes(r))
+    const isSalesRep = roles.some(r => r === 'SALES_REP')
+    const isDeptManager = roles.some(r => r === 'DEPT_MANAGER')
+    const isZoneDirector = roles.some(r => r === 'ZONE_DIRECTOR')
+    const isAdmin = roles.some(r => ['SUPER_ADMIN'].includes(r))
 
     if (isSalesRep && !isDeptManager && !isZoneDirector && !isAdmin) {
-      // 销售代表只看自己的合同
       records = records.filter(item => item.salesRepId === userId)
     } else if (isDeptManager && !isZoneDirector && !isAdmin) {
-      // 部门经理看本部门的合同
       records = records.filter(item => item.deptId === deptId)
     } else if (isZoneDirector && !isAdmin) {
-      // 战区总监看本战区的合同
       records = records.filter(item => item.zoneId === zoneId)
     }
 
@@ -432,10 +526,16 @@ function resetQuery() {
 
 /** 签署合同按钮 - 新增签署 */
 function handleSign() {
+  const roles = userStore.roles || []
+  const isSuper = roles.includes('ROLE_SUPER_ADMIN')
+  const isSalesRep = roles.includes('SALES_REP')
+  if (!isSuper && !isSalesRep) {
+    proxy.$modal.msgError("您不是销售代表！")
+    return
+  }
   reset()
   isEdit.value = false
   dialogTitle.value = "签署合同"
-  // 自动生成合同编号
   generateNo().then(response => {
     form.value.contractNo = response.data || response
     dialogVisible.value = true
@@ -454,7 +554,7 @@ function handleSignRow(row) {
 
 /** 详情按钮 */
 function handleDetail(row) {
-  getContractDetail(row.id).then(response => {
+  getContractDetailWithNames(row.id).then(response => {
     detailForm.value = response.data || response
     detailVisible.value = true
   })
@@ -473,7 +573,7 @@ function submitDetailForm() {
 function handleEdit(row) {
   isEdit.value = true
   dialogTitle.value = "编辑合同"
-  getContract(row.id).then(response => {
+  getContractDetailWithNames(row.id).then(response => {
     form.value = response.data || response
     dialogVisible.value = true
   })
@@ -483,6 +583,13 @@ function handleEdit(row) {
 function submitForm() {
   proxy.$refs["formRef"].validate(valid => {
     if (valid) {
+      const roles = userStore.roles || []
+      const isSalesRep = roles.includes('ROLE_sales_rep')
+      // 新增合同（签署）时，仅销售代表可提交，超级管理员不可提交
+      if (form.value.id == undefined && !isSalesRep) {
+        proxy.$modal.msgError("您不是销售代表！")
+        return
+      }
       if (form.value.id != undefined) {
         updateContract(form.value).then(response => {
           proxy.$modal.msgSuccess("修改成功")
@@ -510,5 +617,116 @@ function handleDelete(row) {
   }).catch(() => {})
 }
 
+/** 加载名称映射（用于表格和详情显示） */
+function loadNameMaps() {
+  // 加载客户列表
+  listCustomer({ pageNum: 1, pageSize: 1000 }).then(response => {
+    const records = response.data?.records || response.records || []
+    const map = {}
+    records.forEach(c => { map[c.id] = c.name || c.realName })
+    customerNameMap.value = map
+  })
+  // 加载销售代表列表
+  listSalesReps().then(response => {
+    const reps = response.data || []
+    const map = {}
+    reps.forEach(r => { map[r.id] = r.realName })
+    salesRepNameMap.value = map
+  })
+  // 加载部门列表
+  listAllDepartment().then(response => {
+    const depts = response.data || []
+    const map = {}
+    depts.forEach(d => { map[d.id] = d.name })
+    deptNameMap.value = map
+  })
+  // 加载战区列表
+  listAllZone().then(response => {
+    const zones = response.data || []
+    const map = {}
+    zones.forEach(z => { map[z.id] = z.name })
+    zoneNameMap.value = map
+  })
+  // 加载产品列表
+  listFinanceProduct({ pageNum: 1, pageSize: 1000 }).then(response => {
+    const records = response.data?.records || response.records || []
+    const map = {}
+    records.forEach(p => { map[p.id] = p.productName })
+    productNameMap.value = map
+  })
+}
+
+/** 加载销售代表下拉选项 */
+function loadSalesRepOptions(searchValue) {
+  salesRepLoading.value = true
+  listSalesReps().then(response => {
+    const reps = response.data || []
+    salesRepOptions.value = reps
+      .filter(r => !searchValue || r.realName.includes(searchValue))
+      .map(r => ({ id: r.id, realName: r.realName }))
+    salesRepLoading.value = false
+  }).catch(() => {
+    salesRepLoading.value = false
+  })
+}
+
+/** 加载部门下拉选项 */
+function loadDeptOptions(searchValue) {
+  deptLoading.value = true
+  listAllDepartment().then(response => {
+    const depts = response.data || []
+    deptOptions.value = depts
+      .filter(d => !searchValue || d.name.includes(searchValue))
+      .map(d => ({ id: d.id, name: d.name }))
+    deptLoading.value = false
+  }).catch(() => {
+    deptLoading.value = false
+  })
+}
+
+/** 加载战区下拉选项 */
+function loadZoneOptions(searchValue) {
+  zoneLoading.value = true
+  listAllZone().then(response => {
+    const zones = response.data || []
+    zoneOptions.value = zones
+      .filter(z => !searchValue || z.name.includes(searchValue))
+      .map(z => ({ id: z.id, name: z.name }))
+    zoneLoading.value = false
+  }).catch(() => {
+    zoneLoading.value = false
+  })
+}
+
+/** 加载产品下拉选项 */
+function loadProductOptions(searchValue) {
+  productLoading.value = true
+  listFinanceProduct({ pageNum: 1, pageSize: 1000 }).then(response => {
+    const records = response.data?.records || response.records || []
+    productOptions.value = records
+      .filter(p => !searchValue || p.productName.includes(searchValue))
+      .map(p => ({ id: p.id, name: p.productName }))
+    productLoading.value = false
+  }).catch(() => {
+    productLoading.value = false
+  })
+}
+
+/** 加载客户下拉选项 */
+function loadCustomerOptions(searchValue) {
+  customerLoading.value = true
+  listCustomer({ pageNum: 1, pageSize: 100, name: searchValue || '' }).then(response => {
+    const records = response.data?.records || response.records || []
+    // 过滤掉公海客户(status=5)
+    customerOptions.value = records
+      .filter(c => c.status !== 5)
+      .map(c => ({ id: c.id, name: c.name || c.realName }))
+    customerLoading.value = false
+  }).catch(() => {
+    customerLoading.value = false
+  })
+}
+
+loadNameMaps()
 getList()
 </script>

@@ -79,7 +79,8 @@
       "Bash(git add:*)",
       "Bash(xxd)",
       "Bash(git commit:*)",
-      "Bash(git checkout:*)"
+      "Bash(git checkout:*)",
+      "Skill(browse)"
     ]
   }
 }

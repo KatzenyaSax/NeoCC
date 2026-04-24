@@ -91,6 +91,15 @@ public class ContractController {
     }
 
     /**
+     * GET /api/contract/{id}/detail-with-names
+     * 获取合同详情（含关联名称）
+     */
+    @GetMapping("/{id}/detail-with-names")
+    public Result<?> getDetailWithNames(@PathVariable Long id) {
+        return Result.success(contractService.getDetailWithNames(id));
+    }
+
+    /**
      * GET /api/contract/count
      * 获取合同总数
      */
