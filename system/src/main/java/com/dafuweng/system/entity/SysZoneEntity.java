@@ -1,5 +1,6 @@
 package com.dafuweng.system.entity;
 
+import com.baomidou.mybatisplus.annotation.TableField;
 import com.baomidou.mybatisplus.annotation.TableId;
 import com.baomidou.mybatisplus.annotation.TableLogic;
 import com.baomidou.mybatisplus.annotation.TableName;
@@ -22,6 +23,9 @@ public class SysZoneEntity implements Serializable {
     private String zoneName;
 
     private Long directorId;
+
+    @TableField(exist = false)
+    private String directorName;
 
     private Integer sortOrder;
 

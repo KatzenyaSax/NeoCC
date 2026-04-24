@@ -8,18 +8,26 @@ import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.dafuweng.common.entity.PageRequest;
 import com.dafuweng.common.entity.PageResponse;
+import com.dafuweng.common.entity.Result;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.StringUtils;
 
+import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
+import java.util.stream.Collectors;
 
 @Service
 public class SysZoneServiceImpl implements SysZoneService {
 
     @Autowired
     private SysZoneDao sysZoneDao;
+
+    @Autowired
+    private com.dafuweng.system.feign.AuthFeignClient authFeignClient;
 
     @Override
     public SysZoneEntity getById(Long id) {
@@ -40,6 +48,7 @@ public class SysZoneServiceImpl implements SysZoneService {
             wrapper.orderByDesc(SysZoneEntity::getCreatedAt);
         }
         IPage<SysZoneEntity> result = sysZoneDao.selectPage(page, wrapper);
+        fillDirectorNames(result.getRecords());
         return PageResponse.of(result.getTotal(), result.getRecords(),
             (int) page.getCurrent() , (int) page.getSize());
     }
@@ -48,7 +57,9 @@ public class SysZoneServiceImpl implements SysZoneService {
     public List<SysZoneEntity> listAll() {
         LambdaQueryWrapper<SysZoneEntity> wrapper = new LambdaQueryWrapper<>();
         wrapper.orderByAsc(SysZoneEntity::getSortOrder);
-        return sysZoneDao.selectList(wrapper);
+        List<SysZoneEntity> zones = sysZoneDao.selectList(wrapper);
+        fillDirectorNames(zones);
+        return zones;
     }
 
     @Override
@@ -56,7 +67,9 @@ public class SysZoneServiceImpl implements SysZoneService {
         LambdaQueryWrapper<SysZoneEntity> wrapper = new LambdaQueryWrapper<>();
         wrapper.eq(SysZoneEntity::getStatus, status);
         wrapper.orderByAsc(SysZoneEntity::getSortOrder);
-        return sysZoneDao.selectList(wrapper);
+        List<SysZoneEntity> zones = sysZoneDao.selectList(wrapper);
+        fillDirectorNames(zones);
+        return zones;
     }
 
     @Override
@@ -77,5 +90,44 @@ public class SysZoneServiceImpl implements SysZoneService {
     @Transactional
     public void delete(Long id) {
         sysZoneDao.deleteById(id);
+    }
+
+    @Override
+    public Map<Long, String> listNamesByIds(List<Long> ids) {
+        if (ids == null || ids.isEmpty()) {
+            return new HashMap<>();
+        }
+        LambdaQueryWrapper<SysZoneEntity> wrapper = new LambdaQueryWrapper<>();
+        wrapper.in(SysZoneEntity::getId, ids);
+        List<SysZoneEntity> zones = sysZoneDao.selectList(wrapper);
+        return zones.stream().collect(Collectors.toMap(SysZoneEntity::getId, SysZoneEntity::getZoneName));
+    }
+
+    @Override
+    public void fillDirectorNames(List<SysZoneEntity> zones) {
+        if (zones == null || zones.isEmpty()) {
+            return;
+        }
+        // 收集所有 directorId
+        List<Long> directorIds = zones.stream()
+            .map(SysZoneEntity::getDirectorId)
+            .filter(id -> id != null)
+            .distinct()
+            .collect(Collectors.toList());
+
+        if (directorIds.isEmpty()) {
+            return;
+        }
+
+        // 通过 Feign 调用 auth 模块查询用户姓名
+        Result<Map<Long, String>> result = authFeignClient.listUserNamesByIds(directorIds);
+        Map<Long, String> nameMap = result.getData();
+
+        // 设置姓名到对应战区
+        zones.forEach(zone -> {
+            if (zone.getDirectorId() != null && nameMap != null) {
+                zone.setDirectorName(nameMap.get(zone.getDirectorId()));
+            }
+        });
     }
 }
