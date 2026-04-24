@@ -122,6 +122,9 @@ public class SysZoneServiceImpl implements SysZoneService {
         // 通过 Feign 调用 auth 模块查询用户姓名
         Result<Map<Long, String>> result = authFeignClient.listUserNamesByIds(directorIds);
         Map<Long, String> nameMap = result.getData();
+        if (nameMap == null) {
+            return; // 安全返回
+        }
 
         // 设置姓名到对应战区
         zones.forEach(zone -> {
