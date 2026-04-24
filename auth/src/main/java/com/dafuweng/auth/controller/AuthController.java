@@ -68,6 +68,8 @@ public class AuthController {
         data.put("userName", user.getUsername());
         data.put("nickName", user.getRealName());
         data.put("avatar", "");
+        data.put("deptId", user.getDeptId());
+        data.put("zoneId", user.getZoneId());
         data.put("roles", roleCodes.stream().map(c -> "ROLE_" + c).collect(Collectors.toList()));
         data.put("permissions", permCodes);
         return Result.success(data);

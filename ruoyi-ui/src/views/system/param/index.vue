@@ -25,8 +25,8 @@
       </el-col>
     </el-row>
 
-    <el-table v-loading="loading" :data="dataList">
-      <el-table-column label="ID" align="center" prop="id" width="80" />
+    <el-table v-loading="loading" :data="dataList" :row-key="row => row.id" @sort-change="handleSortChange">
+      <el-table-column label="ID" align="center" prop="id" width="80" sortable />
       <el-table-column label="参数键" align="center" prop="paramKey" width="200" />
       <el-table-column label="参数值" align="center" prop="paramValue">
         <template #default="scope">
@@ -126,7 +126,7 @@ const viewData = ref({})
 
 const data = reactive({
   form: {},
-  queryParams: { pageNum: 1, pageSize: 10, paramKey: undefined, paramGroup: undefined, status: undefined },
+  queryParams: { pageNum: 1, pageSize: 10, paramKey: undefined, paramGroup: undefined, status: undefined, sortField: 'id', sortOrder: 'asc' },
   rules: {
     paramKey: [{ required: true, message: "参数键不能为空", trigger: "blur" }],
     paramValue: [{ required: true, message: "参数值不能为空", trigger: "blur" }]
@@ -150,6 +150,13 @@ function reset() {
 }
 function handleQuery() { queryParams.value.pageNum = 1; getList() }
 function resetQuery() { proxy.resetForm("queryRef"); handleQuery() }
+
+function handleSortChange({ prop, order }) {
+  queryParams.value.sortField = prop
+  queryParams.value.sortOrder = order === 'ascending' ? 'asc' : order === 'descending' ? 'desc' : ''
+  getList()
+}
+
 function handleAdd() { reset(); open.value = true; title.value = "新增参数" }
 
 function handleUpdate(row) {

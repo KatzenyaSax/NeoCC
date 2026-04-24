@@ -25,8 +25,8 @@
       </el-col>
     </el-row>
 
-    <el-table v-loading="loading" :data="dataList">
-      <el-table-column label="ID" align="center" prop="id" width="80" />
+    <el-table v-loading="loading" :data="dataList" :row-key="row => row.id" @sort-change="handleSortChange">
+      <el-table-column label="ID" align="center" prop="id" width="80" sortable />
       <el-table-column label="字典类型" align="center" prop="dictType" width="150" />
       <el-table-column label="字典代码" align="center" prop="dictCode" width="150" />
       <el-table-column label="字典标签" align="center" prop="dictLabel" />
@@ -98,7 +98,7 @@ const open = ref(false)
 
 const data = reactive({
   form: {},
-  queryParams: { pageNum: 1, pageSize: 10, dictType: undefined, dictLabel: undefined, status: undefined },
+  queryParams: { pageNum: 1, pageSize: 10, dictType: undefined, dictLabel: undefined, status: undefined, sortField: 'id', sortOrder: 'asc' },
   rules: {
     dictType: [{ required: true, message: "字典类型不能为空", trigger: "blur" }],
     dictCode: [{ required: true, message: "字典代码不能为空", trigger: "blur" }],
@@ -124,6 +124,13 @@ function reset() {
 }
 function handleQuery() { queryParams.value.pageNum = 1; getList() }
 function resetQuery() { proxy.resetForm("queryRef"); handleQuery() }
+
+function handleSortChange({ prop, order }) {
+  queryParams.value.sortField = prop
+  queryParams.value.sortOrder = order === 'ascending' ? 'asc' : order === 'descending' ? 'desc' : ''
+  getList()
+}
+
 function handleAdd() { reset(); open.value = true; title.value = "新增字典" }
 
 function handleUpdate(row) {

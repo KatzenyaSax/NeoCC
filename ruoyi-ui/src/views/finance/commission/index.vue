@@ -14,8 +14,8 @@
       </el-form-item>
     </el-form>
 
-    <el-table v-loading="loading" :data="commissionList">
-      <el-table-column label="ID" align="center" prop="id" width="80" />
+    <el-table v-loading="loading" :data="commissionList" :row-key="row => row.id" @sort-change="handleSortChange">
+      <el-table-column label="ID" align="center" prop="id" width="80" sortable />
       <el-table-column label="销售代表ID" align="center" prop="salesRepId" />
       <el-table-column label="合同ID" align="center" prop="contractId" />
       <el-table-column label="佣金金额" align="center" prop="commissionAmount" />
@@ -89,7 +89,9 @@ const data = reactive({
   queryParams: {
     pageNum: 1,
     pageSize: 10,
-    status: undefined
+    status: undefined,
+    sortField: 'id',
+    sortOrder: 'asc'
   }
 })
 
@@ -108,6 +110,12 @@ function getList() {
 /** 搜索按钮操作 */
 function handleQuery() {
   queryParams.value.pageNum = 1
+  getList()
+}
+
+function handleSortChange({ prop, order }) {
+  queryParams.value.sortField = prop
+  queryParams.value.sortOrder = order === 'ascending' ? 'asc' : order === 'descending' ? 'desc' : ''
   getList()
 }
 

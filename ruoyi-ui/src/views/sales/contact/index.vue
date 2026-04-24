@@ -24,8 +24,8 @@
       </el-col>
     </el-row>
 
-    <el-table v-loading="loading" :data="dataList">
-      <el-table-column label="ID" align="center" prop="id" width="80" />
+    <el-table v-loading="loading" :data="dataList" :row-key="row => row.id" @sort-change="handleSortChange">
+      <el-table-column label="ID" align="center" prop="id" width="80" sortable />
       <el-table-column label="客户" align="center" prop="customerName" width="120">
         <template #default="scope">{{ customerNameMap[scope.row.customerId] || scope.row.customerId }}</template>
       </el-table-column>
@@ -147,7 +147,7 @@ const salesRepNameMap = ref({})
 
 const data = reactive({
   form: {},
-  queryParams: { pageNum: 1, pageSize: 10, customerId: undefined, contactType: undefined },
+  queryParams: { pageNum: 1, pageSize: 10, customerId: undefined, contactType: undefined, sortField: 'id', sortOrder: 'asc' },
   rules: {
     customerId: [{ required: true, message: "客户ID不能为空", trigger: "blur" }],
     contactType: [{ required: true, message: "跟进方式不能为空", trigger: "change" }],
@@ -190,6 +190,13 @@ function reset() {
 }
 function handleQuery() { queryParams.value.pageNum = 1; getList() }
 function resetQuery() { proxy.resetForm("queryRef"); handleQuery() }
+
+function handleSortChange({ prop, order }) {
+  queryParams.value.sortField = prop
+  queryParams.value.sortOrder = order === 'ascending' ? 'asc' : order === 'descending' ? 'desc' : ''
+  getList()
+}
+
 function handleAdd() { reset(); loadCustomerOptions(''); open.value = true; title.value = "新增跟进记录" }
 
 function handleUpdate(row) {
@@ -221,7 +228,7 @@ function loadCustomerOptions(searchValue) {
 
 function isSalesRepRole() {
   const roles = userStore.roles || []
-  return roles.some(r => r === 'ROLE_sales_rep')
+  return roles.some(r => r === 'SALES_REP' || 'ZONE_DIRECTOR' || 'DEPT_MANAGER' || 'SUPER_ADMIN' || 'GENERAL_MANAGER')
 }
 
 function submitForm() {

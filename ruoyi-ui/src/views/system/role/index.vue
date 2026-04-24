@@ -20,8 +20,8 @@
       </el-col>
     </el-row>
 
-    <el-table v-loading="loading" :data="dataList">
-      <el-table-column label="ID" align="center" prop="id" width="70" />
+    <el-table v-loading="loading" :data="dataList" :row-key="row => row.id" @sort-change="handleSortChange">
+      <el-table-column label="ID" align="center" prop="id" width="70" sortable />
       <el-table-column label="角色编码" align="center" prop="roleCode" width="140" />
       <el-table-column label="角色名称" align="center" prop="roleName" width="140" />
       <el-table-column label="描述" align="center" prop="description" />
@@ -124,7 +124,7 @@ const permTreeRef = ref(null)
 
 const data = reactive({
   form: {},
-  queryParams: { pageNum: 1, pageSize: 10, roleName: undefined, roleCode: undefined },
+  queryParams: { pageNum: 1, pageSize: 10, sortField: 'id', sortOrder: 'asc', roleName: undefined, roleCode: undefined },
   rules: {
     roleCode: [{ required: true, message: "角色编码不能为空", trigger: "blur" }],
     roleName: [{ required: true, message: "角色名称不能为空", trigger: "blur" }]
@@ -148,6 +148,11 @@ function reset() {
 }
 
 function handleQuery() { queryParams.value.pageNum = 1; getList() }
+function handleSortChange({ prop, order }) {
+  queryParams.value.sortField = prop
+  queryParams.value.sortOrder = order === 'ascending' ? 'asc' : order === 'descending' ? 'desc' : ''
+  getList()
+}
 function resetQuery() { proxy.resetForm && proxy.resetForm("queryRef"); handleQuery() }
 function handleAdd() { reset(); open.value = true; title.value = "新增角色" }
 

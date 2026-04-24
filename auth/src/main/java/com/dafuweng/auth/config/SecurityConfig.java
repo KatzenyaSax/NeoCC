@@ -1,6 +1,7 @@
 package com.dafuweng.auth.config;
 
 import com.dafuweng.auth.filter.JwtAuthenticationFilter;
+import com.dafuweng.auth.service.SysRoleService;
 import com.dafuweng.auth.service.SysUserService;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -20,9 +21,11 @@ import org.springframework.security.web.authentication.UsernamePasswordAuthentic
 public class SecurityConfig {
 
     private final SysUserService sysUserService;
+    private final SysRoleService sysRoleService;
 
-    public SecurityConfig(SysUserService sysUserService) {
+    public SecurityConfig(SysUserService sysUserService, SysRoleService sysRoleService) {
         this.sysUserService = sysUserService;
+        this.sysRoleService = sysRoleService;
     }
 
     @Bean
@@ -47,7 +50,7 @@ public class SecurityConfig {
                 .requestMatchers("/static/**", "/favicon.ico").permitAll()
                 .anyRequest().authenticated()
             )
-            .addFilterBefore(new JwtAuthenticationFilter(sysUserService), UsernamePasswordAuthenticationFilter.class);
+            .addFilterBefore(new JwtAuthenticationFilter(sysUserService, sysRoleService), UsernamePasswordAuthenticationFilter.class);
 
         return http.build();
     }

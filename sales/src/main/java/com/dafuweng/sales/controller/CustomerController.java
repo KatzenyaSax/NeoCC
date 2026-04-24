@@ -23,8 +23,12 @@ public class CustomerController {
     }
 
     @GetMapping("/page")
-    public Result<PageResponse<CustomerEntity>> pageList(PageRequest request) {
-        return Result.success(customerService.pageList(request));
+    public Result<PageResponse<CustomerEntity>> pageList(PageRequest request,
+            @RequestParam(required = false) String filterRole,
+            @RequestParam(required = false) Long userId,
+            @RequestParam(required = false) Long deptId,
+            @RequestParam(required = false) Long zoneId) {
+        return Result.success(customerService.pageList(request, filterRole, userId, deptId, zoneId));
     }
 
     @GetMapping("/listBySalesRepId/{salesRepId}")

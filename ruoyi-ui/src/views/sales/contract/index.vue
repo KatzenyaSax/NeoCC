@@ -19,8 +19,8 @@
     </el-row>
 
     <!-- 合同表格 -->
-    <el-table v-loading="loading" :data="contractList">
-      <el-table-column label="ID" align="center" prop="id" width="80" />
+    <el-table v-loading="loading" :data="contractList" :row-key="row => row.id" @sort-change="handleSortChange">
+      <el-table-column label="ID" align="center" prop="id" width="80" sortable />
       <el-table-column label="合同编号" align="center" prop="contractNo" />
       <el-table-column label="客户" align="center" prop="customerId">
         <template #default="scope">{{ customerNameMap[scope.row.customerId] || scope.row.customerId }}</template>
@@ -38,9 +38,10 @@
       <el-table-column label="操作" align="center" class-name="small-padding fixed-width">
         <template #default="scope">
           <el-button link type="primary" icon="View" @click="handleDetail(scope.row)">详情</el-button>
-          <el-button link type="primary" icon="Edit" @click="handleEdit(scope.row)">编辑</el-button>
-          <el-button link type="success" icon="Check" @click="handleSignRow(scope.row)" v-if="scope.row.status === 1">签署</el-button>
-          <el-button link type="danger" icon="Delete" @click="handleDelete(scope.row)" v-if="scope.row.status === 0 || scope.row.status === 1">删除</el-button>
+          <el-button link type="primary" icon="Edit" @click="handleEdit(scope.row)" v-if="isSuperAdmin">修改</el-button>
+          <el-button link type="success" icon="Check" @click="handleSignRow(scope.row)" v-if="scope.row.status === 1 && (isSuperAdmin || isZoneDirector || isSalesRep)">正式签署</el-button>
+          <el-button link type="warning" icon="Money" @click="handlePayFirstInstallment(scope.row)" v-if="scope.row.status === 2 && isSalesRep">已支付首期</el-button>
+          <el-button link type="warning" icon="Promotion" @click="handleSubmitToFinance(scope.row)" v-if="scope.row.status === 3 && (isSuperAdmin || isZoneDirector)">提交金融部</el-button>
         </template>
       </el-table-column>
     </el-table>
@@ -371,7 +372,7 @@
 </template>
 
 <script setup>
-import { listContract, getContract, delContract, addContract, updateContract, signContract, generateNo, getContractDetail, getContractDetailWithNames } from "@/api/sales/contract"
+import { listContract, getContract, delContract, addContract, updateContract, signContract, generateNo, getContractDetail, getContractDetailWithNames, payFirstInstallment, submitToFinance } from "@/api/sales/contract"
 import { listSalesReps } from "@/api/sales/publicSea"
 import { listCustomer } from "@/api/sales/customer"
 import { listAllDepartment } from "@/api/system/department"
@@ -412,9 +413,25 @@ const deptNameMap = ref({})
 const zoneNameMap = ref({})
 const productNameMap = ref({})
 
+// 用户角色
+const isSuperAdmin = ref(false)
+const isDeptManager = ref(false)
+const isZoneDirector = ref(false)
+const isSalesRep = ref(false)
+
+// 初始化角色
+function initRoles() {
+  const roles = userStore.roles || []
+  isSuperAdmin.value = roles.some(r => ['ROLE_SUPER_ADMIN', 'SUPER_ADMIN'].includes(r))
+  isDeptManager.value = roles.some(r => ['ROLE_DEPT_MANAGER', 'DEPT_MANAGER'].includes(r))
+  isZoneDirector.value = roles.some(r => ['ROLE_ZONE_DIRECTOR', 'ZONE_DIRECTOR'].includes(r))
+  isSalesRep.value = roles.some(r => ['ROLE_SALES_REP', 'SALES_REP'].includes(r))
+}
+
+initRoles()
+
 const statusOptions = {
   1: '待签署',
-  0: '草稿',
   2: '已签署',
   3: '已付首期',
   4: '审核中',
@@ -439,8 +456,10 @@ const data = reactive({
   form: {},
   queryParams: {
     pageNum: 1,
-    pageSize: 10,
-    contractNo: undefined
+    pageSize: 20,
+    contractNo: undefined,
+    sortField: 'id',
+    sortOrder: 'asc'
   },
   rules: {
     customerId: [{ required: true, message: "客户不能为空", trigger: "change" }],
@@ -453,28 +472,29 @@ const { queryParams, form, rules } = toRefs(data)
 /** 查询合同列表 */
 function getList() {
   loading.value = true
-  listContract(queryParams.value).then(response => {
-    let records = response.data?.records || response.records || []
-    // 根据角色过滤
-    const userId = userStore.id
-    const deptId = userStore.deptId
-    const zoneId = userStore.zoneId
-    const roles = userStore.roles || []
-    const isSalesRep = roles.some(r => r === 'SALES_REP')
-    const isDeptManager = roles.some(r => r === 'DEPT_MANAGER')
-    const isZoneDirector = roles.some(r => r === 'ZONE_DIRECTOR')
-    const isAdmin = roles.some(r => ['SUPER_ADMIN'].includes(r))
 
-    if (isSalesRep && !isDeptManager && !isZoneDirector && !isAdmin) {
-      records = records.filter(item => item.salesRepId === userId)
-    } else if (isDeptManager && !isZoneDirector && !isAdmin) {
-      records = records.filter(item => item.deptId === deptId)
-    } else if (isZoneDirector && !isAdmin) {
-      records = records.filter(item => item.zoneId === zoneId)
-    }
+  // 获取当前用户角色（后端返回的roles带"ROLE_"前缀）
+  const roles = userStore.roles || []
 
-    contractList.value = records
-    total.value = records.length
+  // 根据角色传filterRole参数和对应的ID
+  let params = { ...queryParams.value }
+
+  if (roles.includes('ROLE_SUPER_ADMIN')) {
+    // 超级管理员：不过滤
+  } else if (roles.includes('ROLE_ZONE_DIRECTOR')) {
+    params.filterRole = 'ROLE_ZONE_DIRECTOR'
+    params.zoneId = userStore.zoneId
+  } else if (roles.includes('ROLE_DEPT_MANAGER')) {
+    params.filterRole = 'ROLE_DEPT_MANAGER'
+    params.deptId = userStore.deptId
+  } else if (roles.includes('ROLE_SALES_REP')) {
+    params.filterRole = 'ROLE_SALES_REP'
+    params.userId = userStore.id
+  }
+
+  listContract(params).then(response => {
+    contractList.value = response.data?.records || response.records || []
+    total.value = response.data?.total || response.total || 0
     loading.value = false
   })
 }
@@ -518,6 +538,12 @@ function handleQuery() {
   getList()
 }
 
+function handleSortChange({ prop, order }) {
+  queryParams.value.sortField = prop
+  queryParams.value.sortOrder = order === 'ascending' ? 'asc' : order === 'descending' ? 'desc' : ''
+  getList()
+}
+
 /** 重置按钮操作 */
 function resetQuery() {
   proxy.resetForm("queryRef")
@@ -536,6 +562,8 @@ function handleSign() {
   reset()
   isEdit.value = false
   dialogTitle.value = "签署合同"
+  // 预加载客户下拉选项
+  loadCustomerOptions('')
   generateNo().then(response => {
     form.value.contractNo = response.data || response
     dialogVisible.value = true
@@ -573,6 +601,8 @@ function submitDetailForm() {
 function handleEdit(row) {
   isEdit.value = true
   dialogTitle.value = "编辑合同"
+  // 预加载客户下拉选项
+  loadCustomerOptions('')
   getContractDetailWithNames(row.id).then(response => {
     form.value = response.data || response
     dialogVisible.value = true
@@ -617,10 +647,49 @@ function handleDelete(row) {
   }).catch(() => {})
 }
 
+/** 已支付首期按钮 */
+function handlePayFirstInstallment(row) {
+  proxy.$modal.confirm('是否确认合同"' + row.contractNo + '"已支付首期？').then(function () {
+    return payFirstInstallment(row.id)
+  }).then(() => {
+    getList()
+    proxy.$modal.msgSuccess("操作成功")
+  }).catch(() => {})
+}
+
+/** 提交金融部按钮 */
+function handleSubmitToFinance(row) {
+  proxy.$modal.confirm('是否确认将合同"' + row.contractNo + '"提交至金融部？').then(function () {
+    return submitToFinance(row.id)
+  }).then(() => {
+    getList()
+    proxy.$modal.msgSuccess("操作成功")
+  }).catch(() => {})
+}
+
 /** 加载名称映射（用于表格和详情显示） */
 function loadNameMaps() {
+  // 获取当前用户角色（后端返回的roles带"ROLE_"前缀）
+  const roles = userStore.roles || []
+
+  // 根据角色传filterRole参数和对应的ID
+  let params = { pageNum: 1, pageSize: 1000 }
+
+  if (roles.includes('ROLE_SUPER_ADMIN')) {
+    // 超级管理员：不过滤
+  } else if (roles.includes('ROLE_ZONE_DIRECTOR')) {
+    params.filterRole = 'ROLE_ZONE_DIRECTOR'
+    params.zoneId = userStore.zoneId
+  } else if (roles.includes('ROLE_DEPT_MANAGER')) {
+    params.filterRole = 'ROLE_DEPT_MANAGER'
+    params.deptId = userStore.deptId
+  } else if (roles.includes('ROLE_SALES_REP')) {
+    params.filterRole = 'ROLE_SALES_REP'
+    params.userId = userStore.id
+  }
+
   // 加载客户列表
-  listCustomer({ pageNum: 1, pageSize: 1000 }).then(response => {
+  listCustomer(params).then(response => {
     const records = response.data?.records || response.records || []
     const map = {}
     records.forEach(c => { map[c.id] = c.name || c.realName })
@@ -715,9 +784,32 @@ function loadProductOptions(searchValue) {
 /** 加载客户下拉选项 */
 function loadCustomerOptions(searchValue) {
   customerLoading.value = true
-  listCustomer({ pageNum: 1, pageSize: 100, name: searchValue || '' }).then(response => {
+  // 获取当前用户角色（后端返回的roles带"ROLE_"前缀）
+  const roles = userStore.roles || []
+
+  // 根据角色传filterRole参数和对应的ID
+  let params = {
+    pageNum: 1,
+    pageSize: 500,
+    name: searchValue || ''
+  }
+
+  if (roles.includes('ROLE_SUPER_ADMIN')) {
+    // 超级管理员：不过滤
+  } else if (roles.includes('ROLE_ZONE_DIRECTOR')) {
+    params.filterRole = 'ROLE_ZONE_DIRECTOR'
+    params.zoneId = userStore.zoneId
+  } else if (roles.includes('ROLE_DEPT_MANAGER')) {
+    params.filterRole = 'ROLE_DEPT_MANAGER'
+    params.deptId = userStore.deptId
+  } else if (roles.includes('ROLE_SALES_REP')) {
+    params.filterRole = 'ROLE_SALES_REP'
+    params.userId = userStore.id
+  }
+
+  listCustomer(params).then(response => {
     const records = response.data?.records || response.records || []
-    // 过滤掉公海客户(status=5)
+    // 过滤掉公海客户(status=5)，后端已完成角色权限过滤
     customerOptions.value = records
       .filter(c => c.status !== 5)
       .map(c => ({ id: c.id, name: c.name || c.realName }))

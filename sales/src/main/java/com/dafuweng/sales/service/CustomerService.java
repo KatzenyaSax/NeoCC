@@ -18,7 +18,7 @@ public interface CustomerService {
 
     CustomerEntity getById(Long id);
 
-    PageResponse<CustomerEntity> pageList(PageRequest request);
+    PageResponse<CustomerEntity> pageList(PageRequest request, String filterRole, Long userId, Long deptId, Long zoneId);
 
     List<CustomerEntity> listBySalesRepId(Long salesRepId);
 

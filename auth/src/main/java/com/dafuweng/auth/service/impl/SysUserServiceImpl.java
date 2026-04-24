@@ -69,19 +69,51 @@ public class SysUserServiceImpl implements SysUserService {
     public PageResponse<SysUserEntity> pageList(PageRequest request) {
         IPage<SysUserEntity> page = new Page<>(request.getPage(), request.getSize());
         LambdaQueryWrapper<SysUserEntity> wrapper = new LambdaQueryWrapper<>();
-        if (StringUtils.hasText(request.getSortField())) {
-            if ("asc".equalsIgnoreCase(request.getSortOrder())) {
-                wrapper.orderByAsc(SysUserEntity::getId);
-            } else {
-                wrapper.orderByDesc(SysUserEntity::getId);
-            }
-        } else {
-            wrapper.orderByDesc(SysUserEntity::getCreatedAt);
-        }
+        applySort(wrapper, request);
         IPage<SysUserEntity> result = sysUserDao.selectPage(page, wrapper);
         result.getRecords().forEach(u -> u.setPassword(null));
         return PageResponse.of(result.getTotal(), result.getRecords(),
             (int) page.getCurrent(), (int) page.getSize());
+    }
+
+    private void applySort(LambdaQueryWrapper<SysUserEntity> wrapper, PageRequest request) {
+        if (!StringUtils.hasText(request.getSortField())) {
+            wrapper.orderByDesc(SysUserEntity::getId);
+            return;
+        }
+        boolean asc = "asc".equalsIgnoreCase(request.getSortOrder());
+        switch (request.getSortField()) {
+            case "id":
+                if (asc) wrapper.orderByAsc(SysUserEntity::getId);
+                else wrapper.orderByDesc(SysUserEntity::getId);
+                break;
+            case "username":
+                if (asc) wrapper.orderByAsc(SysUserEntity::getUsername);
+                else wrapper.orderByDesc(SysUserEntity::getUsername);
+                break;
+            case "realName":
+                if (asc) wrapper.orderByAsc(SysUserEntity::getRealName);
+                else wrapper.orderByDesc(SysUserEntity::getRealName);
+                break;
+            case "phone":
+                if (asc) wrapper.orderByAsc(SysUserEntity::getPhone);
+                else wrapper.orderByDesc(SysUserEntity::getPhone);
+                break;
+            case "email":
+                if (asc) wrapper.orderByAsc(SysUserEntity::getEmail);
+                else wrapper.orderByDesc(SysUserEntity::getEmail);
+                break;
+            case "status":
+                if (asc) wrapper.orderByAsc(SysUserEntity::getStatus);
+                else wrapper.orderByDesc(SysUserEntity::getStatus);
+                break;
+            case "createdAt":
+                if (asc) wrapper.orderByAsc(SysUserEntity::getCreatedAt);
+                else wrapper.orderByDesc(SysUserEntity::getCreatedAt);
+                break;
+            default:
+                wrapper.orderByDesc(SysUserEntity::getId);
+        }
     }
 
     @Override
@@ -89,15 +121,7 @@ public class SysUserServiceImpl implements SysUserService {
         // 1. query user page data
         IPage<SysUserEntity> page = new Page<>(request.getPage(), request.getSize());
         LambdaQueryWrapper<SysUserEntity> wrapper = new LambdaQueryWrapper<>();
-        if (StringUtils.hasText(request.getSortField())) {
-            if ("asc".equalsIgnoreCase(request.getSortField())) {
-                wrapper.orderByAsc(SysUserEntity::getId);
-            } else {
-                wrapper.orderByDesc(SysUserEntity::getId);
-            }
-        } else {
-            wrapper.orderByDesc(SysUserEntity::getCreatedAt);
-        }
+        applySort(wrapper, request);
         IPage<SysUserEntity> result = sysUserDao.selectPage(page, wrapper);
         result.getRecords().forEach(u -> u.setPassword(null));
         List<SysUserEntity> users = result.getRecords();

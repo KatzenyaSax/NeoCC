@@ -12,8 +12,8 @@
     </el-form>
 
     <!-- 公海客户列表 -->
-    <el-table v-loading="loading" :data="publicSeaList" border class="mt16">
-      <el-table-column label="ID" align="center" prop="id" width="80" />
+    <el-table v-loading="loading" :data="publicSeaList" border class="mt16" :row-key="row => row.id" @sort-change="handleSortChange">
+      <el-table-column label="ID" align="center" prop="id" width="80" sortable />
       <el-table-column label="客户名称" align="center" prop="name" />
       <el-table-column label="联系电话" align="center" prop="phone" />
       <el-table-column label="公司名称" align="center" prop="companyName" />
@@ -142,7 +142,9 @@ const publicSeaList = ref([])
 const queryParams = reactive({
   pageNum: 1,
   pageSize: 20,
-  name: ''
+  name: '',
+  sortField: 'id',
+  sortOrder: 'asc'
 })
 
 // 转移弹窗
@@ -189,6 +191,12 @@ function getList() {
 /** 搜索按钮 */
 function handleQuery() {
   queryParams.pageNum = 1
+  getList()
+}
+
+function handleSortChange({ prop, order }) {
+  queryParams.sortField = prop
+  queryParams.sortOrder = order === 'ascending' ? 'asc' : order === 'descending' ? 'desc' : ''
   getList()
 }
 

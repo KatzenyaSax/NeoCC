@@ -3,8 +3,10 @@ package com.dafuweng.common.config;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
 import java.util.Map;
-import java.util.Objects;
 
 /**
  * 数据权限上下文
@@ -57,6 +59,29 @@ public class DataScopeContext {
             return ((Number) userId).longValue();
         }
         return null;
+    }
+
+    /**
+     * 从 ThreadLocal 获取当前用户的角色编码列表
+     * @return 角色编码列表，如 ["SUPER_ADMIN", "ZONE_DIRECTOR"]
+     */
+    @SuppressWarnings("unchecked")
+    public static List<String> getRoleCodes() {
+        Map<String, Object> data = get();
+        if (data == null) return Collections.emptyList();
+        Object roleCodes = data.get("roleCodes");
+        if (roleCodes instanceof List) {
+            return (List<String>) roleCodes;
+        }
+        return Collections.emptyList();
+    }
+
+    /**
+     * 判断当前用户是否拥有指定角色
+     * @param roleCode 角色编码，如 "SUPER_ADMIN"
+     */
+    public static boolean hasRole(String roleCode) {
+        return getRoleCodes().contains(roleCode);
     }
 
     /**

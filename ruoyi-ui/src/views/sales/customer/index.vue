@@ -16,8 +16,8 @@
       </el-col>
     </el-row>
 
-    <el-table v-loading="loading" :data="customerList">
-      <el-table-column label="ID" align="center" prop="id" width="80" />
+    <el-table v-loading="loading" :data="customerList" :row-key="row => row.id" @sort-change="handleSortChange">
+      <el-table-column label="ID" align="center" prop="id" width="80" sortable />
       <el-table-column label="客户名称" align="center" prop="name" />
       <el-table-column label="联系电话" align="center" prop="phone" />
       <el-table-column label="对接销售" align="center">
@@ -161,11 +161,10 @@ import useUserStore from '@/store/modules/user'
 const { proxy } = getCurrentInstance()
 
 const userStore = useUserStore()
-const isManager = computed(() => {
+computed(() => {
   const roles = userStore.roles || []
   return roles.some(r => ['ROLE_sales_manager', 'ROLE_admin'].includes(r))
-})
-
+});
 const customerList = ref([])
 const loading = ref(true)
 const showSearch = ref(true)
@@ -180,8 +179,10 @@ const data = reactive({
   form: {},
   queryParams: {
     pageNum: 1,
-    pageSize: 10,
-    name: undefined
+    pageSize: 20,
+    name: undefined,
+    sortField: 'id',
+    sortOrder: 'asc'
   },
   rules: {
     name: [{ required: true, message: "客户名称不能为空", trigger: "blur" }]
@@ -202,10 +203,10 @@ function getList() {
     const deptId = userStore.deptId
     const zoneId = userStore.zoneId
     const roles = userStore.roles || []
-    const isSalesRep = roles.some(r => r === 'ROLE_sales_rep')
-    const isDeptManager = roles.some(r => r === 'ROLE_dept_manager')
-    const isZoneDirector = roles.some(r => r === 'ROLE_zone_director')
-    const isAdmin = roles.some(r => ['ROLE_admin', 'ROLE_super'].includes(r))
+    const isSalesRep = roles.some(r => r === 'ROLE_SALES_REP')
+    const isDeptManager = roles.some(r => r === 'ROLE_DEPT_MANAGER')
+    const isZoneDirector = roles.some(r => r === 'ROLE_ZONE_DIRECTOR')
+    const isAdmin = roles.some(r => ['ROLE_SUPER_ADMIN', 'ROLE_GENERAL_MANAGER'].includes(r))
 
     if (isSalesRep && !isDeptManager && !isZoneDirector && !isAdmin) {
       // 销售代表只看自己的客户
@@ -219,7 +220,7 @@ function getList() {
     }
 
     customerList.value = records
-    total.value = records.length
+    total.value = response.data?.total || response.total || 0
     loading.value = false
 
     // 批量查询销售代表姓名
@@ -307,6 +308,12 @@ function handleDetail(row) {
 /** 搜索按钮操作 */
 function handleQuery() {
   queryParams.value.pageNum = 1
+  getList()
+}
+
+function handleSortChange({ prop, order }) {
+  queryParams.value.sortField = prop
+  queryParams.value.sortOrder = order === 'ascending' ? 'asc' : order === 'descending' ? 'desc' : ''
   getList()
 }
 

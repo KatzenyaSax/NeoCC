@@ -21,7 +21,7 @@ public interface ContractService {
 
     ContractEntity getByContractNo(String contractNo);
 
-    PageResponse<ContractEntity> pageList(PageRequest request);
+    PageResponse<ContractEntity> pageList(PageRequest request, String filterRole, Long userId, Long deptId, Long zoneId);
 
     List<ContractEntity> listBySalesRepId(Long salesRepId);
 
@@ -66,4 +66,16 @@ public interface ContractService {
      * 按状态获取合同数量
      */
     Long countByStatus(Short status);
+
+    /**
+     * 标记合同已支付首期
+     * status=2 -> status=3
+     */
+    void payFirstInstallment(Long id);
+
+    /**
+     * 提交合同至金融部
+     * status=3 -> status=4
+     */
+    void submitToFinance(Long id);
 }

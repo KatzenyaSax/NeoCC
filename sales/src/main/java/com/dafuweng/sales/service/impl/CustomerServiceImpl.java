@@ -27,9 +27,33 @@ public class CustomerServiceImpl implements CustomerService {
     }
 
     @Override
-    public PageResponse<CustomerEntity> pageList(PageRequest request) {
+    public PageResponse<CustomerEntity> pageList(PageRequest request, String filterRole, Long userId, Long deptId, Long zoneId) {
         IPage<CustomerEntity> page = new Page<>(request.getPage(), request.getSize());
         LambdaQueryWrapper<CustomerEntity> wrapper = new LambdaQueryWrapper<>();
+
+        // 排除公海客户(status=5)
+        wrapper.ne(CustomerEntity::getStatus, (short) 5);
+
+        // 根据filterRole过滤
+        if ("ROLE_SUPER_ADMIN".equals(filterRole)) {
+            // 超级管理员：不过滤，返回全部（已排除公海）
+        } else if ("ROLE_ZONE_DIRECTOR".equals(filterRole)) {
+            // 战区总监：只显示本战区的客户
+            if (zoneId != null) {
+                wrapper.eq(CustomerEntity::getZoneId, zoneId);
+            }
+        } else if ("ROLE_DEPT_MANAGER".equals(filterRole)) {
+            // 部门经理：只显示本部门的客户
+            if (deptId != null) {
+                wrapper.eq(CustomerEntity::getDeptId, deptId);
+            }
+        } else if ("ROLE_SALES_REP".equals(filterRole)) {
+            // 销售代表：只显示自己的客户
+            if (userId != null) {
+                wrapper.eq(CustomerEntity::getSalesRepId, userId);
+            }
+        }
+
         if (StringUtils.hasText(request.getSortField())) {
             if ("asc".equalsIgnoreCase(request.getSortOrder())) {
                 wrapper.orderByAsc(CustomerEntity::getId);

@@ -32,8 +32,12 @@ public class ContractController {
     }
 
     @GetMapping("/page")
-    public Result<PageResponse<ContractEntity>> pageList(PageRequest request) {
-        return Result.success(contractService.pageList(request));
+    public Result<PageResponse<ContractEntity>> pageList(PageRequest request,
+            @RequestParam(required = false) String filterRole,
+            @RequestParam(required = false) Long userId,
+            @RequestParam(required = false) Long deptId,
+            @RequestParam(required = false) Long zoneId) {
+        return Result.success(contractService.pageList(request, filterRole, userId, deptId, zoneId));
     }
 
     @GetMapping("/listBySalesRepId/{salesRepId}")
@@ -115,5 +119,25 @@ public class ContractController {
     @GetMapping("/count-by-status")
     public Result<Long> countByStatus(@RequestParam Short status) {
         return Result.success(contractService.countByStatus(status));
+    }
+
+    /**
+     * POST /api/contract/{id}/pay-first-installment
+     * 标记合同已支付首期（status: 2 -> 3）
+     */
+    @PostMapping("/{id}/pay-first-installment")
+    public Result<Void> payFirstInstallment(@PathVariable Long id) {
+        contractService.payFirstInstallment(id);
+        return Result.success();
+    }
+
+    /**
+     * POST /api/contract/{id}/submit-to-finance
+     * 提交合同至金融部（status: 3 -> 4）
+     */
+    @PostMapping("/{id}/submit-to-finance")
+    public Result<Void> submitToFinance(@PathVariable Long id) {
+        contractService.submitToFinance(id);
+        return Result.success();
     }
 }

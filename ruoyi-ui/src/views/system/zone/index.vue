@@ -23,8 +23,8 @@
       </el-col>
     </el-row>
 
-    <el-table v-loading="loading" :data="dataList">
-      <el-table-column label="ID" align="center" prop="id" width="80" />
+    <el-table v-loading="loading" :data="dataList" :row-key="row => row.id" @sort-change="handleSortChange">
+      <el-table-column label="ID" align="center" prop="id" width="80" sortable />
       <el-table-column label="区域编码" align="center" prop="zoneCode" width="120" />
       <el-table-column label="区域名称" align="center" prop="zoneName" />
       <el-table-column label="负责人" align="center" prop="directorName" width="100" />
@@ -110,7 +110,9 @@ const data = reactive({
     pageNum: 1,
     pageSize: 10,
     zoneName: undefined,
-    status: undefined
+    status: undefined,
+    sortField: 'id',
+    sortOrder: 'asc'
   },
   rules: {
     zoneCode: [{ required: true, message: "区域编码不能为空", trigger: "blur" }],
@@ -139,6 +141,12 @@ function reset() {
 
 function handleQuery() { queryParams.value.pageNum = 1; getList() }
 function resetQuery() { proxy.resetForm("queryRef"); handleQuery() }
+
+function handleSortChange({ prop, order }) {
+  queryParams.value.sortField = prop
+  queryParams.value.sortOrder = order === 'ascending' ? 'asc' : order === 'descending' ? 'desc' : ''
+  getList()
+}
 
 /** 加载负责人下拉选项（roleId=3） */
 function loadDirectorOptions() {

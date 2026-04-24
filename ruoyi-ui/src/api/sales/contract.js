@@ -82,3 +82,19 @@ export function getContractDetailWithNames(id) {
     method: 'get'
   })
 }
+
+// 标记已支付首期
+export function payFirstInstallment(id) {
+  return request({
+    url: '/contract/' + id + '/pay-first-installment',
+    method: 'post'
+  })
+}
+
+// 提交至金融部
+export function submitToFinance(id) {
+  return request({
+    url: '/contract/' + id + '/submit-to-finance',
+    method: 'post'
+  })
+}

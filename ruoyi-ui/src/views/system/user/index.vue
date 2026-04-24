@@ -26,14 +26,14 @@
       </el-col>
     </el-row>
 
-    <el-table v-loading="loading" :data="dataList">
-      <el-table-column label="ID" align="center" prop="id" width="70" />
-      <el-table-column label="用户名" align="center" prop="username" width="120" />
-      <el-table-column label="真实姓名" align="center" prop="realName" width="100" />
-      <el-table-column label="手机号" align="center" prop="phone" width="120" />
-      <el-table-column label="邮箱" align="center" prop="email" />
+    <el-table v-loading="loading" :data="dataList" @sort-change="handleSortChange">
+      <el-table-column label="ID" align="center" prop="id" width="70" sortable />
+      <el-table-column label="用户名" align="center" prop="username" width="120" sortable />
+      <el-table-column label="真实姓名" align="center" prop="realName" width="100" sortable />
+      <el-table-column label="手机号" align="center" prop="phone" width="120" sortable />
+      <el-table-column label="邮箱" align="center" prop="email" sortable />
       <el-table-column label="部门" align="center" prop="deptName" width="100" />
-      <el-table-column label="状态" align="center" prop="status" width="80">
+      <el-table-column label="状态" align="center" prop="status" width="80" sortable>
         <template #default="scope">
           <el-tag :type="scope.row.status === 1 ? 'success' : 'danger'">
             {{ scope.row.status === 1 ? '正常' : '锁定' }}
@@ -165,7 +165,7 @@ const allDeptOptions = ref([])
 
 const data = reactive({
   form: {},
-  queryParams: { pageNum: 1, pageSize: 10, username: undefined, realName: undefined, status: undefined },
+  queryParams: { pageNum: 1, pageSize: 10, sortField: 'id', sortOrder: 'asc', username: undefined, realName: undefined, status: undefined },
   rules: {
     username: [{ required: true, message: "用户名不能为空", trigger: "blur" }],
     realName: [{ required: true, message: "真实姓名不能为空", trigger: "blur" }],
@@ -203,6 +203,11 @@ function reset() {
 }
 
 function handleQuery() { queryParams.value.pageNum = 1; getList() }
+function handleSortChange({ prop, order }) {
+  queryParams.value.sortField = prop
+  queryParams.value.sortOrder = order === 'ascending' ? 'asc' : order === 'descending' ? 'desc' : ''
+  getList()
+}
 function resetQuery() { proxy.resetForm && proxy.resetForm("queryRef"); handleQuery() }
 function loadAllDeptOptions() {
   listAllDepartment().then(res => {

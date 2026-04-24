@@ -22,8 +22,8 @@
       </el-col>
     </el-row>
 
-    <el-table v-loading="loading" :data="dataList">
-      <el-table-column label="ID" align="center" prop="id" width="80" />
+    <el-table v-loading="loading" :data="dataList" :row-key="row => row.id" @sort-change="handleSortChange">
+      <el-table-column label="ID" align="center" prop="id" width="80" sortable />
       <el-table-column label="合同ID" align="center" prop="contractId" width="100" />
       <el-table-column label="费用类型" align="center" prop="feeType" width="100">
         <template #default="scope">
@@ -128,7 +128,7 @@ const currentPayId = ref(null)
 const data = reactive({
   form: {},
   payForm: {},
-  queryParams: { pageNum: 1, pageSize: 10, contractId: undefined, paymentStatus: undefined },
+  queryParams: { pageNum: 1, pageSize: 10, contractId: undefined, paymentStatus: undefined, sortField: 'id', sortOrder: 'asc' },
   rules: {
     contractId: [{ required: true, message: "合同ID不能为空", trigger: "blur" }],
     feeType: [{ required: true, message: "费用类型不能为空", trigger: "change" }],
@@ -153,6 +153,12 @@ function reset() {
 }
 function handleQuery() { queryParams.value.pageNum = 1; getList() }
 function resetQuery() { proxy.resetForm("queryRef"); handleQuery() }
+
+function handleSortChange({ prop, order }) {
+  queryParams.value.sortField = prop
+  queryParams.value.sortOrder = order === 'ascending' ? 'asc' : order === 'descending' ? 'desc' : ''
+  getList()
+}
 
 function handleAdd() { reset(); open.value = true; title.value = "新增服务费记录" }
 

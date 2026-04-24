@@ -22,8 +22,8 @@
       </el-col>
     </el-row>
 
-    <el-table v-loading="loading" :data="dataList">
-      <el-table-column label="ID" align="center" prop="id" width="80" />
+    <el-table v-loading="loading" :data="dataList" :row-key="row => row.id" @sort-change="handleSortChange">
+      <el-table-column label="ID" align="center" prop="id" width="80" sortable />
       <el-table-column label="产品代码" align="center" prop="productCode" width="120" />
       <el-table-column label="产品名称" align="center" prop="productName" />
       <el-table-column label="银行ID" align="center" prop="bankId" width="90" />
@@ -110,7 +110,7 @@ const open = ref(false)
 
 const data = reactive({
   form: {},
-  queryParams: { pageNum: 1, pageSize: 10, productName: undefined, status: undefined },
+  queryParams: { pageNum: 1, pageSize: 10, productName: undefined, status: undefined, sortField: 'id', sortOrder: 'asc' },
   rules: {
     productCode: [{ required: true, message: "产品代码不能为空", trigger: "blur" }],
     productName: [{ required: true, message: "产品名称不能为空", trigger: "blur" }],
@@ -135,6 +135,13 @@ function reset() {
 }
 function handleQuery() { queryParams.value.pageNum = 1; getList() }
 function resetQuery() { proxy.resetForm("queryRef"); handleQuery() }
+
+function handleSortChange({ prop, order }) {
+  queryParams.value.sortField = prop
+  queryParams.value.sortOrder = order === 'ascending' ? 'asc' : order === 'descending' ? 'desc' : ''
+  getList()
+}
+
 function handleAdd() { reset(); open.value = true; title.value = "新增金融产品" }
 
 function handleUpdate(row) {

@@ -25,8 +25,8 @@
       </el-col>
     </el-row>
 
-    <el-table v-loading="loading" :data="dataList">
-      <el-table-column label="ID" align="center" prop="id" width="80" />
+    <el-table v-loading="loading" :data="dataList" :row-key="row => row.id" @sort-change="handleSortChange">
+      <el-table-column label="ID" align="center" prop="id" width="80" sortable />
       <el-table-column label="合同ID" align="center" prop="contractId" width="90" />
       <el-table-column label="销售代表ID" align="center" prop="salesRepId" width="110" />
       <el-table-column label="部门ID" align="center" prop="deptId" width="90" />
@@ -158,7 +158,9 @@ const data = reactive({
     pageNum: 1,
     pageSize: 10,
     salesRepId: undefined,
-    status: undefined
+    status: undefined,
+    sortField: 'id',
+    sortOrder: 'asc'
   },
   rules: {
     contractId: [{ required: true, message: "合同ID不能为空", trigger: "blur" }],
@@ -191,6 +193,13 @@ function reset() {
 
 function handleQuery() { queryParams.value.pageNum = 1; getList() }
 function resetQuery() { proxy.resetForm("queryRef"); handleQuery() }
+
+function handleSortChange({ prop, order }) {
+  queryParams.value.sortField = prop
+  queryParams.value.sortOrder = order === 'ascending' ? 'asc' : order === 'descending' ? 'desc' : ''
+  getList()
+}
+
 function handleAdd() { reset(); open.value = true; title.value = "新增业绩记录" }
 
 function handleUpdate(row) {

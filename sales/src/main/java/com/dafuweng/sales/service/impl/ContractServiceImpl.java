@@ -22,6 +22,7 @@ import org.springframework.util.StringUtils;
 
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
+import java.util.Date;
 import java.util.List;
 import java.util.Map;
 
@@ -54,9 +55,30 @@ public class ContractServiceImpl implements ContractService {
     }
 
     @Override
-    public PageResponse<ContractEntity> pageList(PageRequest request) {
+    public PageResponse<ContractEntity> pageList(PageRequest request, String filterRole, Long userId, Long deptId, Long zoneId) {
         IPage<ContractEntity> page = new Page<>(request.getPage(), request.getSize());
         LambdaQueryWrapper<ContractEntity> wrapper = new LambdaQueryWrapper<>();
+
+        // 根据filterRole过滤
+        if ("ROLE_SUPER_ADMIN".equals(filterRole)) {
+            // 超级管理员：不过滤，返回全部
+        } else if ("ROLE_ZONE_DIRECTOR".equals(filterRole)) {
+            // 战区总监：只显示本战区的合同
+            if (zoneId != null) {
+                wrapper.eq(ContractEntity::getZoneId, zoneId);
+            }
+        } else if ("ROLE_DEPT_MANAGER".equals(filterRole)) {
+            // 部门经理：只显示本部门的合同
+            if (deptId != null) {
+                wrapper.eq(ContractEntity::getDeptId, deptId);
+            }
+        } else if ("ROLE_SALES_REP".equals(filterRole)) {
+            // 销售代表：只显示自己的合同
+            if (userId != null) {
+                wrapper.eq(ContractEntity::getSalesRepId, userId);
+            }
+        }
+
         if (StringUtils.hasText(request.getSortField())) {
             if ("asc".equalsIgnoreCase(request.getSortOrder())) {
                 wrapper.orderByAsc(ContractEntity::getId);
@@ -246,5 +268,32 @@ public class ContractServiceImpl implements ContractService {
             wrapper.eq(ContractEntity::getStatus, status);
         }
         return contractDao.selectCount(wrapper);
+    }
+
+    @Override
+    public void payFirstInstallment(Long id) {
+        ContractEntity contract = contractDao.selectById(id);
+        if (contract == null) {
+            throw new IllegalArgumentException("合同不存在");
+        }
+        if (contract.getStatus() != 2) {
+            throw new IllegalStateException("当前状态不允许操作，状态：" + contract.getStatus());
+        }
+        contract.setStatus((short) 3);
+        contractDao.updateById(contract);
+    }
+
+    @Override
+    public void submitToFinance(Long id) {
+        ContractEntity contract = contractDao.selectById(id);
+        if (contract == null) {
+            throw new IllegalArgumentException("合同不存在");
+        }
+        if (contract.getStatus() != 3) {
+            throw new IllegalStateException("当前状态不允许操作，状态：" + contract.getStatus());
+        }
+        contract.setStatus((short) 4);
+        contract.setFinanceSendTime(new Date());
+        contractDao.updateById(contract);
     }
 }

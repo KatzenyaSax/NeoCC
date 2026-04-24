@@ -6,9 +6,13 @@ import org.aspectj.lang.annotation.Aspect;
 import org.springframework.core.Ordered;
 import org.springframework.core.annotation.Order;
 import org.springframework.security.core.Authentication;
+import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.context.SecurityContextHolder;
 
+import java.util.ArrayList;
+import java.util.Collection;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 /**
@@ -43,6 +47,7 @@ public class DataScopeAspect {
         data.put("dataScope", (short) 4);
         data.put("deptId", null);
         data.put("zoneId", null);
+        data.put("roleCodes", new ArrayList<>());
 
         try {
             Authentication auth = SecurityContextHolder.getContext().getAuthentication();
@@ -60,6 +65,20 @@ public class DataScopeAspect {
             data.put("dataScope", getFieldValue(principal, "dataScope"));
             data.put("deptId", getFieldValue(principal, "deptId"));
             data.put("zoneId", getFieldValue(principal, "zoneId"));
+
+            // 提取角色编码列表（从 GrantedAuthority 中提取，去掉 "ROLE_" 前缀）
+            List<String> roleCodes = new ArrayList<>();
+            Collection<? extends GrantedAuthority> authorities = auth.getAuthorities();
+            if (authorities != null) {
+                for (GrantedAuthority authority : authorities) {
+                    String authStr = authority.getAuthority();
+                    if (authStr != null && authStr.startsWith("ROLE_")) {
+                        // 去掉 "ROLE_" 前缀，得到原始角色编码，如 "SUPER_ADMIN"
+                        roleCodes.add(authStr.substring(5));
+                    }
+                }
+            }
+            data.put("roleCodes", roleCodes);
 
         } catch (Exception ignored) {
             // 无用户上下文时返回默认值（dataScope=4，即全部）

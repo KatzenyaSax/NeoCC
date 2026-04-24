@@ -27,8 +27,8 @@
       </el-col>
     </el-row>
 
-    <el-table v-loading="loading" :data="dataList">
-      <el-table-column label="ID" align="center" prop="id" width="70" />
+    <el-table v-loading="loading" :data="dataList" :row-key="row => row.id" @sort-change="handleSortChange">
+      <el-table-column label="ID" align="center" prop="id" width="70" sortable />
       <el-table-column label="权限名称" align="center" prop="permName" width="150" />
       <el-table-column label="权限编码" align="center" prop="permCode" width="180" />
       <el-table-column label="类型" align="center" prop="permType" width="80">
@@ -141,7 +141,7 @@ const open = ref(false)
 
 const data = reactive({
   form: {},
-  queryParams: { pageNum: 1, pageSize: 10, permName: undefined, permCode: undefined, permType: undefined },
+  queryParams: { pageNum: 1, pageSize: 10, permName: undefined, permCode: undefined, permType: undefined, sortField: 'id', sortOrder: 'asc' },
   rules: {
     permName: [{ required: true, message: "权限名称不能为空", trigger: "blur" }],
     permCode: [{ required: true, message: "权限编码不能为空", trigger: "blur" }],
@@ -171,6 +171,13 @@ function reset() {
 
 function handleQuery() { queryParams.value.pageNum = 1; getList() }
 function resetQuery() { proxy.resetForm && proxy.resetForm("queryRef"); handleQuery() }
+
+function handleSortChange({ prop, order }) {
+  queryParams.value.sortField = prop
+  queryParams.value.sortOrder = order === 'ascending' ? 'asc' : order === 'descending' ? 'desc' : ''
+  getList()
+}
+
 function handleAdd() { reset(); open.value = true; title.value = "新增菜单/权限" }
 
 function handleUpdate(row) {

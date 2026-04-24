@@ -59,7 +59,7 @@
     </el-row>
 
     <!-- 排名表格 -->
-    <el-table v-loading="loading" :data="rankingData.rankings" border class="mt16">
+    <el-table v-loading="loading" :data="rankingData.rankings" border class="mt16" :row-key="row => row.id" @sort-change="handleSortChange">
       <el-table-column label="排名" align="center" width="80">
         <template #default="scope">
           <el-tag v-if="scope.row.rank === 1" type="warning" effect="dark">
@@ -117,7 +117,9 @@ const rankingData = ref({
 const queryParams = reactive({
   pageNum: 1,
   pageSize: 20,
-  rankingType: 'contract_amount'
+  rankingType: 'contract_amount',
+  sortField: 'id',
+  sortOrder: 'asc'
 })
 
 onMounted(() => {
@@ -167,6 +169,12 @@ function getList() {
 
 function handleQuery() {
   queryParams.pageNum = 1
+  getList()
+}
+
+function handleSortChange({ prop, order }) {
+  queryParams.sortField = prop
+  queryParams.sortOrder = order === 'ascending' ? 'asc' : order === 'descending' ? 'desc' : ''
   getList()
 }
 

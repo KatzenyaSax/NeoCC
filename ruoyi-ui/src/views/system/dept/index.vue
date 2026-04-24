@@ -23,8 +23,8 @@
       </el-col>
     </el-row>
 
-    <el-table v-loading="loading" :data="dataList">
-      <el-table-column label="ID" align="center" prop="id" width="80" />
+    <el-table v-loading="loading" :data="dataList" :row-key="row => row.id" @sort-change="handleSortChange">
+      <el-table-column label="ID" align="center" prop="id" width="80" sortable />
       <el-table-column label="部门编码" align="center" prop="deptCode" width="120" />
       <el-table-column label="部门名称" align="center" prop="deptName" />
       <el-table-column label="上级部门" align="center" prop="parentDeptName" width="100" />
@@ -133,7 +133,9 @@ const data = reactive({
     pageNum: 1,
     pageSize: 10,
     deptName: undefined,
-    status: undefined
+    status: undefined,
+    sortField: 'id',
+    sortOrder: 'asc'
   },
   rules: {
     deptCode: [{ required: true, message: "部门编码不能为空", trigger: "blur" }],
@@ -188,6 +190,13 @@ function reset() {
 
 function handleQuery() { queryParams.value.pageNum = 1; getList() }
 function resetQuery() { proxy.resetForm("queryRef"); handleQuery() }
+
+function handleSortChange({ prop, order }) {
+  queryParams.value.sortField = prop
+  queryParams.value.sortOrder = order === 'ascending' ? 'asc' : order === 'descending' ? 'desc' : ''
+  getList()
+}
+
 function handleAdd() { reset(); loadDropdownOptions(); open.value = true; title.value = "新增部门" }
 
 function handleUpdate(row) {

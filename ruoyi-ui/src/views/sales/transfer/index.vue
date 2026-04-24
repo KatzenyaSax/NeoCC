@@ -24,8 +24,8 @@
       </el-col>
     </el-row>
 
-    <el-table v-loading="loading" :data="dataList">
-      <el-table-column label="ID" align="center" prop="id" width="80" />
+    <el-table v-loading="loading" :data="dataList" :row-key="row => row.id" @sort-change="handleSortChange">
+      <el-table-column label="ID" align="center" prop="id" width="80" sortable />
       <el-table-column label="客户ID" align="center" prop="customerId" width="100" />
       <el-table-column label="转出销售ID" align="center" prop="fromRepId" width="110" />
       <el-table-column label="转入销售ID" align="center" prop="toRepId" width="110" />
@@ -111,7 +111,9 @@ const data = reactive({
     pageNum: 1,
     pageSize: 10,
     customerId: undefined,
-    operateType: undefined
+    operateType: undefined,
+    sortField: 'id',
+    sortOrder: 'asc'
   },
   rules: {
     customerId: [{ required: true, message: "客户ID不能为空", trigger: "blur" }],
@@ -165,6 +167,13 @@ function reset() {
 
 function handleQuery() { queryParams.value.pageNum = 1; getList() }
 function resetQuery() { proxy.resetForm("queryRef"); handleQuery() }
+
+function handleSortChange({ prop, order }) {
+  queryParams.value.sortField = prop
+  queryParams.value.sortOrder = order === 'ascending' ? 'asc' : order === 'descending' ? 'desc' : ''
+  getList()
+}
+
 function handleAdd() { reset(); open.value = true; title.value = "新增客户转移记录" }
 
 function handleUpdate(row) {

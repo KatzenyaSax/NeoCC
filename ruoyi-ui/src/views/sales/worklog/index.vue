@@ -20,8 +20,8 @@
       </el-col>
     </el-row>
 
-    <el-table v-loading="loading" :data="dataList">
-      <el-table-column label="ID" align="center" prop="id" width="80" />
+    <el-table v-loading="loading" :data="dataList" :row-key="row => row.id" @sort-change="handleSortChange">
+      <el-table-column label="ID" align="center" prop="id" width="80" sortable />
       <el-table-column label="销售代表ID" align="center" prop="salesRepId" width="110" />
       <el-table-column label="日志日期" align="center" prop="logDate" width="120" />
       <el-table-column label="拨打电话数" align="center" prop="callsMade" width="110" />
@@ -142,7 +142,9 @@ const data = reactive({
     pageNum: 1,
     pageSize: 10,
     salesRepId: undefined,
-    logDate: undefined
+    logDate: undefined,
+    sortField: 'id',
+    sortOrder: 'asc'
   },
   rules: {
     salesRepId: [{ required: true, message: "销售代表不能为空", trigger: "change" }],
@@ -236,6 +238,12 @@ function reset() {
 
 function handleQuery() { queryParams.value.pageNum = 1; getList() }
 function resetQuery() { proxy.resetForm("queryRef"); handleQuery() }
+
+function handleSortChange({ prop, order }) {
+  queryParams.value.sortField = prop
+  queryParams.value.sortOrder = order === 'ascending' ? 'asc' : order === 'descending' ? 'desc' : ''
+  getList()
+}
 
 function isSalesRepRole() {
   const roles = userStore.roles || []

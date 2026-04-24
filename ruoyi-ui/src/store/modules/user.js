@@ -14,6 +14,8 @@ const useUserStore = defineStore(
       name: '',
       nickName: '',
       avatar: '',
+      deptId: null,
+      zoneId: null,
       roles: [],
       permissions: []
     }),
@@ -65,6 +67,8 @@ const useUserStore = defineStore(
             this.name = data.userName || data.username || ''
             this.nickName = data.nickName || data.realName || this.name
             this.avatar = avatar
+            this.deptId = data.deptId || null
+            this.zoneId = data.zoneId || null
 
             resolve(res)
           }).catch(error => {

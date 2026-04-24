@@ -1,6 +1,7 @@
 package com.dafuweng.auth.filter;
 
 import com.dafuweng.auth.entity.SysUserEntity;
+import com.dafuweng.auth.service.SysRoleService;
 import com.dafuweng.auth.service.SysUserService;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
@@ -20,9 +21,11 @@ import java.util.stream.Collectors;
 public class JwtAuthenticationFilter extends OncePerRequestFilter {
 
     private final SysUserService sysUserService;
+    private final SysRoleService sysRoleService;
 
-    public JwtAuthenticationFilter(SysUserService sysUserService) {
+    public JwtAuthenticationFilter(SysUserService sysUserService, SysRoleService sysRoleService) {
         this.sysUserService = sysUserService;
+        this.sysRoleService = sysRoleService;
     }
 
     @Override
@@ -61,12 +64,12 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
                 return;
             }
 
-            // 加载角色和权限码
-            List<String> roleIds = sysUserService.getRoleIdsByUserId(userId)
-                    .stream().map(String::valueOf).collect(Collectors.toList());
+            // 加载角色编码和权限码
+            List<String> roleCodes = sysRoleService.getRoleCodesByUserId(userId);
             List<String> permCodes = sysUserService.getPermCodesByUserId(userId);
 
-            List<SimpleGrantedAuthority> authorities = roleIds.stream()
+            // 角色编码添加 "ROLE_" 前缀，权限码直接使用
+            List<SimpleGrantedAuthority> authorities = roleCodes.stream()
                     .map(r -> new SimpleGrantedAuthority("ROLE_" + r))
                     .collect(Collectors.toList());
             authorities.addAll(permCodes.stream().map(SimpleGrantedAuthority::new).collect(Collectors.toList()));
