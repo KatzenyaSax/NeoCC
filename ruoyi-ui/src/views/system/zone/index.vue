@@ -150,9 +150,9 @@ function handleAdd() { reset(); loadDirectorOptions(); open.value = true; title.
 
 function handleUpdate(row) {
   reset()
+  loadDirectorOptions()
   getZone(row.id).then(response => {
     form.value = response.data || response
-    loadDirectorOptions()
     open.value = true
     title.value = "修改区域"
   })
