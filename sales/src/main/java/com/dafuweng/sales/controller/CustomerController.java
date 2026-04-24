@@ -52,13 +52,4 @@ public class CustomerController {
         customerService.delete(id);
         return Result.success();
     }
-
-    /**
-     * GET /api/customer/count
-     * 获取客户总数
-     */
-    @GetMapping("/count")
-    public Result<Long> count() {
-        return Result.success(customerService.count());
-    }
 }

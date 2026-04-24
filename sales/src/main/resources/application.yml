@@ -4,6 +4,12 @@ server:
 spring:
   application:
     name: sales
+  # 解决中文乱码问题
+  servlet:
+    encoding:
+      charset: UTF-8
+      enabled: true
+      force: true
   datasource:
     driver-class-name: com.mysql.cj.jdbc.Driver
     url: jdbc:mysql://localhost:3306/dafuweng_sales?allowPublicKeyRetrieval=true&useUnicode=true&characterEncoding=utf8&serverTimezone=Asia/Shanghai&useSSL=false
@@ -28,6 +34,7 @@ mybatis-plus:
     log-impl: org.apache.ibatis.logging.stdout.StdOutImpl
   global-config:
     db-config:
+      id-type: AUTO  # 使用数据库自增ID（解决JavaScript大数字精度问题）
       logic-delete-field: deleted
       logic-delete-value: 1
       logic-not-delete-value: 0
@@ -35,3 +42,12 @@ mybatis-plus:
 logging:
   level:
     com.dafuweng: DEBUG
+
+# Feign 客户端配置（容器网络）
+feign:
+  auth:
+    url: http://neocc-auth:8085
+  finance:
+    url: http://neocc-finance:8084
+  system:
+    url: http://neocc-system:8082

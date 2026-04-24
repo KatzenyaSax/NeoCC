@@ -21,7 +21,7 @@ export function transferCustomer(data) {
 // 获取销售代表列表（下拉用）
 export function listSalesReps() {
   return request({
-    url: '/customer/sales-reps',
+    url: '/sysUser/sales-reps',
     method: 'get'
   })
 }

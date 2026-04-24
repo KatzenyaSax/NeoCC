@@ -4,6 +4,12 @@ server:
 spring:
   application:
     name: system
+  # 解决中文乱码问题
+  servlet:
+    encoding:
+      charset: UTF-8
+      enabled: true
+      force: true
   datasource:
     driver-class-name: com.mysql.cj.jdbc.Driver
     url: jdbc:mysql://localhost:3306/dafuweng_system?allowPublicKeyRetrieval=true&useUnicode=true&characterEncoding=utf8&serverTimezone=Asia/Shanghai&useSSL=false
@@ -22,6 +28,11 @@ spring:
         password: nacos
         username: nacos
         namespace: afae1f3f-8800-48c4-a161-c525a45538c9
+
+# Feign 客户端配置
+feign:
+  auth:
+    url: http://localhost:8085
 
 mybatis-plus:
   mapper-locations: classpath:system/mapper/*.xml

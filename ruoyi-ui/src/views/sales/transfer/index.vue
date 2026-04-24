@@ -89,10 +89,8 @@
 
 <script setup>
 import { listCustomerTransfer, getCustomerTransfer, addCustomerTransfer, updateCustomerTransfer, delCustomerTransfer } from "@/api/sales/customerTransfer"
-import useUserStore from '@/store/modules/user'
 
 const { proxy } = getCurrentInstance()
-const userStore = useUserStore()
 const dataList = ref([])
 const loading = ref(true)
 const showSearch = ref(true)
@@ -125,31 +123,8 @@ const { queryParams, form, rules } = toRefs(data)
 function getList() {
   loading.value = true
   listCustomerTransfer(queryParams.value).then(response => {
-    let records = response.data?.records || response.records || []
-    // 根据角色过滤
-    const userId = userStore.id
-    const deptId = userStore.deptId
-    const zoneId = userStore.zoneId
-    const roles = userStore.roles || []
-    const isSalesRep = roles.some(r => r === 'ROLE_sales_rep')
-    const isDeptManager = roles.some(r => r === 'ROLE_dept_manager')
-    const isZoneDirector = roles.some(r => r === 'ROLE_zone_director')
-    const isAdmin = roles.some(r => ['ROLE_admin', 'ROLE_super'].includes(r))
-
-    if (isSalesRep && !isDeptManager && !isZoneDirector && !isAdmin) {
-      // 销售代表只看自己参与的转移记录(from_rep_id或to_rep_id是当前用户)
-      records = records.filter(item => item.fromRepId === userId || item.toRepId === userId)
-    } else if (isDeptManager && !isZoneDirector && !isAdmin) {
-      // 部门经理看本部门的转移记录（需要关联客户表获取dept_id，暂用from_rep_id的用户dept判断）
-      // 这里简化处理：部门经理可见本部门销售代表的转移记录
-      records = records // 实际需要后端支持按部门过滤
-    } else if (isZoneDirector && !isAdmin) {
-      // 战区总监看本战区的转移记录
-      records = records // 实际需要后端支持按战区过滤
-    }
-
-    dataList.value = records
-    total.value = records.length
+    dataList.value = response.data?.records || response.records || []
+    total.value = response.data?.total || response.total || 0
     loading.value = false
   }).catch(() => { loading.value = false })
 }

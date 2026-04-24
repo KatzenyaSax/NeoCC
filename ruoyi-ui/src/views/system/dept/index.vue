@@ -27,9 +27,21 @@
       <el-table-column label="ID" align="center" prop="id" width="80" />
       <el-table-column label="部门编码" align="center" prop="deptCode" width="120" />
       <el-table-column label="部门名称" align="center" prop="deptName" />
-      <el-table-column label="上级部门" align="center" prop="parentDeptName" width="100" />
-      <el-table-column label="所属战区" align="center" prop="zoneName" width="100" />
-      <el-table-column label="负责人" align="center" prop="managerName" width="100" />
+      <el-table-column label="上级部门" align="center" prop="parentName" width="120">
+        <template #default="scope">
+          {{ scope.row.parentName || '-' }}
+        </template>
+      </el-table-column>
+      <el-table-column label="所属区域" align="center" prop="zoneName" width="120">
+        <template #default="scope">
+          {{ scope.row.zoneName || '-' }}
+        </template>
+      </el-table-column>
+      <el-table-column label="负责人" align="center" prop="managerName" width="100">
+        <template #default="scope">
+          {{ scope.row.managerName || '-' }}
+        </template>
+      </el-table-column>
       <el-table-column label="排序" align="center" prop="sortOrder" width="80" />
       <el-table-column label="状态" align="center" prop="status" width="90">
         <template #default="scope">
@@ -50,8 +62,8 @@
     <pagination v-show="total > 0" :total="total" v-model:page="queryParams.pageNum" v-model:limit="queryParams.pageSize" @pagination="getList" />
 
     <!-- 新增/修改对话框 -->
-    <el-dialog :title="title" v-model="open" width="600px" append-to-body>
-      <el-form ref="formRef" :model="form" :rules="rules" label-width="90px">
+    <el-dialog :title="title" v-model="open" width="700px" append-to-body>
+      <el-form ref="formRef" :model="form" :rules="rules" label-width="100px">
         <el-row>
           <el-col :span="12">
             <el-form-item label="部门编码" prop="deptCode">
@@ -67,15 +79,15 @@
         <el-row>
           <el-col :span="12">
             <el-form-item label="上级部门" prop="parentId">
-              <el-select v-model="form.parentId" placeholder="请选择上级部门（选填）" clearable style="width:100%">
-                <el-option v-for="item in parentDeptOptions" :key="item.id" :label="item.name" :value="item.id" />
+              <el-select v-model="form.parentId" placeholder="请选择上级部门" clearable filterable style="width: 100%">
+                <el-option v-for="dept in deptOptions" :key="dept.id" :label="dept.deptName" :value="dept.id" />
               </el-select>
             </el-form-item>
           </el-col>
           <el-col :span="12">
-            <el-form-item label="所属战区" prop="zoneId">
-              <el-select v-model="form.zoneId" placeholder="请选择所属战区" style="width:100%">
-                <el-option v-for="item in zoneOptions" :key="item.id" :label="item.name" :value="item.id" />
+            <el-form-item label="所属区域" prop="zoneId">
+              <el-select v-model="form.zoneId" placeholder="请选择所属区域" clearable filterable style="width: 100%">
+                <el-option v-for="zone in zoneOptions" :key="zone.id" :label="zone.zoneName" :value="zone.id" />
               </el-select>
             </el-form-item>
           </el-col>
@@ -83,8 +95,8 @@
         <el-row>
           <el-col :span="12">
             <el-form-item label="负责人" prop="managerId">
-              <el-select v-model="form.managerId" placeholder="请选择负责人" style="width:100%">
-                <el-option v-for="item in managerOptions" :key="item.id" :label="item.name" :value="item.id" />
+              <el-select v-model="form.managerId" placeholder="请选择负责人" clearable filterable style="width: 100%">
+                <el-option v-for="user in userOptions" :key="user.id" :label="user.realName" :value="user.id" />
               </el-select>
             </el-form-item>
           </el-col>
@@ -102,7 +114,7 @@
         </el-form-item>
       </el-form>
       <template #footer>
-        <el-button type="primary" @click="submitForm">确 定</el-button>
+        <el-button type="primary" :loading="submitLoading" @click="submitForm">确 定</el-button>
         <el-button @click="cancel">取 消</el-button>
       </template>
     </el-dialog>
@@ -112,20 +124,21 @@
 <script setup>
 import { listDepartment, getDepartment, addDepartment, updateDepartment, delDepartment, listAllDepartment } from "@/api/system/department"
 import { listAllZone } from "@/api/system/zone"
-import { listUsersByRoleIds } from "@/api/system/user"
+import { listUser } from "@/api/system/user"
 
 const { proxy } = getCurrentInstance()
 const dataList = ref([])
 const loading = ref(true)
+const submitLoading = ref(false)
 const showSearch = ref(true)
 const total = ref(0)
 const title = ref("")
 const open = ref(false)
 
 // 下拉选项数据
-const parentDeptOptions = ref([])
+const deptOptions = ref([])
 const zoneOptions = ref([])
-const managerOptions = ref([])
+const userOptions = ref([])
 
 const data = reactive({
   form: {},
@@ -137,35 +150,12 @@ const data = reactive({
   },
   rules: {
     deptCode: [{ required: true, message: "部门编码不能为空", trigger: "blur" }],
-    deptName: [{ required: true, message: "部门名称不能为空", trigger: "blur" }]
+    deptName: [{ required: true, message: "部门名称不能为空", trigger: "blur" }],
+    zoneId: [{ required: true, message: "请选择所属区域", trigger: "change" }],
+    managerId: [{ required: true, message: "请选择负责人", trigger: "change" }]
   }
 })
 const { queryParams, form, rules } = toRefs(data)
-
-/** 加载下拉选项 */
-function loadDropdownOptions() {
-  // 加载上级部门选项
-  listAllDepartment().then(res => {
-    parentDeptOptions.value = (res.data || res || []).map(item => ({
-      id: item.id,
-      name: item.deptName
-    }))
-  })
-  // 加载战区选项
-  listAllZone().then(res => {
-    zoneOptions.value = (res.data || res || []).map(item => ({
-      id: item.id,
-      name: item.zoneName
-    }))
-  })
-  // 加载负责人选项（经理/总经理的用户）
-  listUsersByRoleIds([2,6]).then(res => {
-    managerOptions.value = (res.data || res || []).map(item => ({
-      id: item.id,
-      name: item.realName
-    }))
-  })
-}
 
 function getList() {
   loading.value = true
@@ -185,14 +175,18 @@ function reset() {
   }
   proxy.resetForm("formRef")
 }
-
 function handleQuery() { queryParams.value.pageNum = 1; getList() }
 function resetQuery() { proxy.resetForm("queryRef"); handleQuery() }
-function handleAdd() { reset(); loadDropdownOptions(); open.value = true; title.value = "新增部门" }
+function handleAdd() {
+  reset()
+  open.value = true
+  title.value = "新增部门"
+  loadOptions()
+}
 
 function handleUpdate(row) {
   reset()
-  loadDropdownOptions()
+  loadOptions()
   getDepartment(row.id).then(response => {
     form.value = response.data || response
     open.value = true
@@ -200,14 +194,33 @@ function handleUpdate(row) {
   })
 }
 
+/** 加载下拉选项数据 */
+function loadOptions() {
+  // 加载部门列表
+  listAllDepartment().then(response => {
+    deptOptions.value = response.data || []
+  })
+  // 加载区域列表
+  listAllZone().then(response => {
+    zoneOptions.value = response.data || []
+  })
+  // 加载用户列表
+  listUser({ pageNum: 1, pageSize: 1000 }).then(response => {
+    userOptions.value = response.data?.records || response.records || []
+  })
+}
+
 function submitForm() {
   proxy.$refs["formRef"].validate(valid => {
     if (!valid) return
+    submitLoading.value = true
     const fn = form.value.id ? updateDepartment : addDepartment
     fn(form.value).then(() => {
       proxy.$modal.msgSuccess(form.value.id ? "修改成功" : "新增成功")
       open.value = false
       getList()
+    }).finally(() => {
+      submitLoading.value = false
     })
   })
 }
@@ -221,3 +234,9 @@ function handleDelete(row) {
 
 getList()
 </script>
+
+<style scoped>
+.mb8 {
+  margin-bottom: 8px;
+}
+</style>

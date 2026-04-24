@@ -2,13 +2,12 @@ package com.dafuweng.auth.service.impl;
 
 import com.dafuweng.auth.dao.SysPermissionDao;
 import com.dafuweng.auth.dao.SysRolePermissionDao;
-import com.dafuweng.auth.dao.SysRoleDao;
 import com.dafuweng.auth.dao.SysUserDao;
 import com.dafuweng.auth.dao.SysUserRoleDao;
 import com.dafuweng.auth.entity.SysUserEntity;
+import com.dafuweng.auth.entity.SysUserVO;
 import com.dafuweng.auth.entity.SysUserRoleEntity;
-import com.dafuweng.auth.feign.SystemFeignClient;
-import com.dafuweng.auth.vo.UserVO;
+import com.dafuweng.auth.feign.DepartmentFeignClient;
 import com.dafuweng.common.entity.PageRequest;
 import com.dafuweng.common.entity.PageResponse;
 import com.dafuweng.common.entity.Result;
@@ -22,27 +21,22 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.StringUtils;
 
-import java.util.ArrayList;
-import java.util.Calendar;
-import java.util.Date;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Objects;
+import java.util.*;
 import java.util.stream.Collectors;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 @Service
 public class SysUserServiceImpl implements SysUserService {
+
+    private static final Logger log = LoggerFactory.getLogger(SysUserServiceImpl.class);
 
     @Autowired
     private SysUserDao sysUserDao;
 
     @Autowired
     private SysUserRoleDao sysUserRoleDao;
-
-    @Autowired
-    private SysRoleDao sysRoleDao;
 
     @Autowired
     private SysRolePermissionDao sysRolePermissionDao;
@@ -54,7 +48,7 @@ public class SysUserServiceImpl implements SysUserService {
     private BCryptPasswordEncoder passwordEncoder;
 
     @Autowired
-    private SystemFeignClient systemFeignClient;
+    private DepartmentFeignClient departmentFeignClient;
 
     @Override
     public SysUserEntity getById(Long id) {
@@ -66,9 +60,24 @@ public class SysUserServiceImpl implements SysUserService {
     }
 
     @Override
-    public PageResponse<SysUserEntity> pageList(PageRequest request) {
+    public PageResponse<SysUserVO> pageList(PageRequest request) {
         IPage<SysUserEntity> page = new Page<>(request.getPage(), request.getSize());
         LambdaQueryWrapper<SysUserEntity> wrapper = new LambdaQueryWrapper<>();
+
+        // 搜索条件：用户名
+        if (StringUtils.hasText(request.getUsername())) {
+            wrapper.like(SysUserEntity::getUsername, request.getUsername());
+        }
+        // 搜索条件：真实姓名
+        if (StringUtils.hasText(request.getRealName())) {
+            wrapper.like(SysUserEntity::getRealName, request.getRealName());
+        }
+        // 搜索条件：状态
+        if (request.getStatus() != null) {
+            wrapper.eq(SysUserEntity::getStatus, request.getStatus());
+        }
+
+        // 排序
         if (StringUtils.hasText(request.getSortField())) {
             if ("asc".equalsIgnoreCase(request.getSortOrder())) {
                 wrapper.orderByAsc(SysUserEntity::getId);
@@ -79,109 +88,66 @@ public class SysUserServiceImpl implements SysUserService {
             wrapper.orderByDesc(SysUserEntity::getCreatedAt);
         }
         IPage<SysUserEntity> result = sysUserDao.selectPage(page, wrapper);
-        result.getRecords().forEach(u -> u.setPassword(null));
-        return PageResponse.of(result.getTotal(), result.getRecords(),
-            (int) page.getCurrent(), (int) page.getSize());
-    }
 
-    @Override
-    public PageResponse<UserVO> pageListWithDeptName(PageRequest request) {
-        // 1. query user page data
-        IPage<SysUserEntity> page = new Page<>(request.getPage(), request.getSize());
-        LambdaQueryWrapper<SysUserEntity> wrapper = new LambdaQueryWrapper<>();
-        if (StringUtils.hasText(request.getSortField())) {
-            if ("asc".equalsIgnoreCase(request.getSortField())) {
-                wrapper.orderByAsc(SysUserEntity::getId);
-            } else {
-                wrapper.orderByDesc(SysUserEntity::getId);
-            }
-        } else {
-            wrapper.orderByDesc(SysUserEntity::getCreatedAt);
-        }
-        IPage<SysUserEntity> result = sysUserDao.selectPage(page, wrapper);
-        result.getRecords().forEach(u -> u.setPassword(null));
-        List<SysUserEntity> users = result.getRecords();
-
-        // 2. extract deptIds
-        List<Long> deptIds = users.stream()
-                .map(SysUserEntity::getDeptId)
-                .filter(Objects::nonNull)
-                .distinct()
-                .collect(Collectors.toList());
-
-        // 3. extract userIds
-        List<Long> userIds = users.stream()
-                .map(SysUserEntity::getId)
-                .filter(Objects::nonNull)
-                .distinct()
-                .collect(Collectors.toList());
-
-        // 4. query dept names from system
-        Map<Long, String> deptMap = new HashMap<>();
-        if (!deptIds.isEmpty()) {
-            Result<Map<Long, String>> deptResult = systemFeignClient.listDeptNamesByIds(deptIds);
-            if (deptResult != null && deptResult.getData() != null) {
-                deptMap.putAll(deptResult.getData());
-            }
-        }
-
-        // 5. query user-role mappings and role names
-        Map<Long, String> roleNameMap = new HashMap<>();
-        if (!userIds.isEmpty()) {
-            List<Map<String, Object>> userRoleMappings = sysUserRoleDao.selectUserRoleMappings(userIds);
-            List<Long> allRoleIds = userRoleMappings.stream()
-                    .map(m -> ((Number) m.get("role_id")).longValue())
-                    .distinct()
-                    .collect(Collectors.toList());
-            if (!allRoleIds.isEmpty()) {
-                List<Map<String, Object>> roleIdNames = sysRoleDao.selectIdAndRoleNamesByIds(allRoleIds);
-                Map<Long, String> roleIdNameMap = new HashMap<>();
-                for (Map<String, Object> r : roleIdNames) {
-                    Long roleId = ((Number) r.get("id")).longValue();
-                    String roleName = (String) r.get("role_name");
-                    roleIdNameMap.put(roleId, roleName);
-                }
-                Map<Long, List<String>> userRoleNames = new HashMap<>();
-                for (Map<String, Object> m : userRoleMappings) {
-                    Long userId = ((Number) m.get("user_id")).longValue();
-                    Long roleId = ((Number) m.get("role_id")).longValue();
-                    String roleName = roleIdNameMap.get(roleId);
-                    if (roleName != null) {
-                        userRoleNames.computeIfAbsent(userId, k -> new ArrayList<>()).add(roleName);
-                    }
-                }
-                for (Map.Entry<Long, List<String>> entry : userRoleNames.entrySet()) {
-                    roleNameMap.put(entry.getKey(), String.join(",", entry.getValue()));
-                }
-            }
-        }
-
-        // 6. convert to UserVO
-        List<UserVO> voList = users.stream().map(user -> {
-            UserVO vo = new UserVO();
-            vo.setId(user.getId());
-            vo.setUsername(user.getUsername());
-            vo.setRealName(user.getRealName());
-            vo.setPhone(user.getPhone());
-            vo.setEmail(user.getEmail());
-            vo.setDeptId(user.getDeptId());
-            vo.setZoneId(user.getZoneId());
-            vo.setStatus(user.getStatus());
-            vo.setLoginErrorCount(user.getLoginErrorCount());
-            vo.setLockTime(user.getLockTime());
-            vo.setLastLoginTime(user.getLastLoginTime());
-            vo.setLastLoginIp(user.getLastLoginIp());
-            vo.setCreatedBy(user.getCreatedBy());
-            vo.setCreatedAt(user.getCreatedAt());
-            vo.setUpdatedBy(user.getUpdatedBy());
-            vo.setUpdatedAt(user.getUpdatedAt());
-            vo.setDeptName(deptMap.get(user.getDeptId()));
-            vo.setRoleName(roleNameMap.get(user.getId()));
-            return vo;
-        }).collect(Collectors.toList());
+        // 填充部门名称
+        List<SysUserVO> voList = fillDeptName(result.getRecords());
 
         return PageResponse.of(result.getTotal(), voList,
             (int) page.getCurrent(), (int) page.getSize());
+    }
+    
+    /**
+     * 填充用户列表的部门名称
+     */
+    private List<SysUserVO> fillDeptName(List<SysUserEntity> entities) {
+        // 获取部门映射
+        Map<Long, String> deptMap = getDeptNameMap();
+        
+        return entities.stream().map(entity -> {
+            SysUserVO vo = new SysUserVO();
+            vo.setId(entity.getId());
+            vo.setUsername(entity.getUsername());
+            vo.setRealName(entity.getRealName());
+            vo.setPhone(entity.getPhone());
+            vo.setEmail(entity.getEmail());
+            vo.setDeptId(entity.getDeptId());
+            vo.setZoneId(entity.getZoneId());
+            vo.setStatus(entity.getStatus());
+            vo.setLoginErrorCount(entity.getLoginErrorCount());
+            vo.setLockTime(entity.getLockTime());
+            vo.setLastLoginTime(entity.getLastLoginTime());
+            vo.setLastLoginIp(entity.getLastLoginIp());
+            vo.setCreatedAt(entity.getCreatedAt());
+            vo.setUpdatedAt(entity.getUpdatedAt());
+            // 填充部门名称
+            vo.setDeptName(deptMap.get(entity.getDeptId()));
+            // 不返回密码
+            return vo;
+        }).collect(Collectors.toList());
+    }
+    
+    /**
+     * 获取部门ID到名称的映射
+     */
+    private Map<Long, String> getDeptNameMap() {
+        Map<Long, String> deptMap = new HashMap<>();
+        try {
+            Result<List<Map<String, Object>>> result = departmentFeignClient.listAll();
+            if (result != null && result.getCode() == 200 && result.getData() != null) {
+                for (Map<String, Object> dept : result.getData()) {
+                    Object idObj = dept.get("id");
+                    Object nameObj = dept.get("deptName");
+                    if (idObj != null && nameObj != null) {
+                        Long id = ((Number) idObj).longValue();
+                        String name = String.valueOf(nameObj);
+                        deptMap.put(id, name);
+                    }
+                }
+            }
+        } catch (Exception e) {
+            log.warn("获取部门列表失败: {}", e.getMessage());
+        }
+        return deptMap;
     }
 
     @Override
@@ -196,30 +162,39 @@ public class SysUserServiceImpl implements SysUserService {
         if (user == null) {
             throw new IllegalArgumentException("用户名或密码错误");
         }
+        // 保存密码 hash（登录成功后要清除，避免返回给前端）
         String passwordHash = user.getPassword();
+        // 检查账号锁定
         if (user.getLockTime() != null && user.getLockTime().after(new Date())) {
             throw new IllegalArgumentException("账号已锁定，请稍后再试");
         }
+        // 检查删除状态
         if (Objects.equals(user.getDeleted(), (short) 1)) {
             throw new IllegalArgumentException("账号已删除");
         }
+        // 验证密码（BCrypt）
         if (!passwordEncoder.matches(password, passwordHash)) {
             int errors = (user.getLoginErrorCount() == null ? 0 : user.getLoginErrorCount()) + 1;
-            user.setLoginErrorCount(errors);
+            // 用 LambdaUpdateWrapper 只更新需要的字段，避免更新 password
+            var wrapper = new com.baomidou.mybatisplus.core.conditions.update.LambdaUpdateWrapper<SysUserEntity>()
+                    .eq(SysUserEntity::getId, user.getId())
+                    .set(SysUserEntity::getLoginErrorCount, errors);
             if (errors >= 5) {
                 Calendar cal = Calendar.getInstance();
                 cal.add(Calendar.MINUTE, 30);
-                user.setLockTime(cal.getTime());
+                wrapper.set(SysUserEntity::getLockTime, cal.getTime());
             }
-            sysUserDao.updateById(user);
+            sysUserDao.update(null, wrapper);
             throw new IllegalArgumentException("用户名或密码错误");
         }
+        // 登录成功，重置错误计数（用 LambdaUpdateWrapper，避免更新 password 字段）
         sysUserDao.update(null,
-                new LambdaUpdateWrapper<SysUserEntity>()
+                new com.baomidou.mybatisplus.core.conditions.update.LambdaUpdateWrapper<SysUserEntity>()
                         .eq(SysUserEntity::getId, user.getId())
                         .set(SysUserEntity::getLoginErrorCount, 0)
                         .set(SysUserEntity::getLastLoginTime, new Date())
                         .set(SysUserEntity::getLastLoginIp, loginIp));
+        // 不返回明文密码
         user.setPassword(null);
         return user;
     }
@@ -227,6 +202,7 @@ public class SysUserServiceImpl implements SysUserService {
     @Override
     @Transactional
     public void logout(Long userId) {
+        // 登出只需要清除最后登录信息
         SysUserEntity user = sysUserDao.selectById(userId);
         if (user != null) {
             user.setLastLoginTime(null);
@@ -249,10 +225,12 @@ public class SysUserServiceImpl implements SysUserService {
 
     @Override
     public List<String> getPermCodesByUserId(Long userId) {
+        // 先获取用户的所有角色
         List<Long> roleIds = sysUserRoleDao.selectRoleIdsByUserId(userId);
         if (roleIds == null || roleIds.isEmpty()) {
             return new ArrayList<>();
         }
+        // 汇总所有角色的权限码
         List<String> allPermCodes = new ArrayList<>();
         for (Long roleId : roleIds) {
             List<String> codes = sysPermissionDao.selectPermCodesByRoleId(roleId);
@@ -289,6 +267,10 @@ public class SysUserServiceImpl implements SysUserService {
     @Override
     @Transactional
     public SysUserEntity save(SysUserEntity entity) {
+        // 加密密码
+        if (StringUtils.hasText(entity.getPassword())) {
+            entity.setPassword(passwordEncoder.encode(entity.getPassword()));
+        }
         sysUserDao.insert(entity);
         return entity;
     }
@@ -296,8 +278,31 @@ public class SysUserServiceImpl implements SysUserService {
     @Override
     @Transactional
     public SysUserEntity update(SysUserEntity entity) {
-        sysUserDao.updateById(entity);
-        return entity;
+        // 使用 LambdaUpdateWrapper 避免乐观锁冲突问题
+        var wrapper = new com.baomidou.mybatisplus.core.conditions.update.LambdaUpdateWrapper<SysUserEntity>()
+                .eq(SysUserEntity::getId, entity.getId())
+                .eq(SysUserEntity::getDeleted, (short) 0);
+
+        // 只更新非空字段
+        if (entity.getUsername() != null) wrapper.set(SysUserEntity::getUsername, entity.getUsername());
+        if (entity.getRealName() != null) wrapper.set(SysUserEntity::getRealName, entity.getRealName());
+        if (entity.getPhone() != null) wrapper.set(SysUserEntity::getPhone, entity.getPhone());
+        if (entity.getEmail() != null) wrapper.set(SysUserEntity::getEmail, entity.getEmail());
+        if (entity.getDeptId() != null) wrapper.set(SysUserEntity::getDeptId, entity.getDeptId());
+        if (entity.getZoneId() != null) wrapper.set(SysUserEntity::getZoneId, entity.getZoneId());
+        if (entity.getStatus() != null) wrapper.set(SysUserEntity::getStatus, entity.getStatus());
+
+        // 如果传了新密码则加密
+        if (StringUtils.hasText(entity.getPassword())) {
+            wrapper.set(SysUserEntity::getPassword, passwordEncoder.encode(entity.getPassword()));
+        }
+
+        // 执行更新
+        int rows = sysUserDao.update(null, wrapper);
+        if (rows == 0) {
+            throw new IllegalStateException("用户更新失败，可能已被其他用户修改");
+        }
+        return sysUserDao.selectById(entity.getId());
     }
 
     @Override
@@ -314,8 +319,19 @@ public class SysUserServiceImpl implements SysUserService {
     }
 
     @Override
+    public List<SysUserEntity> listByIds(List<Long> ids) {
+        if (ids == null || ids.isEmpty()) {
+            return List.of();
+        }
+        List<SysUserEntity> list = sysUserDao.selectBatchIds(ids);
+        list.forEach(u -> u.setPassword(null)); // 不返回密码
+        return list;
+    }
+
+    @Override
     @Transactional
     public boolean changePassword(Long userId, String oldPassword, String newPassword) {
+        log.info("changePassword called: userId={}, oldPwd={}, newPwd={}", userId, oldPassword != null ? "provided" : "null", newPassword != null ? "provided" : "null");
         SysUserEntity user = sysUserDao.selectById(userId);
         if (user == null) {
             throw new IllegalArgumentException("用户不存在");
@@ -323,66 +339,25 @@ public class SysUserServiceImpl implements SysUserService {
         if (!passwordEncoder.matches(oldPassword, user.getPassword())) {
             throw new IllegalArgumentException("原密码错误");
         }
-        user.setPassword(passwordEncoder.encode(newPassword));
-        sysUserDao.updateById(user);
+        // 使用 LambdaUpdateWrapper 更新密码，避免乐观锁冲突
+        LambdaUpdateWrapper<SysUserEntity> wrapper = new LambdaUpdateWrapper<>();
+        wrapper.eq(SysUserEntity::getId, userId)
+               .eq(SysUserEntity::getDeleted, (short) 0)
+               .set(SysUserEntity::getPassword, passwordEncoder.encode(newPassword));
+        int rows = sysUserDao.update(null, wrapper);
+        log.info("changePassword result: rows={}", rows);
+        if (rows == 0) {
+            throw new IllegalStateException("密码修改失败，用户可能已被删除或禁用");
+        }
         return true;
     }
 
+    /** 调试用：重置指定用户的密码（不校验旧密码） */
     @Transactional
     public void resetPassword(Long userId, String newPassword) {
         LambdaUpdateWrapper<SysUserEntity> wrapper = new LambdaUpdateWrapper<>();
         wrapper.eq(SysUserEntity::getId, userId)
                .set(SysUserEntity::getPassword, passwordEncoder.encode(newPassword));
         sysUserDao.update(null, wrapper);
-    }
-
-    @Override
-    public Long count() {
-        return sysUserDao.selectCount(null);
-    }
-
-    @Override
-    public List<Long> listUserIdsByDeptId(Long deptId) {
-        return sysUserDao.selectUserIdsByDeptId(deptId);
-    }
-
-    @Override
-    public List<Long> listUserIdsByZoneId(Long zoneId) {
-        return sysUserDao.selectUserIdsByZoneId(zoneId);
-    }
-
-    @Override
-    public Map<Long, String> listRealNamesByIds(List<Long> ids) {
-        if (ids == null || ids.isEmpty()) {
-            return new HashMap<>();
-        }
-        List<Map<String, Object>> results = sysUserDao.selectIdAndRealNamesByIds(ids);
-        Map<Long, String> map = new HashMap<>();
-        for (Map<String, Object> row : results) {
-            Long id = ((Number) row.get("id")).longValue();
-            String realName = (String) row.get("real_name");
-            map.put(id, realName);
-        }
-        return map;
-    }
-
-    @Override
-    public List<SysUserEntity> listByRoleIds(List<Long> roleIds) {
-        if (roleIds == null || roleIds.isEmpty()) {
-            return new ArrayList<>();
-        }
-        List<Long> userIds = sysUserRoleDao.selectUserIdsByRoleIds(roleIds);
-        if (userIds == null || userIds.isEmpty()) {
-            return new ArrayList<>();
-        }
-        List<SysUserEntity> users = sysUserDao.selectBatchIds(userIds);
-        users.forEach(u -> u.setPassword(null));
-        return users;
-    }
-
-    @Override
-    public Long selectMinAvailableId() {
-        Long minId = sysUserDao.selectMinAvailableId();
-        return minId != null ? minId : 1L;
     }
 }

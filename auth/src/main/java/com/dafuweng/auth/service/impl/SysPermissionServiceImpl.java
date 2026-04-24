@@ -33,6 +33,21 @@ public class SysPermissionServiceImpl implements SysPermissionService {
     public PageResponse<SysPermissionEntity> pageList(PageRequest request) {
         IPage<SysPermissionEntity> page = new Page<>(request.getPage(), request.getSize());
         LambdaQueryWrapper<SysPermissionEntity> wrapper = new LambdaQueryWrapper<>();
+
+        // 搜索条件：权限名称
+        if (StringUtils.hasText(request.getPermName())) {
+            wrapper.like(SysPermissionEntity::getPermName, request.getPermName());
+        }
+        // 搜索条件：权限编码
+        if (StringUtils.hasText(request.getPermCode())) {
+            wrapper.like(SysPermissionEntity::getPermCode, request.getPermCode());
+        }
+        // 搜索条件：权限类型
+        if (request.getPermType() != null) {
+            wrapper.eq(SysPermissionEntity::getPermType, request.getPermType());
+        }
+
+        // 排序
         if (StringUtils.hasText(request.getSortField())) {
             if ("asc".equalsIgnoreCase(request.getSortOrder())) {
                 wrapper.orderByAsc(SysPermissionEntity::getId);

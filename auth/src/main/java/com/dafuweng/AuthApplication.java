@@ -8,7 +8,7 @@ import org.springframework.cloud.openfeign.EnableFeignClients;
 
 @SpringBootApplication(scanBasePackages = "com.dafuweng")
 @EnableDiscoveryClient
-@EnableFeignClients
+@EnableFeignClients(basePackages = "com.dafuweng.auth.feign")
 @MapperScan("com.dafuweng.auth.dao")
 public class AuthApplication {
     public static void main(String[] args) {

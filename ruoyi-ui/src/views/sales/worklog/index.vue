@@ -46,23 +46,8 @@
       <el-form ref="formRef" :model="form" :rules="rules" label-width="110px">
         <el-row>
           <el-col :span="12">
-            <el-form-item label="客户" prop="salesRepId">
-              <el-select
-                v-model="form.salesRepId"
-                placeholder="请选择客户"
-                filterable
-                :loading="customerLoading"
-                @Focus="loadCustomerOptions('')"
-                :remote="true"
-                :remote-method="loadCustomerOptions"
-                style="width:100%">
-                <el-option
-                  v-for="item in customerOptions"
-                  :key="item.id"
-                  :label="item.realName"
-                  :value="item.id"
-                />
-              </el-select>
+            <el-form-item label="销售代表ID" prop="salesRepId">
+              <el-input v-model="form.salesRepId" placeholder="请输入销售代表ID" />
             </el-form-item>
           </el-col>
           <el-col :span="12">
@@ -120,21 +105,15 @@
 </template>
 
 <script setup>
-import { listWorkLog, getWorkLog, addWorkLog, updateWorkLog, delWorkLog, checkDuplicate, listWorkLogBySalesRepIds } from "@/api/sales/workLog"
-import { listCustomer } from "@/api/sales/customer"
-import { listUserIdsByDeptId, listUserIdsByZoneId } from "@/api/system/user"
-import useUserStore from '@/store/modules/user'
+import { listWorkLog, getWorkLog, addWorkLog, updateWorkLog, delWorkLog, checkDuplicate } from "@/api/sales/workLog"
 
 const { proxy } = getCurrentInstance()
-const userStore = useUserStore()
 const dataList = ref([])
 const loading = ref(true)
 const showSearch = ref(true)
 const total = ref(0)
 const title = ref("")
 const open = ref(false)
-const customerOptions = ref([])
-const customerLoading = ref(false)
 
 const data = reactive({
   form: {},
@@ -145,7 +124,7 @@ const data = reactive({
     logDate: undefined
   },
   rules: {
-    salesRepId: [{ required: true, message: "销售代表不能为空", trigger: "change" }],
+    salesRepId: [{ required: true, message: "销售代表ID不能为空", trigger: "blur" }],
     logDate: [{ required: true, message: "日志日期不能为空", trigger: "change" }],
     callsMade: [{ required: true, message: "拨打电话数不能为空", trigger: "blur" }]
   }
@@ -154,67 +133,11 @@ const { queryParams, form, rules } = toRefs(data)
 
 function getList() {
   loading.value = true
-  const roles = userStore.roles || []
-  const userId = userStore.id
-  const deptId = userStore.deptId
-  const zoneId = userStore.zoneId
-  const isSalesRep = roles.some(r => r === 'ROLE_sales_rep')
-  const isDeptManager = roles.some(r => r === 'ROLE_dept_manager')
-  const isZoneDirector = roles.some(r => r === 'ROLE_zone_director')
-  const isAdmin = roles.some(r => ['ROLE_admin', 'ROLE_super'].includes(r))
-
-  if (isAdmin || (!isSalesRep && !isDeptManager && !isZoneDirector)) {
-    // Admin or unknown role: show all (paginated)
-    listWorkLog(queryParams.value).then(response => {
-      dataList.value = response.data?.records || response.records || []
-      total.value = response.data?.total || response.total || 0
-      loading.value = false
-    }).catch(() => { loading.value = false })
-  } else if (isSalesRep && !isDeptManager && !isZoneDirector) {
-    // Sales rep: only own records
-    listWorkLogBySalesRepIds([userId]).then(response => {
-      const records = response.data || response || []
-      dataList.value = records
-      total.value = records.length
-      loading.value = false
-    }).catch(() => { loading.value = false })
-  } else if (isDeptManager && !isZoneDirector) {
-    // Dept manager: all records in department
-    listUserIdsByDeptId(deptId).then(response => {
-      const userIds = response.data || response || []
-      if (userIds.length === 0) {
-        dataList.value = []
-        total.value = 0
-        loading.value = false
-        return
-      }
-      listWorkLogBySalesRepIds(userIds).then(res => {
-        const records = res.data || res || []
-        dataList.value = records
-        total.value = records.length
-        loading.value = false
-      }).catch(() => { loading.value = false })
-    }).catch(() => { loading.value = false })
-  } else if (isZoneDirector) {
-    // Zone director: all records in zone
-    listUserIdsByZoneId(zoneId).then(response => {
-      const userIds = response.data || response || []
-      if (userIds.length === 0) {
-        dataList.value = []
-        total.value = 0
-        loading.value = false
-        return
-      }
-      listWorkLogBySalesRepIds(userIds).then(res => {
-        const records = res.data || res || []
-        dataList.value = records
-        total.value = records.length
-        loading.value = false
-      }).catch(() => { loading.value = false })
-    }).catch(() => { loading.value = false })
-  } else {
+  listWorkLog(queryParams.value).then(response => {
+    dataList.value = response.data?.records || response.records || []
+    total.value = response.data?.total || response.total || 0
     loading.value = false
-  }
+  }).catch(() => { loading.value = false })
 }
 
 function cancel() { open.value = false; reset() }
@@ -236,26 +159,7 @@ function reset() {
 
 function handleQuery() { queryParams.value.pageNum = 1; getList() }
 function resetQuery() { proxy.resetForm("queryRef"); handleQuery() }
-
-function isSalesRepRole() {
-  const roles = userStore.roles || []
-  return roles.some(r => r === 'ROLE_sales_rep')
-}
-
-function isAdminRole() {
-  const roles = userStore.roles || []
-  return roles.some(r => ['ROLE_admin', 'ROLE_super', 'ROLE_SALES_REP'].includes(r))
-}
-
-function handleAdd() {
-  if (!isSalesRepRole()) {
-    proxy.$modal.msgError("您不是销售代表！")
-    return
-  }
-  reset()
-  open.value = true
-  title.value = "新增工作日志"
-}
+function handleAdd() { reset(); open.value = true; title.value = "新增工作日志" }
 
 function handleUpdate(row) {
   reset()
@@ -266,33 +170,9 @@ function handleUpdate(row) {
   })
 }
 
-function loadCustomerOptions(searchValue) {
-  customerLoading.value = true
-  listCustomer({ pageNum: 1, pageSize: 100, name: searchValue || '' }).then(response => {
-    const records = response.data?.records || response.records || []
-    customerOptions.value = records.map(c => ({
-      id: c.id,
-      realName: c.realName
-    }))
-    customerLoading.value = false
-  }).catch(() => {
-    customerLoading.value = false
-  })
-}
-
 function submitForm() {
   proxy.$refs["formRef"].validate(valid => {
     if (!valid) return
-
-    // 如果是销售代表角色，自动填充当前用户的ID
-    if (isSalesRepRole()) {
-      form.value.salesRepId = userStore.id
-    } else {
-      // 非销售代表角色不能提交
-      proxy.$modal.msgError("您不是销售代表！")
-      return
-    }
-
     if (form.value.id) {
       // 修改
       updateWorkLog(form.value).then(() => {
@@ -324,9 +204,6 @@ function handleDelete(row) {
     proxy.$modal.msgSuccess("删除成功")
   }).catch(() => {})
 }
-
-// 初始化时加载客户列表
-loadCustomerOptions('')
 
 getList()
 </script>

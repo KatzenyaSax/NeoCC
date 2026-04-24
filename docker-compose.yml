@@ -1,0 +1,169 @@
+version: '3.8'
+
+services:
+  # MySQL 数据库
+  mysql:
+    image: mysql:8.0
+    container_name: dafuweng-mysql
+    restart: unless-stopped
+    environment:
+      MYSQL_ROOT_PASSWORD: 123456
+      TZ: Asia/Shanghai
+    ports:
+      - "3306:3306"
+    volumes:
+      - mysql_data:/var/lib/mysql
+    command: --default-authentication-plugin=mysql_native_password --character-set-server=utf8mb4 --collation-server=utf8mb4_unicode_ci
+    platform: linux/arm64
+    networks:
+      - dafuweng-network
+
+  # Redis 缓存
+  redis:
+    image: redis:7-alpine
+    container_name: dafuweng-redis
+    restart: unless-stopped
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis_data:/data
+    platform: linux/arm64
+    networks:
+      - dafuweng-network
+
+  # Nacos 服务注册与配置中心
+  nacos:
+    image: nacos/nacos-server:v2.3.0-slim
+    container_name: dafuweng-nacos
+    restart: unless-stopped
+    environment:
+      MODE: standalone
+      JVM_XMS: 256m
+      JVM_XMX: 512m
+    ports:
+      - "8848:8848"
+      - "9848:9848"
+    volumes:
+      - nacos_data:/home/nacos/data
+      - nacos_logs:/home/nacos/logs
+    platform: linux/arm64
+    networks:
+      - dafuweng-network
+
+  # System 服务
+  neocc-system:
+    image: eclipse-temurin:21-jre-alpine
+    container_name: neocc-system
+    restart: unless-stopped
+    ports:
+      - "8082:8082"
+    volumes:
+      - ./system/target/system-1.0-SNAPSHOT.jar:/app/app.jar
+    command: java -jar -Xms256m -Xmx512m /app/app.jar
+    environment:
+      - SPRING_DATASOURCE_URL=jdbc:mysql://dafuweng-mysql:3306/dafuweng_system
+      - SPRING_REDIS_HOST=dafuweng-redis
+      - SPRING_CLOUD_NACOS_DISCOVERY_SERVER-ADDR=dafuweng-nacos:8848
+    networks:
+      - dafuweng-network
+    depends_on:
+      - mysql
+      - redis
+      - nacos
+
+  # Auth 服务
+  neocc-auth:
+    image: eclipse-temurin:21-jre-alpine
+    container_name: neocc-auth
+    restart: unless-stopped
+    ports:
+      - "8085:8085"
+    volumes:
+      - ./auth/target/auth-1.0-SNAPSHOT.jar:/app/app.jar
+    command: java -jar -Xms256m -Xmx512m /app/app.jar
+    environment:
+      - SPRING_DATASOURCE_URL=jdbc:mysql://dafuweng-mysql:3306/dafuweng_auth
+      - SPRING_CLOUD_NACOS_DISCOVERY_SERVER-ADDR=dafuweng-nacos:8848
+    networks:
+      - dafuweng-network
+    depends_on:
+      - mysql
+      - nacos
+
+  # Sales 服务
+  neocc-sales:
+    image: eclipse-temurin:21-jre-alpine
+    container_name: neocc-sales
+    restart: unless-stopped
+    ports:
+      - "8083:8083"
+    volumes:
+      - ./sales/target/sales-1.0-SNAPSHOT.jar:/app/app.jar
+    command: java -jar -Xms256m -Xmx512m /app/app.jar
+    environment:
+      - SPRING_DATASOURCE_URL=jdbc:mysql://dafuweng-mysql:3306/dafuweng_sales
+      - SPRING_CLOUD_NACOS_DISCOVERY_SERVER-ADDR=dafuweng-nacos:8848
+    networks:
+      - dafuweng-network
+    depends_on:
+      - mysql
+      - nacos
+
+  # Finance 服务
+  neocc-finance:
+    image: eclipse-temurin:21-jre-alpine
+    container_name: neocc-finance
+    restart: unless-stopped
+    ports:
+      - "8084:8084"
+    volumes:
+      - ./finance/target/finance-1.0-SNAPSHOT.jar:/app/app.jar
+    command: java -jar -Xms256m -Xmx512m /app/app.jar
+    environment:
+      - SPRING_DATASOURCE_URL=jdbc:mysql://dafuweng-mysql:3306/dafuweng_finance
+      - SPRING_CLOUD_NACOS_DISCOVERY_SERVER-ADDR=dafuweng-nacos:8848
+    networks:
+      - dafuweng-network
+    depends_on:
+      - mysql
+      - nacos
+
+  # Gateway 服务
+  neocc-gateway:
+    image: eclipse-temurin:21-jre-alpine
+    container_name: neocc-gateway
+    restart: unless-stopped
+    ports:
+      - "8086:8086"
+    volumes:
+      - ./gateway/target/gateway-1.0-SNAPSHOT.jar:/app/app.jar
+    command: java -jar -Xms256m -Xmx512m /app/app.jar
+    environment:
+      - SPRING_CLOUD_NACOS_DISCOVERY_SERVER-ADDR=dafuweng-nacos:8848
+    networks:
+      - dafuweng-network
+    depends_on:
+      - nacos
+
+  # 前端 UI
+  dafuweng-ui:
+    build:
+      context: ./ruoyi-ui
+      dockerfile: Dockerfile
+    container_name: dafuweng-ui
+    restart: unless-stopped
+    ports:
+      - "80:80"
+    networks:
+      - dafuweng-network
+
+networks:
+  dafuweng-network:
+    name: dafuweng-network
+    driver: bridge
+
+volumes:
+  mysql_data:
+  redis_data:
+  nacos_data:
+  nacos_logs:

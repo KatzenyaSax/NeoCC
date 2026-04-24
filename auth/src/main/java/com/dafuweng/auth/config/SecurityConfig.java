@@ -12,6 +12,7 @@ import org.springframework.security.config.annotation.web.configuration.EnableWe
 import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
+import org.springframework.http.HttpMethod;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
 
 @Configuration
@@ -36,11 +37,16 @@ public class SecurityConfig {
             .csrf(csrf -> csrf.disable())
             .sessionManagement(sm -> sm.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
             .authorizeHttpRequests(auth -> auth
-                .requestMatchers("/api/sysUser/login", "/api/sysUser/page", "/api/sysUser/page/with-dept", "/api/sysUser/names/by-ids", "/api/sysUser/min-available-id").permitAll()
+                .requestMatchers("/api/sysUser/login", "/api/sysUser/page").permitAll()
+                .requestMatchers(HttpMethod.POST, "/api/sysUser").permitAll()
+                .requestMatchers(HttpMethod.PUT, "/api/sysUser").permitAll()
                 .requestMatchers("/api/sysUser/dev/**").permitAll()
                 .requestMatchers("/api/sysUser/{id}").permitAll()
                 .requestMatchers("/api/sysUser/{id}/roles").permitAll()
                 .requestMatchers("/api/sysUser/{id}/permCodes").permitAll()
+                .requestMatchers("/api/sysUser/{id}/password").permitAll()
+                .requestMatchers("/api/sysUser/{id}/unlock").permitAll()
+                .requestMatchers("/api/sysRole/**").permitAll()
                 .requestMatchers("/auth/**").permitAll()
                 // doc04 修正后：Gateway StripPrefix=1，原始 /auth/login → auth服务收到 /login
                 .requestMatchers("/login", "/getInfo", "/getRouters", "/logout").permitAll()

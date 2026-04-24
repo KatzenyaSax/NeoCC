@@ -1,7 +1,6 @@
 package com.dafuweng.sales.service;
 
 import com.dafuweng.sales.entity.ContractEntity;
-import com.dafuweng.sales.entity.vo.ContractDetailVO;
 import com.dafuweng.sales.dao.ContractDao;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.core.metadata.IPage;
@@ -51,19 +50,4 @@ public interface ContractService {
      * 获取合同详情（含关联信息）
      */
     ContractEntity getDetail(Long id);
-
-    /**
-     * 获取合同详情（含关联名称）
-     */
-    ContractDetailVO getDetailWithNames(Long id);
-
-    /**
-     * 获取合同总数
-     */
-    Long count();
-
-    /**
-     * 按状态获取合同数量
-     */
-    Long countByStatus(Short status);
 }

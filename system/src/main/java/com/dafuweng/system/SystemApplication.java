@@ -9,7 +9,7 @@ import org.springframework.cloud.openfeign.EnableFeignClients;
 @SpringBootApplication(scanBasePackages = "com.dafuweng")
 @MapperScan("com.dafuweng.system.dao")
 @EnableCaching
-@EnableFeignClients
+@EnableFeignClients(basePackages = "com.dafuweng.system.feign")
 public class SystemApplication {
     public static void main(String[] args) {
         SpringApplication.run(SystemApplication.class, args);

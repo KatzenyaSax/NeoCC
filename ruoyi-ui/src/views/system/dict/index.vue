@@ -40,8 +40,9 @@
         </template>
       </el-table-column>
       <el-table-column label="备注" align="center" prop="remark" />
-      <el-table-column label="操作" align="center" width="160">
+      <el-table-column label="操作" align="center" width="180">
         <template #default="scope">
+          <el-button link type="primary" icon="View" @click="handleView(scope.row)">详情</el-button>
           <el-button link type="primary" icon="Edit" @click="handleUpdate(scope.row)">修改</el-button>
           <el-button link type="danger" icon="Delete" @click="handleDelete(scope.row)">删除</el-button>
         </template>
@@ -49,6 +50,23 @@
     </el-table>
 
     <pagination v-show="total > 0" :total="total" v-model:page="queryParams.pageNum" v-model:limit="queryParams.pageSize" @pagination="getList" />
+
+    <!-- 查看详情对话框 -->
+    <el-dialog title="字典详情" v-model="viewOpen" width="550px" append-to-body>
+      <el-descriptions :column="2" border>
+        <el-descriptions-item label="字典类型">{{ viewData.dictType }}</el-descriptions-item>
+        <el-descriptions-item label="字典代码">{{ viewData.dictCode }}</el-descriptions-item>
+        <el-descriptions-item label="字典标签">{{ viewData.dictLabel }}</el-descriptions-item>
+        <el-descriptions-item label="字典值">{{ viewData.dictValue }}</el-descriptions-item>
+        <el-descriptions-item label="排序">{{ viewData.sortOrder }}</el-descriptions-item>
+        <el-descriptions-item label="状态">
+          <el-tag :type="viewData.status === 1 ? 'success' : 'danger'">{{ viewData.status === 1 ? '启用' : '禁用' }}</el-tag>
+        </el-descriptions-item>
+        <el-descriptions-item label="备注" :span="2">{{ viewData.remark || '-' }}</el-descriptions-item>
+        <el-descriptions-item label="创建时间">{{ viewData.createdAt }}</el-descriptions-item>
+        <el-descriptions-item label="更新时间">{{ viewData.updatedAt }}</el-descriptions-item>
+      </el-descriptions>
+    </el-dialog>
 
     <el-dialog :title="title" v-model="open" width="550px" append-to-body>
       <el-form ref="formRef" :model="form" :rules="rules" label-width="100px">
@@ -95,6 +113,8 @@ const showSearch = ref(true)
 const total = ref(0)
 const title = ref("")
 const open = ref(false)
+const viewOpen = ref(false)
+const viewData = ref({})
 
 const data = reactive({
   form: {},
@@ -135,6 +155,11 @@ function handleUpdate(row) {
   })
 }
 
+function handleView(row) {
+  viewData.value = row
+  viewOpen.value = true
+}
+
 function submitForm() {
   proxy.$refs["formRef"].validate(valid => {
     if (valid) {
@@ -149,7 +174,7 @@ function submitForm() {
 }
 
 function handleDelete(row) {
-  proxy.$modal.confirm('是否确认删除字典"' + row.dictLabel + '"？').then(() => delDict(row.id)).then(() => {
+  proxy.$modal.confirm('是否确认删除字典【' + row.dictLabel + '】？删除后将无法恢复！').then(() => delDict(row.id)).then(() => {
     getList()
     proxy.$modal.msgSuccess("删除成功")
   }).catch(() => {})

@@ -25,15 +25,6 @@ export function listWorkLogBySalesRepId(salesRepId) {
   })
 }
 
-// 根据销售代表ID列表查询工作日志
-export function listWorkLogBySalesRepIds(salesRepIds) {
-  return request({
-    url: '/workLog/listBySalesRepIds',
-    method: 'get',
-    params: { salesRepIds }
-  })
-}
-
 // 检查是否重复（同一销售代表同一日期）
 export function checkDuplicate(salesRepId, logDate) {
   return request({

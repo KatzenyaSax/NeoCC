@@ -6,11 +6,15 @@ spring:
     name: gateway
   main:
     web-application-type: reactive
+  # 解决中文乱码问题
+  codec:
+    encoding:
+      charset: UTF-8
 
   cloud:
     nacos:
       discovery:
-        server-addr: localhost:8848
+        server-addr: dafuweng-nacos:8848
         password: nacos
         username: nacos
         namespace: afae1f3f-8800-48c4-a161-c525a45538c9
@@ -24,114 +28,50 @@ spring:
         locator:
           enabled: false
       routes:
-        - id: "gateway-test"
-          uri: "http://www.bilibili.com"
+        # Auth 服务 - /auth/** → http://neocc-auth:8085 (去掉 /auth 前缀)
+        - id: auth-route
+          uri: http://neocc-auth:8085
           predicates:
-            - Path=/bilibili
+            - Path=/auth/**
+          filters:
+            - StripPrefix=1
 
-        - id: auth-api-rewrite-route
-          uri: http://localhost:8085
+        # System 服务 - /system/api/** → http://neocc-system:8082 (去掉 /system)
+        - id: system-route
+          uri: http://neocc-system:8082
+          predicates:
+            - Path=/system/api/**
+          filters:
+            - StripPrefix=1
+
+        # Auth 服务处理 /auth/api/** (SysUser, SysRole 等)
+        - id: auth-api-route
+          uri: http://neocc-auth:8085
           predicates:
             - Path=/auth/api/**
           filters:
             - StripPrefix=1
 
-        - id: auth-api-route
-          uri: http://localhost:8085
-          predicates:
-            - Path=/api/sysUser/**
-            - Path=/api/sysRole/**
-            - Path=/api/sysPermission/**
-            - Path=/api/sysDept/**
-            - Path=/sysUser/**
-            - Path=/sysRole/**
-            - Path=/sysPermission/**
-            - Path=/sysDept/**
-            - Path=/sysOperationLog/**
-            - Path=/api/sysUser/page/with-dept
-            - Path=/api/sysUser/names/by-ids
-            - Path=/api/sysUser/by-role-ids
-            - Path=/api/sysUser/min-available-id
-          filters:
-            - StripPrefix=0
-
-        - id: system-api-zone-dept-route
-          uri: http://localhost:8082
-          predicates:
-            - Path=/sysZone/**
-            - Path=/sysDepartment/**
-          filters:
-            - StripPrefix=0
-            - PrefixPath=/api
-
-        - id: auth-route
-          uri: http://localhost:8085
-          predicates:
-            - Path=/auth/**
-          filters:
-            - StripPrefix=0
-
-        - id: sales-api-route
-          uri: http://localhost:8083
-          predicates:
-            - Path=/api/customer/**
-            - Path=/api/contract/**
-            - Path=/api/contactRecord/**
-            - Path=/api/workLog/**
-            - Path=/customer/**
-            - Path=/contract/**
-            - Path=/contactRecord/**
-            - Path=/workLog/**
-            - Path=/performanceRecord/**
-            - Path=/customerTransferLog/**
-            - Path=/api/perfSummary/**
-            - Path=/api/perfRanking/**
-          filters:
-            - StripPrefix=0
-
-        - id: finance-api-route
-          uri: http://localhost:8084
-          predicates:
-            - Path=/api/loanAudit/**
-            - Path=/api/bank/**
-            - Path=/api/financeProduct/**
-            - Path=/api/commission/**
-            - Path=/api/serviceFee/**
-            - Path=/loanAudit/**
-            - Path=/bank/**
-            - Path=/financeProduct/**
-            - Path=/commission/**
-            - Path=/commissionRecord/**
-            - Path=/serviceFee/**
-            - Path=/serviceFeeRecord/**
-          filters:
-            - StripPrefix=0
-
-        - id: finance-route
-          uri: http://localhost:8084
-          predicates:
-            - Path=/finance/**
-          filters:
-            - StripPrefix=1
-
+        # Sales 服务 - /sales/**
         - id: sales-route
-          uri: http://localhost:8083
+          uri: http://neocc-sales:8083
           predicates:
             - Path=/sales/**
           filters:
             - StripPrefix=1
 
-        - id: system-route
-          uri: http://localhost:8082
+        # Finance 服务 - /finance/**
+        - id: finance-route
+          uri: http://neocc-finance:8084
           predicates:
-            - Path=/system/**
+            - Path=/finance/**
           filters:
             - StripPrefix=1
 
       globalcors:
         corsConfigurations:
           '[/**]':
-            allowedOrigins: "http://localhost:3000,http://localhost:3001,http://10.244.226.95:3001,http://10.244.8.122:3001/"
+            allowedOrigins: "*"
             allowedMethods:
               - GET
               - POST
@@ -139,9 +79,8 @@ spring:
               - DELETE
               - OPTIONS
             allowedHeaders: "*"
-            allowCredentials: true
-            maxAge: 3600
 
 logging:
   level:
     com.dafuweng: DEBUG
+    org.springframework.cloud.gateway: DEBUG
