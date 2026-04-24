@@ -78,4 +78,9 @@ public class CustomerServiceImpl implements CustomerService {
     public void delete(Long id) {
         customerDao.deleteById(id);
     }
+
+    @Override
+    public Long count() {
+        return customerDao.selectCount(null);
+    }
 }

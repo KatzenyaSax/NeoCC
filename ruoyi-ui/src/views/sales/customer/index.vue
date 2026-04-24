@@ -20,7 +20,11 @@
       <el-table-column label="ID" align="center" prop="id" width="80" />
       <el-table-column label="客户名称" align="center" prop="name" />
       <el-table-column label="联系电话" align="center" prop="phone" />
-      <el-table-column label="身份证号" align="center" prop="idCard" />
+      <el-table-column label="对接销售" align="center">
+        <template #default="scope">
+          {{ scope.row.salesRepName || '-' }}
+        </template>
+      </el-table-column>
       <el-table-column label="状态" align="center" prop="status">
         <template #default="scope">
           <el-tag :type="scope.row.status === 1 ? 'success' : 'info'">
@@ -75,6 +79,16 @@
             <el-option label="有效" :value="1" />
             <el-option label="无效" :value="0" />
             <el-option label="公海" :value="5" />
+          </el-select>
+        </el-form-item>
+        <el-form-item label="对接销售" prop="salesRepId">
+          <el-select v-model="form.salesRepId" placeholder="请选择对接销售" clearable>
+            <el-option
+              v-for="item in salesRepOptions"
+              :key="item.id"
+              :label="item.realName"
+              :value="item.id"
+            />
           </el-select>
         </el-form-item>
         <el-form-item label="来源" prop="source">
@@ -140,7 +154,8 @@
 </template>
 
 <script setup>
-import { listCustomer, getCustomer, delCustomer, addCustomer, updateCustomer } from "@/api/sales/customer"
+import { listCustomer, getCustomer, delCustomer, addCustomer, updateCustomer, getUserNamesByIds } from "@/api/sales/customer"
+import { listSalesReps } from "@/api/system/user"
 import useUserStore from '@/store/modules/user'
 
 const { proxy } = getCurrentInstance()
@@ -159,6 +174,7 @@ const title = ref("")
 const open = ref(false)
 const detailOpen = ref(false)
 const detailForm = ref({})
+const salesRepOptions = ref([])
 
 const data = reactive({
   form: {},
@@ -178,9 +194,47 @@ const { queryParams, form, rules } = toRefs(data)
 function getList() {
   loading.value = true
   listCustomer(queryParams.value).then(response => {
-    customerList.value = response.data?.records || response.records || []
-    total.value = response.data?.total || response.total || 0
+    let records = response.data?.records || response.records || []
+    // 过滤掉公海客户(status=5)
+    records = records.filter(item => item.status !== 5)
+    // 根据角色过滤
+    const userId = userStore.id
+    const deptId = userStore.deptId
+    const zoneId = userStore.zoneId
+    const roles = userStore.roles || []
+    const isSalesRep = roles.some(r => r === 'ROLE_sales_rep')
+    const isDeptManager = roles.some(r => r === 'ROLE_dept_manager')
+    const isZoneDirector = roles.some(r => r === 'ROLE_zone_director')
+    const isAdmin = roles.some(r => ['ROLE_admin', 'ROLE_super'].includes(r))
+
+    if (isSalesRep && !isDeptManager && !isZoneDirector && !isAdmin) {
+      // 销售代表只看自己的客户
+      records = records.filter(item => item.salesRepId === userId)
+    } else if (isDeptManager && !isZoneDirector && !isAdmin) {
+      // 部门经理看本部门的客户
+      records = records.filter(item => item.deptId === deptId)
+    } else if (isZoneDirector && !isAdmin) {
+      // 战区总监看本战区的客户
+      records = records.filter(item => item.zoneId === zoneId)
+    }
+
+    customerList.value = records
+    total.value = records.length
     loading.value = false
+
+    // 批量查询销售代表姓名
+    const repIds = records
+      .map(r => r.salesRepId)
+      .filter(id => id != null)
+      .filter((v, i, a) => a.indexOf(v) === i)
+    if (repIds.length > 0) {
+      getUserNamesByIds(repIds).then(res => {
+        const nameMap = res.data || {}
+        customerList.value.forEach(c => {
+          c.salesRepName = nameMap[c.salesRepId] || null
+        })
+      })
+    }
   })
 }
 
@@ -203,6 +257,7 @@ function reset() {
     customerType: undefined,
     intentionLevel: undefined,
     status: 1,
+    salesRepId: undefined,
     source: undefined,
     loanIntentionAmount: undefined,
     loanIntentionProduct: undefined,
@@ -232,6 +287,13 @@ function formatMoney(val) {
   const num = parseFloat(val)
   if (isNaN(num)) return '-'
   return num.toLocaleString('zh-CN', { minimumFractionDigits: 2, maximumFractionDigits: 2 })
+}
+
+/** 加载销售代表下拉选项 */
+function loadSalesRepOptions() {
+  listSalesReps().then(res => {
+    salesRepOptions.value = res.data || []
+  })
 }
 
 /** 详情按钮 */
@@ -304,4 +366,5 @@ function handleDelete(row) {
 }
 
 getList()
+loadSalesRepOptions()
 </script>

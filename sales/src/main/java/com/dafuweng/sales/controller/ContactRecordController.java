@@ -37,6 +37,11 @@ public class ContactRecordController {
         return Result.success(contactRecordService.listBySalesRepId(salesRepId));
     }
 
+    @GetMapping("/listBySalesRepIds")
+    public Result<List<ContactRecordEntity>> listBySalesRepIds(@RequestParam List<Long> salesRepIds) {
+        return Result.success(contactRecordService.listBySalesRepIds(salesRepIds));
+    }
+
     @PostMapping
     public Result<ContactRecordEntity> save(@RequestBody ContactRecordEntity entity) {
         return Result.success(contactRecordService.save(entity));

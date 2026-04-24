@@ -23,6 +23,8 @@ public class SysRoleEntity implements Serializable {
 
     private Short dataScope;
 
+    private String description;
+
     private Integer roleSort;
 
     private Short status;

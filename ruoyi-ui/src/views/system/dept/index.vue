@@ -27,9 +27,9 @@
       <el-table-column label="ID" align="center" prop="id" width="80" />
       <el-table-column label="部门编码" align="center" prop="deptCode" width="120" />
       <el-table-column label="部门名称" align="center" prop="deptName" />
-      <el-table-column label="上级ID" align="center" prop="parentId" width="90" />
-      <el-table-column label="区域ID" align="center" prop="zoneId" width="90" />
-      <el-table-column label="负责人ID" align="center" prop="managerId" width="100" />
+      <el-table-column label="上级部门" align="center" prop="parentDeptName" width="100" />
+      <el-table-column label="所属战区" align="center" prop="zoneName" width="100" />
+      <el-table-column label="负责人" align="center" prop="managerName" width="100" />
       <el-table-column label="排序" align="center" prop="sortOrder" width="80" />
       <el-table-column label="状态" align="center" prop="status" width="90">
         <template #default="scope">
@@ -66,20 +66,26 @@
         </el-row>
         <el-row>
           <el-col :span="12">
-            <el-form-item label="上级部门ID" prop="parentId">
-              <el-input v-model="form.parentId" placeholder="请输入上级部门ID（选填）" />
+            <el-form-item label="上级部门" prop="parentId">
+              <el-select v-model="form.parentId" placeholder="请选择上级部门（选填）" clearable style="width:100%">
+                <el-option v-for="item in parentDeptOptions" :key="item.id" :label="item.name" :value="item.id" />
+              </el-select>
             </el-form-item>
           </el-col>
           <el-col :span="12">
-            <el-form-item label="区域ID" prop="zoneId">
-              <el-input v-model="form.zoneId" placeholder="请输入区域ID" />
+            <el-form-item label="所属战区" prop="zoneId">
+              <el-select v-model="form.zoneId" placeholder="请选择所属战区" style="width:100%">
+                <el-option v-for="item in zoneOptions" :key="item.id" :label="item.name" :value="item.id" />
+              </el-select>
             </el-form-item>
           </el-col>
         </el-row>
         <el-row>
           <el-col :span="12">
-            <el-form-item label="负责人ID" prop="managerId">
-              <el-input v-model="form.managerId" placeholder="请输入负责人ID" />
+            <el-form-item label="负责人" prop="managerId">
+              <el-select v-model="form.managerId" placeholder="请选择负责人" style="width:100%">
+                <el-option v-for="item in managerOptions" :key="item.id" :label="item.name" :value="item.id" />
+              </el-select>
             </el-form-item>
           </el-col>
           <el-col :span="12">
@@ -104,7 +110,9 @@
 </template>
 
 <script setup>
-import { listDepartment, getDepartment, addDepartment, updateDepartment, delDepartment } from "@/api/system/department"
+import { listDepartment, getDepartment, addDepartment, updateDepartment, delDepartment, listAllDepartment } from "@/api/system/department"
+import { listAllZone } from "@/api/system/zone"
+import { listUsersByRoleIds } from "@/api/system/user"
 
 const { proxy } = getCurrentInstance()
 const dataList = ref([])
@@ -113,6 +121,11 @@ const showSearch = ref(true)
 const total = ref(0)
 const title = ref("")
 const open = ref(false)
+
+// 下拉选项数据
+const parentDeptOptions = ref([])
+const zoneOptions = ref([])
+const managerOptions = ref([])
 
 const data = reactive({
   form: {},
@@ -128,6 +141,31 @@ const data = reactive({
   }
 })
 const { queryParams, form, rules } = toRefs(data)
+
+/** 加载下拉选项 */
+function loadDropdownOptions() {
+  // 加载上级部门选项
+  listAllDepartment().then(res => {
+    parentDeptOptions.value = (res.data || res || []).map(item => ({
+      id: item.id,
+      name: item.deptName
+    }))
+  })
+  // 加载战区选项
+  listAllZone().then(res => {
+    zoneOptions.value = (res.data || res || []).map(item => ({
+      id: item.id,
+      name: item.zoneName
+    }))
+  })
+  // 加载负责人选项（经理/总经理的用户）
+  listUsersByRoleIds([2,6]).then(res => {
+    managerOptions.value = (res.data || res || []).map(item => ({
+      id: item.id,
+      name: item.realName
+    }))
+  })
+}
 
 function getList() {
   loading.value = true
@@ -150,10 +188,11 @@ function reset() {
 
 function handleQuery() { queryParams.value.pageNum = 1; getList() }
 function resetQuery() { proxy.resetForm("queryRef"); handleQuery() }
-function handleAdd() { reset(); open.value = true; title.value = "新增部门" }
+function handleAdd() { reset(); loadDropdownOptions(); open.value = true; title.value = "新增部门" }
 
 function handleUpdate(row) {
   reset()
+  loadDropdownOptions()
   getDepartment(row.id).then(response => {
     form.value = response.data || response
     open.value = true

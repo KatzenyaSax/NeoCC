@@ -34,4 +34,9 @@ public interface CustomerService {
 
     @Transactional
     void delete(Long id);
+
+    /**
+     * 获取客户总数
+     */
+    Long count();
 }

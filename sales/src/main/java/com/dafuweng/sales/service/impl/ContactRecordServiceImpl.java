@@ -55,6 +55,17 @@ public class ContactRecordServiceImpl implements ContactRecordService {
     }
 
     @Override
+    public List<ContactRecordEntity> listBySalesRepIds(List<Long> salesRepIds) {
+        if (salesRepIds == null || salesRepIds.isEmpty()) {
+            return new java.util.ArrayList<>();
+        }
+        LambdaQueryWrapper<ContactRecordEntity> wrapper = new LambdaQueryWrapper<>();
+        wrapper.in(ContactRecordEntity::getSalesRepId, salesRepIds);
+        wrapper.orderByDesc(ContactRecordEntity::getContactDate);
+        return contactRecordDao.selectList(wrapper);
+    }
+
+    @Override
     @Transactional
     public ContactRecordEntity save(ContactRecordEntity entity) {
         contactRecordDao.insert(entity);

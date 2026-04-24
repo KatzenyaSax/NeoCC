@@ -50,4 +50,14 @@ public interface ContractService {
      * 获取合同详情（含关联信息）
      */
     ContractEntity getDetail(Long id);
+
+    /**
+     * 获取合同总数
+     */
+    Long count();
+
+    /**
+     * 按状态获取合同数量
+     */
+    Long countByStatus(Short status);
 }

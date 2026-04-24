@@ -76,7 +76,10 @@
       "Bash(~/.claude/skills/gstack/browse/dist/browse network:*)",
       "Bash(/c/Users/a1829/.claude/skills/gstack/browse/dist/browse js:*)",
       "Bash(/c/Users/a1829/.claude/skills/gstack/browse/dist/browse screenshot:*)",
-      "Bash(git add:*)"
+      "Bash(git add:*)",
+      "Bash(xxd)",
+      "Bash(git commit:*)",
+      "Bash(git checkout:*)"
     ]
   }
 }

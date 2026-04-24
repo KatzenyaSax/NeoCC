@@ -3,7 +3,7 @@ import request from '@/utils/request'
 // 查询部门列表（分页）
 export function listDepartment(query) {
   return request({
-    url: '/sysDepartment/page',
+    url: '/sysDepartment/page/with-details',
     method: 'get',
     params: query
   })
@@ -29,6 +29,14 @@ export function listByParentId(parentId) {
 export function listByZoneId(zoneId) {
   return request({
     url: '/sysDepartment/listByZoneId/' + zoneId,
+    method: 'get'
+  })
+}
+
+// 查询所有部门（下拉用）
+export function listAllDepartment() {
+  return request({
+    url: '/sysDepartment/listAll',
     method: 'get'
   })
 }

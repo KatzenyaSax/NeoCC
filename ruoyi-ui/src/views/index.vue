@@ -119,10 +119,8 @@
 <script setup name="Index">
 import { useRouter } from 'vue-router'
 import useUserStore from '@/store/modules/user'
-import { listCustomer } from '@/api/sales/customer'
-import { listContract } from '@/api/sales/contract'
-import { listLoanAudit } from '@/api/finance/loanAudit'
-import { listRole } from '@/api/system/role'
+import { countCustomer, countContract, countContractByStatus } from '@/api/sales/statistics'
+import { countUser } from '@/api/system/statistics'
 
 const router = useRouter()
 const userStore = useUserStore()
@@ -140,34 +138,34 @@ const currentDate = computed(() => {
 // 统计卡片
 const statCards = reactive([
   { key: 'customer', label: '客户总数', value: 0, loading: true, icon: 'User', color: 'blue', path: '/customer-list' },
-  { key: 'contract', label: '合同总数', value: 0, loading: true, icon: 'Document', color: 'green', path: '/sales/contract' },
+  { key: 'contract', label: '合同总数', value: 0, loading: true, icon: 'Document', color: 'green', path: '/contract-list' },
   { key: 'loan', label: '待审贷款', value: 0, loading: true, icon: 'Finished', color: 'orange', path: '/loan-audit' },
-  { key: 'role', label: '角色数量', value: 0, loading: true, icon: 'Avatar', color: 'purple', path: '/role' },
+  { key: 'role', label: '员工数量', value: 0, loading: true, icon: 'Avatar', color: 'purple', path: '/user' },
 ])
 
 // 加载统计数据
 function loadStats() {
-  listCustomer({ pageNum: 1, pageSize: 1 }).then(res => {
+  countCustomer().then(res => {
     const card = statCards.find(c => c.key === 'customer')
-    card.value = res.data?.total || 0
+    card.value = res.data || 0
     card.loading = false
   }).catch(() => { statCards.find(c => c.key === 'customer').loading = false })
 
-  listContract({ pageNum: 1, pageSize: 1 }).then(res => {
+  countContract().then(res => {
     const card = statCards.find(c => c.key === 'contract')
-    card.value = res.data?.total || 0
+    card.value = res.data || 0
     card.loading = false
   }).catch(() => { statCards.find(c => c.key === 'contract').loading = false })
 
-  listLoanAudit({ pageNum: 1, pageSize: 1 }).then(res => {
+  countContractByStatus(4).then(res => {
     const card = statCards.find(c => c.key === 'loan')
-    card.value = res.data?.total || 0
+    card.value = res.data || 0
     card.loading = false
   }).catch(() => { statCards.find(c => c.key === 'loan').loading = false })
 
-  listRole({ pageNum: 1, pageSize: 1 }).then(res => {
+  countUser().then(res => {
     const card = statCards.find(c => c.key === 'role')
-    card.value = res.data?.total || 0
+    card.value = res.data || 0
     card.loading = false
   }).catch(() => { statCards.find(c => c.key === 'role').loading = false })
 }

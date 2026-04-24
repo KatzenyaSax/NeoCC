@@ -54,8 +54,23 @@
 
     <el-dialog :title="title" v-model="open" width="600px" append-to-body>
       <el-form ref="formRef" :model="form" :rules="rules" label-width="100px">
-        <el-form-item label="客户ID" prop="customerId">
-          <el-input v-model="form.customerId" placeholder="请输入客户ID" />
+        <el-form-item label="客户" prop="customerId">
+          <el-select
+            v-model="form.customerId"
+            placeholder="请选择客户"
+            filterable
+            :loading="customerLoading"
+            @focus="loadCustomerOptions('')"
+            :remote="true"
+            :remote-method="loadCustomerOptions"
+            style="width: 100%">
+            <el-option
+              v-for="item in customerOptions"
+              :key="item.id"
+              :label="item.realName"
+              :value="item.id"
+            />
+          </el-select>
         </el-form-item>
         <el-form-item label="跟进方式" prop="contactType">
           <el-select v-model="form.contactType" placeholder="请选择跟进方式">
@@ -101,14 +116,19 @@
 
 <script setup>
 import { listContactRecord, getContactRecord, addContactRecord, updateContactRecord, delContactRecord } from "@/api/sales/contactRecord"
+import { listCustomer } from "@/api/sales/customer"
+import useUserStore from '@/store/modules/user'
 
 const { proxy } = getCurrentInstance()
+const userStore = useUserStore()
 const dataList = ref([])
 const loading = ref(true)
 const showSearch = ref(true)
 const total = ref(0)
 const title = ref("")
 const open = ref(false)
+const customerOptions = ref([])
+const customerLoading = ref(false)
 
 const contactTypeMap = { 1: '电话', 2: '微信', 3: '面谈', 4: '其他' }
 const intentionMap = { 0: '无意向', 1: '低意向', 2: '中意向', 3: '高意向' }
@@ -142,26 +162,56 @@ function reset() {
 }
 function handleQuery() { queryParams.value.pageNum = 1; getList() }
 function resetQuery() { proxy.resetForm("queryRef"); handleQuery() }
-function handleAdd() { reset(); open.value = true; title.value = "新增跟进记录" }
+function handleAdd() { reset(); loadCustomerOptions(''); open.value = true; title.value = "新增跟进记录" }
 
 function handleUpdate(row) {
   reset()
   getContactRecord(row.id).then(response => {
     form.value = response.data || response
+    loadCustomerOptions('')
     open.value = true
     title.value = "修改跟进记录"
   })
 }
 
+function loadCustomerOptions(searchValue) {
+  customerLoading.value = true
+  listCustomer({ pageNum: 1, pageSize: 100, name: searchValue || '' }).then(response => {
+    const records = response.data?.records || response.records || []
+    // 过滤掉公海客户(status=5)
+    customerOptions.value = records
+      .filter(c => c.status !== 5)
+      .map(c => ({
+        id: c.id,
+        realName: c.name
+      }))
+    customerLoading.value = false
+  }).catch(() => {
+    customerLoading.value = false
+  })
+}
+
+function isSalesRepRole() {
+  const roles = userStore.roles || []
+  return roles.some(r => r === 'ROLE_sales_rep')
+}
+
 function submitForm() {
   proxy.$refs["formRef"].validate(valid => {
     if (valid) {
-      const fn = form.value.id ? updateContactRecord : addContactRecord
-      fn(form.value).then(() => {
-        proxy.$modal.msgSuccess(form.value.id ? "修改成功" : "新增成功")
-        open.value = false
-        getList()
-      })
+      // 如果是销售代表角色，自动填充当前用户的ID
+      if (isSalesRepRole()) {
+        form.value.salesRepId = userStore.id
+        const fn = form.value.id ? updateContactRecord : addContactRecord
+        fn(form.value).then(() => {
+          proxy.$modal.msgSuccess(form.value.id ? "修改成功" : "新增成功")
+          open.value = false
+          getList()
+        })
+      } else {
+        // 非销售代表角色不能提交
+        proxy.$modal.msgError("您不是销售代表！")
+      }
     }
   })
 }

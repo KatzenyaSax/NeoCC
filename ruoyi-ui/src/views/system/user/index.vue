@@ -32,7 +32,7 @@
       <el-table-column label="真实姓名" align="center" prop="realName" width="100" />
       <el-table-column label="手机号" align="center" prop="phone" width="120" />
       <el-table-column label="邮箱" align="center" prop="email" />
-      <el-table-column label="部门ID" align="center" prop="deptId" width="80" />
+      <el-table-column label="部门" align="center" prop="deptName" width="100" />
       <el-table-column label="状态" align="center" prop="status" width="80">
         <template #default="scope">
           <el-tag :type="scope.row.status === 1 ? 'success' : 'danger'">
@@ -40,7 +40,7 @@
           </el-tag>
         </template>
       </el-table-column>
-      <el-table-column label="最后登录时间" align="center" prop="lastLoginTime" width="160" />
+      <el-table-column label="职务" align="center" prop="roleName" width="120" />
       <el-table-column label="操作" align="center" width="240" fixed="right">
         <template #default="scope">
           <el-button link type="primary" icon="Edit" @click="handleUpdate(scope.row)">修改</el-button>
@@ -89,8 +89,10 @@
         </el-row>
         <el-row>
           <el-col :span="12">
-            <el-form-item label="部门ID" prop="deptId">
-              <el-input v-model="form.deptId" placeholder="请输入部门ID" />
+            <el-form-item label="部门" prop="deptId">
+              <el-select v-model="form.deptId" placeholder="请选择部门" clearable style="width:100%">
+                <el-option v-for="dept in allDeptOptions" :key="dept.id" :label="dept.deptName" :value="dept.id" />
+              </el-select>
             </el-form-item>
           </el-col>
           <el-col :span="12">
@@ -143,8 +145,9 @@
 </template>
 
 <script setup>
-import { listUser, getUser, addUser, updateUser, delUser, getUserRoles, assignUserRoles, changePassword } from "@/api/system/user"
+import { listUser, getUser, addUser, updateUser, delUser, getUserRoles, assignUserRoles, changePassword, getMinAvailableId } from "@/api/system/user"
 import { listAllRoles } from "@/api/system/role"
+import { listAllDepartment } from "@/api/system/department"
 
 const { proxy } = getCurrentInstance()
 const dataList = ref([])
@@ -158,6 +161,7 @@ const pwdOpen = ref(false)
 const allRoles = ref([])
 const selectedRoleIds = ref([])
 const currentUser = ref({})
+const allDeptOptions = ref([])
 
 const data = reactive({
   form: {},
@@ -200,7 +204,21 @@ function reset() {
 
 function handleQuery() { queryParams.value.pageNum = 1; getList() }
 function resetQuery() { proxy.resetForm && proxy.resetForm("queryRef"); handleQuery() }
-function handleAdd() { reset(); open.value = true; title.value = "新增用户" }
+function loadAllDeptOptions() {
+  listAllDepartment().then(res => {
+    allDeptOptions.value = res.data || res || []
+  })
+}
+
+function handleAdd() {
+  reset()
+  open.value = true
+  title.value = "新增用户"
+  getMinAvailableId().then(res => {
+    form.value.id = res.data || res
+  })
+  loadAllDeptOptions()
+}
 
 function handleUpdate(row) {
   reset()
@@ -209,13 +227,27 @@ function handleUpdate(row) {
     open.value = true
     title.value = "修改用户"
   })
+  loadAllDeptOptions()
 }
 
 function submitForm() {
   proxy.$refs["formRef"].validate(valid => {
     if (!valid) return
     const fn = form.value.id ? updateUser : addUser
-    fn(form.value).then(() => {
+    const data = { ...form.value }
+    if (form.value.id) {
+      delete data.createdAt
+      delete data.createdBy
+      delete data.updatedAt
+      delete data.updatedBy
+      delete data.lastLoginTime
+      delete data.lastLoginIp
+      delete data.loginErrorCount
+      delete data.lockTime
+      delete data.version
+      delete data.deleted
+    }
+    fn(data).then(() => {
       proxy.$modal.msgSuccess(form.value.id ? "修改成功" : "新增成功")
       open.value = false
       getList()

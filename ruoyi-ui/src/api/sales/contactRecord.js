@@ -33,6 +33,15 @@ export function listBySalesRepId(salesRepId) {
   })
 }
 
+// 根据销售代表ID列表查询跟进记录
+export function listBySalesRepIds(salesRepIds) {
+  return request({
+    url: '/contactRecord/listBySalesRepIds',
+    method: 'get',
+    params: { salesRepIds }
+  })
+}
+
 // 新增跟进记录
 export function addContactRecord(data) {
   return request({

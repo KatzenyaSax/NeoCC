@@ -27,4 +27,16 @@ public interface AuthFeignClient {
      */
     @GetMapping("/api/sysUser/sales-reps")
     Result<List<Map<String, Object>>> listSalesReps();
+
+    /**
+     * 根据部门ID查询用户ID列表
+     */
+    @GetMapping("/api/sysUser/ids-by-dept/{deptId}")
+    Result<List<Long>> listUserIdsByDeptId(@PathVariable Long deptId);
+
+    /**
+     * 根据战区ID查询用户ID列表
+     */
+    @GetMapping("/api/sysUser/ids-by-zone/{zoneId}")
+    Result<List<Long>> listUserIdsByZoneId(@PathVariable Long zoneId);
 }

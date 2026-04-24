@@ -124,4 +124,18 @@ public class ContractServiceImpl implements ContractService {
     public ContractEntity getDetail(Long id) {
         return contractDao.selectById(id);
     }
+
+    @Override
+    public Long count() {
+        return contractDao.selectCount(null);
+    }
+
+    @Override
+    public Long countByStatus(Short status) {
+        LambdaQueryWrapper<ContractEntity> wrapper = new LambdaQueryWrapper<>();
+        if (status != null) {
+            wrapper.eq(ContractEntity::getStatus, status);
+        }
+        return contractDao.selectCount(wrapper);
+    }
 }

@@ -52,6 +52,17 @@ public class WorkLogServiceImpl implements WorkLogService {
     }
 
     @Override
+    public List<WorkLogEntity> listBySalesRepIds(List<Long> salesRepIds) {
+        if (salesRepIds == null || salesRepIds.isEmpty()) {
+            return new java.util.ArrayList<>();
+        }
+        LambdaQueryWrapper<WorkLogEntity> wrapper = new LambdaQueryWrapper<>();
+        wrapper.in(WorkLogEntity::getSalesRepId, salesRepIds);
+        wrapper.orderByDesc(WorkLogEntity::getLogDate);
+        return workLogDao.selectList(wrapper);
+    }
+
+    @Override
     public boolean isDuplicate(Long salesRepId, String logDate) {
         return workLogDao.selectBySalesRepIdAndLogDate(salesRepId, logDate) != null;
     }

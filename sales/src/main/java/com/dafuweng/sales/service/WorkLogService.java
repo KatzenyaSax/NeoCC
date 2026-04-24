@@ -22,6 +22,8 @@ public interface WorkLogService {
 
     List<WorkLogEntity> listBySalesRepId(Long salesRepId);
 
+    List<WorkLogEntity> listBySalesRepIds(List<Long> salesRepIds);
+
     boolean isDuplicate(Long salesRepId, String logDate);
 
     @Transactional

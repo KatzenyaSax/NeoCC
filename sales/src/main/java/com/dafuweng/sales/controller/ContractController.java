@@ -89,4 +89,22 @@ public class ContractController {
     public Result<ContractEntity> getDetail(@PathVariable Long id) {
         return Result.success(contractService.getDetail(id));
     }
+
+    /**
+     * GET /api/contract/count
+     * 获取合同总数
+     */
+    @GetMapping("/count")
+    public Result<Long> count() {
+        return Result.success(contractService.count());
+    }
+
+    /**
+     * GET /api/contract/count-by-status?status=4
+     * 按状态获取合同数量
+     */
+    @GetMapping("/count-by-status")
+    public Result<Long> countByStatus(@RequestParam Short status) {
+        return Result.success(contractService.countByStatus(status));
+    }
 }

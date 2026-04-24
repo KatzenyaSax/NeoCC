@@ -301,8 +301,10 @@
 
 <script setup>
 import { listContract, getContract, delContract, addContract, updateContract, signContract, generateNo, getContractDetail } from "@/api/sales/contract"
+import useUserStore from '@/store/modules/user'
 
 const { proxy } = getCurrentInstance()
+const userStore = useUserStore()
 
 const contractList = ref([])
 const loading = ref(true)
@@ -355,8 +357,30 @@ const { queryParams, form, rules } = toRefs(data)
 function getList() {
   loading.value = true
   listContract(queryParams.value).then(response => {
-    contractList.value = response.data?.records || response.records || []
-    total.value = response.data?.total || response.total || 0
+    let records = response.data?.records || response.records || []
+    // 根据角色过滤
+    const userId = userStore.id
+    const deptId = userStore.deptId
+    const zoneId = userStore.zoneId
+    const roles = userStore.roles || []
+    const isSalesRep = roles.some(r => r === 'ROLE_sales_rep')
+    const isDeptManager = roles.some(r => r === 'ROLE_dept_manager')
+    const isZoneDirector = roles.some(r => r === 'ROLE_zone_director')
+    const isAdmin = roles.some(r => ['ROLE_admin', 'ROLE_super'].includes(r))
+
+    if (isSalesRep && !isDeptManager && !isZoneDirector && !isAdmin) {
+      // 销售代表只看自己的合同
+      records = records.filter(item => item.salesRepId === userId)
+    } else if (isDeptManager && !isZoneDirector && !isAdmin) {
+      // 部门经理看本部门的合同
+      records = records.filter(item => item.deptId === deptId)
+    } else if (isZoneDirector && !isAdmin) {
+      // 战区总监看本战区的合同
+      records = records.filter(item => item.zoneId === zoneId)
+    }
+
+    contractList.value = records
+    total.value = records.length
     loading.value = false
   })
 }

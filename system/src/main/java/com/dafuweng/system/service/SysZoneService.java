@@ -3,6 +3,7 @@ package com.dafuweng.system.service;
 import com.dafuweng.system.entity.SysZoneEntity;
 import com.dafuweng.common.entity.PageRequest;
 import com.dafuweng.common.entity.PageResponse;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 import java.util.Map;

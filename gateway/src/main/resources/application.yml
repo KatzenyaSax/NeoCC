@@ -48,6 +48,10 @@ spring:
             - Path=/sysPermission/**
             - Path=/sysDept/**
             - Path=/sysOperationLog/**
+            - Path=/api/sysUser/page/with-dept
+            - Path=/api/sysUser/names/by-ids
+            - Path=/api/sysUser/by-role-ids
+            - Path=/api/sysUser/min-available-id
           filters:
             - StripPrefix=0
 
@@ -127,7 +131,7 @@ spring:
       globalcors:
         corsConfigurations:
           '[/**]':
-            allowedOrigins: "http://localhost:3000,http://localhost:3001"
+            allowedOrigins: "http://localhost:3000,http://localhost:3001,http://10.244.226.95:3001,http://10.244.8.122:3001/"
             allowedMethods:
               - GET
               - POST
