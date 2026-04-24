@@ -32,11 +32,6 @@ public class WorkLogController {
         return Result.success(workLogService.listBySalesRepId(salesRepId));
     }
 
-    @GetMapping("/listBySalesRepIds")
-    public Result<List<WorkLogEntity>> listBySalesRepIds(@RequestParam List<Long> salesRepIds) {
-        return Result.success(workLogService.listBySalesRepIds(salesRepIds));
-    }
-
     @GetMapping("/checkDuplicate")
     public Result<Boolean> checkDuplicate(@RequestParam Long salesRepId, @RequestParam String logDate) {
         return Result.success(workLogService.isDuplicate(salesRepId, logDate));

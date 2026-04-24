@@ -74,11 +74,3 @@ export function getContractDetail(id) {
     method: 'get'
   })
 }
-
-// 获取合同详情（含关联名称）
-export function getContractDetailWithNames(id) {
-  return request({
-    url: '/contract/' + id + '/detail-with-names',
-    method: 'get'
-  })
-}

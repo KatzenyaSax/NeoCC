@@ -1,5 +1,6 @@
 package com.dafuweng.system.entity;
 
+import com.baomidou.mybatisplus.annotation.IdType;
 import com.baomidou.mybatisplus.annotation.TableField;
 import com.baomidou.mybatisplus.annotation.TableId;
 import com.baomidou.mybatisplus.annotation.TableLogic;
@@ -15,7 +16,7 @@ public class SysZoneEntity implements Serializable {
 
     private static final long serialVersionUID = 1L;
 
-    @TableId
+    @TableId(type = IdType.AUTO)
     private Long id;
 
     private String zoneCode;
@@ -24,6 +25,9 @@ public class SysZoneEntity implements Serializable {
 
     private Long directorId;
 
+    /**
+     * 负责人名称（非数据库字段）
+     */
     @TableField(exist = false)
     private String directorName;
 

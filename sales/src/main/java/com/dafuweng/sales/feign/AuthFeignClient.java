@@ -7,7 +7,7 @@ import org.springframework.web.bind.annotation.*;
 import java.util.List;
 import java.util.Map;
 
-@FeignClient(name = "dafuweng-auth", contextId = "authClientForSales", url = "http://localhost:8085")
+@FeignClient(name = "dafuweng-auth", contextId = "authClientForSales", url = "${feign.auth.url:http://neocc-auth:8085}")
 public interface AuthFeignClient {
 
     /**
@@ -15,6 +15,12 @@ public interface AuthFeignClient {
      */
     @GetMapping("/api/sysUser/{id}")
     Result<?> getUserById(@PathVariable Long id);
+
+    /**
+     * 批量查询用户信息
+     */
+    @PostMapping("/api/sysUser/batch")
+    Result<List<Map<String, Object>>> listUsersByIds(@RequestBody List<Long> ids);
 
     /**
      * 查询用户的权限码列表（业务操作前鉴权）
@@ -27,16 +33,4 @@ public interface AuthFeignClient {
      */
     @GetMapping("/api/sysUser/sales-reps")
     Result<List<Map<String, Object>>> listSalesReps();
-
-    /**
-     * 根据部门ID查询用户ID列表
-     */
-    @GetMapping("/api/sysUser/ids-by-dept/{deptId}")
-    Result<List<Long>> listUserIdsByDeptId(@PathVariable Long deptId);
-
-    /**
-     * 根据战区ID查询用户ID列表
-     */
-    @GetMapping("/api/sysUser/ids-by-zone/{zoneId}")
-    Result<List<Long>> listUserIdsByZoneId(@PathVariable Long zoneId);
 }

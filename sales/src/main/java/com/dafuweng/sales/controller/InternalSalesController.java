@@ -13,7 +13,7 @@ import org.springframework.dao.DuplicateKeyException;
 import org.springframework.web.bind.annotation.*;
 
 @RestController
-@RequestMapping("/sales/internal")
+@RequestMapping("/internal")
 public class InternalSalesController {
 
     @Autowired

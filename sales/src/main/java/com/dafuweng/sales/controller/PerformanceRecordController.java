@@ -47,4 +47,13 @@ public class PerformanceRecordController {
         performanceRecordService.delete(id);
         return Result.success();
     }
+
+    /**
+     * PUT /api/performanceRecord/{id}/confirm
+     * 确认业绩记录
+     */
+    @PutMapping("/{id}/confirm")
+    public Result<PerformanceRecordEntity> confirm(@PathVariable Long id) {
+        return Result.success(performanceRecordService.confirm(id));
+    }
 }

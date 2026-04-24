@@ -3,6 +3,8 @@ package com.dafuweng.gateway.filter;
 import com.dafuweng.common.entity.Result;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.cloud.gateway.filter.GatewayFilterChain;
 import org.springframework.cloud.gateway.filter.GlobalFilter;
@@ -20,8 +22,10 @@ import java.util.List;
 
 @Component
 public class AuthFilter implements GlobalFilter, Ordered {
+    
+    private static final Logger log = LoggerFactory.getLogger(AuthFilter.class);
 
-    private static final String AUTH_SERVICE = "http://localhost:8085";
+    private static final String AUTH_SERVICE = "http://neocc-auth:8085";
     private static final String AUTH_HEADER = "Authorization";
     private static final String USER_ID_HEADER = "X-User-Id";
     private static final String USER_ROLES_HEADER = "X-User-Roles";
@@ -51,27 +55,34 @@ public class AuthFilter implements GlobalFilter, Ordered {
 
         String authHeader = request.getHeaders().getFirst(AUTH_HEADER);
         if (authHeader == null || !authHeader.startsWith("Bearer ")) {
+            log.warn("AuthFilter: No auth header for path={}", path);
             exchange.getResponse().setStatusCode(HttpStatus.UNAUTHORIZED);
             return exchange.getResponse().setComplete();
         }
 
         String token = authHeader.substring(7);
+        log.info("AuthFilter: path={}, token={}", path, token);
 
         Long userId;
         try {
             userId = Long.parseLong(token);
         } catch (NumberFormatException e) {
+            log.warn("AuthFilter: Invalid token format: {}", token);
             exchange.getResponse().setStatusCode(HttpStatus.UNAUTHORIZED);
             return exchange.getResponse().setComplete();
         }
 
         // 调用 auth 服务验证用户（WebClient，直接 HTTP，无 LoadBalancer）
+        log.info("AuthFilter: Calling auth service for userId={}", userId);
         return webClient.get()
                 .uri("/api/sysUser/{id}", userId)
                 .accept(MediaType.APPLICATION_JSON)
                 .retrieve()
                 .bodyToMono(Result.class)
                 .flatMap(userResult -> {
+                    log.info("AuthFilter: auth service response: code={}, data={}", 
+                        userResult != null ? userResult.getCode() : "null",
+                        userResult != null && userResult.getData() != null ? "exists" : "null");
                     if (userResult == null || userResult.getCode() != 200 || userResult.getData() == null) {
                         exchange.getResponse().setStatusCode(HttpStatus.UNAUTHORIZED);
                         return exchange.getResponse().setComplete();

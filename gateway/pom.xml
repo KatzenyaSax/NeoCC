@@ -64,6 +64,7 @@
 
 
 
+
         <!-- 引入 Spring Cloud Alibaba Nacos Discovery
         相关依赖，将 Nacos 作为注册中心，并实现对其的自动配置-->
         <dependency>
@@ -95,6 +96,9 @@
 
 
 
+
+
+
         <!-- common包 -->
         <dependency>
             <groupId>com.dafuweng</groupId>
@@ -105,10 +109,16 @@
 
     </dependencies>
 
-
-
-
-
-
+    <build>
+        <plugins>
+            <plugin>
+                <groupId>org.springframework.boot</groupId>
+                <artifactId>spring-boot-maven-plugin</artifactId>
+                <configuration>
+                    <mainClass>com.dafuweng.GatewayApplication</mainClass>
+                </configuration>
+            </plugin>
+        </plugins>
+    </build>
 
 </project>

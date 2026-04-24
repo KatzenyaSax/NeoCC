@@ -24,8 +24,6 @@ public interface ContactRecordService {
 
     List<ContactRecordEntity> listBySalesRepId(Long salesRepId);
 
-    List<ContactRecordEntity> listBySalesRepIds(List<Long> salesRepIds);
-
     @Transactional
     ContactRecordEntity save(ContactRecordEntity entity);
 

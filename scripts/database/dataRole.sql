@@ -21,7 +21,7 @@ USE dafuweng_auth;
 -- ============================================================
 
 -- 清理后重新插入（保留 id 不变，避免 user_role 外键断裂）
-INSERT INTO sys_role (id, role_code, role_name, data_scope, role_sort, status, created_by, created_at, updated_by, updated_at, deleted) VALUES
+INSERT IGNORE INTO sys_role (id, role_code, role_name, data_scope, role_sort, status, created_by, created_at, updated_by, updated_at, deleted) VALUES
 (1, 'SUPER_ADMIN',        '超级管理员',   4, 1, 1, NULL, '2026-01-01 00:00:00', NULL, '2026-01-01 00:00:00', 0),
 (2, 'DEPT_MANAGER',       '部门经理',     2, 2, 1, 1,    '2026-01-05 00:00:00', NULL, '2026-02-01 00:00:00', 0),
 (3, 'ZONE_DIRECTOR',      '战区总监',     3, 3, 1, 1,    '2026-01-05 00:00:00', NULL, '2026-02-01 00:00:00', 0),
@@ -46,7 +46,7 @@ ON DUPLICATE KEY UPDATE
 UPDATE sys_permission SET deleted = 1, status = 0 WHERE deleted = 0;
 
 -- 重新插入所有权限
-INSERT INTO sys_permission (id, parent_id, perm_code, perm_name, perm_type, perm_path, icon, sort_order, status, external_link, created_at, updated_at, deleted) VALUES
+INSERT IGNORE INTO sys_permission (id, parent_id, perm_code, perm_name, perm_type, perm_path, icon, sort_order, status, external_link, created_at, updated_at, deleted) VALUES
 
 -- ----------------------------------------------------------
 -- 2.1 工作台（所有用户可见）
@@ -268,7 +268,7 @@ DELETE FROM sys_role_permission;
 -- 3.1 SUPER_ADMIN（超级管理员）— 全系统所有权限
 -- ----------------------------------------------------------
 -- 菜单
-INSERT INTO sys_role_permission (role_id, permission_id, created_at) VALUES
+INSERT IGNORE INTO sys_role_permission (role_id, permission_id, created_at) VALUES
 (1, 1, '2026-01-01 00:00:00'),  -- 工作台
 -- 系统管理（全部菜单 + 全部按钮 + 全部 API）
 (1, 2, '2026-01-01 00:00:00'),
@@ -323,7 +323,7 @@ INSERT INTO sys_role_permission (role_id, permission_id, created_at) VALUES
 -- 销售全部按钮
 (1, 320, '2026-01-01 00:00:00'),
 (1, 321, '2026-01-01 00:00:00'),
-(1, 322, '2026-01-00 00:00:00'),
+(1, 322, '2026-01-01 00:00:00'),
 (1, 323, '2026-01-01 00:00:00'),
 (1, 324, '2026-01-01 00:00:00'),
 (1, 325, '2026-01-01 00:00:00'),

@@ -180,7 +180,7 @@ function submitForm() {
 }
 
 function handleDelete(row) {
-  proxy.$modal.confirm('是否确认删除参数"' + row.paramKey + '"？').then(() => delParam(row.id)).then(() => {
+  proxy.$modal.confirm('是否确认删除参数【' + row.paramKey + '】？删除后将无法恢复！').then(() => delParam(row.id)).then(() => {
     getList()
     proxy.$modal.msgSuccess("删除成功")
   }).catch(() => {})

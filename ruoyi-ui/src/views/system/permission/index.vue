@@ -76,7 +76,7 @@
         <el-row>
           <el-col :span="12">
             <el-form-item label="权限类型" prop="permType">
-              <el-select v-model="form.permType" placeholder="请选择" style="width:100%">
+              <el-select v-model="form.permType" placeholder="请选择" style="width:100%" @change="handlePermTypeChange">
                 <el-option label="目录" :value="0" />
                 <el-option label="菜单" :value="1" />
                 <el-option label="按钮" :value="2" />
@@ -84,8 +84,18 @@
             </el-form-item>
           </el-col>
           <el-col :span="12">
-            <el-form-item label="上级ID" prop="parentId">
-              <el-input v-model="form.parentId" placeholder="请输入上级ID（选填）" />
+            <el-form-item label="上级权限" prop="parentId">
+              <el-tree-select
+                v-model="form.parentId"
+                :data="permTreeOptions"
+                :props="{ value: 'id', label: 'permName', children: 'children' }"
+                value-key="id"
+                placeholder="请选择上级权限（可选）"
+                check-strictly
+                :render-after-expand="false"
+                clearable
+                style="width: 100%"
+              />
             </el-form-item>
           </el-col>
         </el-row>
@@ -130,6 +140,7 @@
 
 <script setup>
 import { listPermission, getPermission, addPermission, updatePermission, delPermission } from "@/api/system/permission"
+import { treePermission } from "@/api/system/permission"
 
 const { proxy } = getCurrentInstance()
 const dataList = ref([])
@@ -138,6 +149,7 @@ const showSearch = ref(true)
 const total = ref(0)
 const title = ref("")
 const open = ref(false)
+const permTreeOptions = ref([])
 
 const data = reactive({
   form: {},
@@ -179,7 +191,23 @@ function handleUpdate(row) {
     form.value = response.data || response
     open.value = true
     title.value = "修改菜单/权限"
+    // 编辑时过滤掉自己和子节点，防止循环引用
+    filterTreeOptions(row.id)
   })
+}
+
+// 过滤权限树，排除自身及子节点
+function filterTreeOptions(excludeId) {
+  function filterNode(nodes, exclude) {
+    return nodes.filter(node => {
+      if (node.id === exclude) return false
+      if (node.children && node.children.length > 0) {
+        node.children = filterNode(node.children, exclude)
+      }
+      return true
+    })
+  }
+  permTreeOptions.value = filterNode(JSON.parse(JSON.stringify(permTreeOptions.value || [])), excludeId)
 }
 
 function submitForm() {
@@ -201,5 +229,23 @@ function handleDelete(row) {
   }).catch(() => {})
 }
 
+// 加载权限树（用于上级权限选择）
+function loadPermTree() {
+  treePermission().then(res => {
+    permTreeOptions.value = res.data || res || []
+  })
+}
+
+// 权限类型变化时处理
+function handlePermTypeChange(type) {
+  // 目录和菜单需要路径，按钮可能不需要
+  if (type === 2) {
+    // 按钮类型，清空路径相关字段
+    form.value.path = undefined
+    form.value.component = undefined
+  }
+}
+
 getList()
+loadPermTree()
 </script>

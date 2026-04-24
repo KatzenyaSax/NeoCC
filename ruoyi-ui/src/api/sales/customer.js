@@ -58,12 +58,3 @@ export function getCustomerView(id) {
     method: 'get'
   })
 }
-
-// 批量查询用户姓名
-export function getUserNamesByIds(ids) {
-  return request({
-    url: '/sysUser/names/by-ids',
-    method: 'post',
-    data: ids
-  })
-}

@@ -26,6 +26,12 @@ public interface CustomerService {
 
     List<CustomerEntity> listCustomerToPublicSea(Integer publicSeaDays);
 
+    /**
+     * 转移客户给其他销售代表
+     */
+    @Transactional
+    void transferToAnotherRep(Long customerId, Long toRepId, String reason, Long operatorId);
+
     @Transactional
     CustomerEntity save(CustomerEntity entity);
 
@@ -34,9 +40,4 @@ public interface CustomerService {
 
     @Transactional
     void delete(Long id);
-
-    /**
-     * 获取客户总数
-     */
-    Long count();
 }

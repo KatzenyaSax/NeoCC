@@ -43,6 +43,17 @@ public class SysRoleServiceImpl implements SysRoleService {
     public PageResponse<SysRoleEntity> pageList(PageRequest request) {
         IPage<SysRoleEntity> page = new Page<>(request.getPage(), request.getSize());
         LambdaQueryWrapper<SysRoleEntity> wrapper = new LambdaQueryWrapper<>();
+
+        // 搜索条件：角色名称
+        if (StringUtils.hasText(request.getRoleName())) {
+            wrapper.like(SysRoleEntity::getRoleName, request.getRoleName());
+        }
+        // 搜索条件：角色编码
+        if (StringUtils.hasText(request.getRoleCode())) {
+            wrapper.like(SysRoleEntity::getRoleCode, request.getRoleCode());
+        }
+
+        // 排序
         if (StringUtils.hasText(request.getSortField())) {
             if ("asc".equalsIgnoreCase(request.getSortOrder())) {
                 wrapper.orderByAsc(SysRoleEntity::getId);

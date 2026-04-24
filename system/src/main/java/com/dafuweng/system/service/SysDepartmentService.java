@@ -1,39 +1,30 @@
 package com.dafuweng.system.service;
 
 import com.dafuweng.system.entity.SysDepartmentEntity;
-import com.dafuweng.system.vo.DeptVO;
-import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
-import com.baomidou.mybatisplus.core.metadata.IPage;
-import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
+import com.dafuweng.system.entity.SysDepartmentVO;
 import com.dafuweng.common.entity.PageRequest;
 import com.dafuweng.common.entity.PageResponse;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-import org.springframework.util.StringUtils;
 
 import java.util.List;
-import java.util.Map;
 
 public interface SysDepartmentService {
 
     SysDepartmentEntity getById(Long id);
 
-    PageResponse<SysDepartmentEntity> pageList(PageRequest request);
-
     /**
-     * 分页查询部门列表（带上级部门名称、战区名称、负责人姓名）
+     * 分页查询部门列表（包含关联名称）
      */
-    PageResponse<DeptVO> pageListWithDetails(PageRequest request);
+    PageResponse<SysDepartmentVO> pageList(PageRequest request);
 
     List<SysDepartmentEntity> listByParentId(Long parentId);
 
     List<SysDepartmentEntity> listByZoneId(Long zoneId);
 
     /**
-     * 根据部门ID列表查询部门名称（返回ID->名称映射）
+     * 获取所有部门列表（用于下拉选择）
      */
-    Map<Long, String> listNamesByIds(List<Long> ids);
+    List<SysDepartmentEntity> listAll();
 
     @Transactional
     SysDepartmentEntity save(SysDepartmentEntity entity);

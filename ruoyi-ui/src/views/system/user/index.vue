@@ -32,7 +32,11 @@
       <el-table-column label="真实姓名" align="center" prop="realName" width="100" />
       <el-table-column label="手机号" align="center" prop="phone" width="120" />
       <el-table-column label="邮箱" align="center" prop="email" />
-      <el-table-column label="部门" align="center" prop="deptName" width="100" />
+      <el-table-column label="部门" align="center" prop="deptName" width="120">
+        <template #default="scope">
+          {{ scope.row.deptName || scope.row.deptId || '-' }}
+        </template>
+      </el-table-column>
       <el-table-column label="状态" align="center" prop="status" width="80">
         <template #default="scope">
           <el-tag :type="scope.row.status === 1 ? 'success' : 'danger'">
@@ -40,7 +44,7 @@
           </el-tag>
         </template>
       </el-table-column>
-      <el-table-column label="职务" align="center" prop="roleName" width="120" />
+      <el-table-column label="最后登录时间" align="center" prop="lastLoginTime" width="160" />
       <el-table-column label="操作" align="center" width="240" fixed="right">
         <template #default="scope">
           <el-button link type="primary" icon="Edit" @click="handleUpdate(scope.row)">修改</el-button>
@@ -91,7 +95,12 @@
           <el-col :span="12">
             <el-form-item label="部门" prop="deptId">
               <el-select v-model="form.deptId" placeholder="请选择部门" clearable style="width:100%">
-                <el-option v-for="dept in allDeptOptions" :key="dept.id" :label="dept.deptName" :value="dept.id" />
+                <el-option
+                  v-for="dept in departmentOptions"
+                  :key="dept.id"
+                  :label="dept.deptName"
+                  :value="dept.id"
+                />
               </el-select>
             </el-form-item>
           </el-col>
@@ -119,6 +128,7 @@
           {{ role.roleName }}（{{ role.roleCode }}）
         </el-checkbox>
       </el-checkbox-group>
+      <el-empty v-if="allRoles.length === 0 && !roleLoading" description="暂无可用角色" />
       <template #footer>
         <el-button type="primary" @click="submitRole">确 定</el-button>
         <el-button @click="roleOpen = false">取 消</el-button>
@@ -129,6 +139,9 @@
     <el-dialog title="修改密码" v-model="pwdOpen" width="400px" append-to-body>
       <div style="margin-bottom:12px">用户：<strong>{{ currentUser.username }}</strong></div>
       <el-form ref="pwdFormRef" :model="pwdForm" :rules="pwdRules" label-width="90px">
+        <el-form-item label="旧密码" prop="oldPassword">
+          <el-input v-model="pwdForm.oldPassword" type="password" placeholder="请输入旧密码" show-password />
+        </el-form-item>
         <el-form-item label="新密码" prop="newPassword">
           <el-input v-model="pwdForm.newPassword" type="password" placeholder="请输入新密码" show-password />
         </el-form-item>
@@ -145,9 +158,8 @@
 </template>
 
 <script setup>
-import { listUser, getUser, addUser, updateUser, delUser, getUserRoles, assignUserRoles, changePassword, getMinAvailableId } from "@/api/system/user"
+import { listUser, getUser, addUser, updateUser, delUser, getUserRoles, assignUserRoles, changePassword, listAllDepartment } from "@/api/system/user"
 import { listAllRoles } from "@/api/system/role"
-import { listAllDepartment } from "@/api/system/department"
 
 const { proxy } = getCurrentInstance()
 const dataList = ref([])
@@ -157,11 +169,12 @@ const total = ref(0)
 const title = ref("")
 const open = ref(false)
 const roleOpen = ref(false)
+const roleLoading = ref(false)
 const pwdOpen = ref(false)
 const allRoles = ref([])
 const selectedRoleIds = ref([])
 const currentUser = ref({})
-const allDeptOptions = ref([])
+const departmentOptions = ref([])
 
 const data = reactive({
   form: {},
@@ -174,8 +187,9 @@ const data = reactive({
 })
 const { queryParams, form, rules } = toRefs(data)
 
-const pwdForm = ref({ newPassword: '', confirmPassword: '' })
+const pwdForm = ref({ oldPassword: '', newPassword: '', confirmPassword: '' })
 const pwdRules = {
+  oldPassword: [{ required: true, message: "旧密码不能为空", trigger: "blur" }],
   newPassword: [{ required: true, message: "新密码不能为空", trigger: "blur" }, { min: 6, message: "密码至少6位", trigger: "blur" }],
   confirmPassword: [
     { required: true, message: "请确认密码", trigger: "blur" },
@@ -204,21 +218,7 @@ function reset() {
 
 function handleQuery() { queryParams.value.pageNum = 1; getList() }
 function resetQuery() { proxy.resetForm && proxy.resetForm("queryRef"); handleQuery() }
-function loadAllDeptOptions() {
-  listAllDepartment().then(res => {
-    allDeptOptions.value = res.data || res || []
-  })
-}
-
-function handleAdd() {
-  reset()
-  open.value = true
-  title.value = "新增用户"
-  getMinAvailableId().then(res => {
-    form.value.id = res.data || res
-  })
-  loadAllDeptOptions()
-}
+function handleAdd() { reset(); open.value = true; title.value = "新增用户" }
 
 function handleUpdate(row) {
   reset()
@@ -227,27 +227,13 @@ function handleUpdate(row) {
     open.value = true
     title.value = "修改用户"
   })
-  loadAllDeptOptions()
 }
 
 function submitForm() {
   proxy.$refs["formRef"].validate(valid => {
     if (!valid) return
     const fn = form.value.id ? updateUser : addUser
-    const data = { ...form.value }
-    if (form.value.id) {
-      delete data.createdAt
-      delete data.createdBy
-      delete data.updatedAt
-      delete data.updatedBy
-      delete data.lastLoginTime
-      delete data.lastLoginIp
-      delete data.loginErrorCount
-      delete data.lockTime
-      delete data.version
-      delete data.deleted
-    }
-    fn(data).then(() => {
+    fn(form.value).then(() => {
       proxy.$modal.msgSuccess(form.value.id ? "修改成功" : "新增成功")
       open.value = false
       getList()
@@ -265,12 +251,15 @@ function handleDelete(row) {
 // 分配角色
 function handleRole(row) {
   currentUser.value = row
+  roleLoading.value = true
   listAllRoles().then(res => {
     allRoles.value = res.data || res || []
     return getUserRoles(row.id)
   }).then(res => {
     selectedRoleIds.value = res.data || res || []
     roleOpen.value = true
+  }).finally(() => {
+    roleLoading.value = false
   })
 }
 
@@ -284,19 +273,28 @@ function submitRole() {
 // 修改密码
 function handlePassword(row) {
   currentUser.value = row
-  pwdForm.value = { newPassword: '', confirmPassword: '' }
+  pwdForm.value = { oldPassword: '', newPassword: '', confirmPassword: '' }
   pwdOpen.value = true
 }
 
 function submitPassword() {
   proxy.$refs["pwdFormRef"].validate(valid => {
     if (!valid) return
-    changePassword(currentUser.value.id, { newPassword: pwdForm.value.newPassword }).then(() => {
+    changePassword(currentUser.value.id, { oldPassword: pwdForm.value.oldPassword, newPassword: pwdForm.value.newPassword }).then(() => {
       proxy.$modal.msgSuccess("密码修改成功")
       pwdOpen.value = false
+      pwdForm.value = { oldPassword: '', newPassword: '', confirmPassword: '' }
     })
   })
 }
 
+// 加载部门列表（用于下拉选择）
+function loadDepartmentOptions() {
+  listAllDepartment().then(res => {
+    departmentOptions.value = res.data || res || []
+  })
+}
+
 getList()
+loadDepartmentOptions()
 </script>

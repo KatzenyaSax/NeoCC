@@ -32,4 +32,19 @@ public interface PerformanceRecordService {
     void delete(Long id);
 
     PerformanceRecordEntity getByContractId(Long contractId);
+
+    /**
+     * 根据合同自动生成业绩记录
+     * @param contractId 合同ID
+     * @return 生成成功的业绩记录，未生成则返回null
+     */
+    PerformanceRecordEntity generateFromContract(Long contractId);
+
+    /**
+     * 确认业绩记录
+     * @param id 业绩记录ID
+     * @return 确认后的业绩记录
+     */
+    @Transactional
+    PerformanceRecordEntity confirm(Long id);
 }

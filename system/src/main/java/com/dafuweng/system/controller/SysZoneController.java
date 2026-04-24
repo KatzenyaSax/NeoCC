@@ -9,7 +9,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
-import java.util.Map;
 
 @RestController
 @RequestMapping("/api/sysZone")
@@ -52,13 +51,5 @@ public class SysZoneController {
     public Result<Void> delete(@PathVariable Long id) {
         sysZoneService.delete(id);
         return Result.success();
-    }
-
-    /**
-     * 根据战区ID列表查询战区名称
-     */
-    @PostMapping("/names/by-ids")
-    public Result<Map<Long, String>> listZoneNamesByIds(@RequestBody List<Long> ids) {
-        return Result.success(sysZoneService.listNamesByIds(ids));
     }
 }

@@ -50,3 +50,19 @@ export function delPerformanceRecord(id) {
     method: 'delete'
   })
 }
+
+// 确认业绩记录
+export function confirmPerformanceRecord(id) {
+  return request({
+    url: '/performanceRecord/' + id + '/confirm',
+    method: 'put'
+  })
+}
+
+// 获取合同详情（含佣金比例）
+export function getContractDetailWithRate(id) {
+  return request({
+    url: '/contract/' + id + '/detail-with-rate',
+    method: 'get'
+  })
+}
