@@ -27,7 +27,7 @@
       <el-table-column label="ID" align="center" prop="id" width="80" />
       <el-table-column label="区域编码" align="center" prop="zoneCode" width="120" />
       <el-table-column label="区域名称" align="center" prop="zoneName" />
-      <el-table-column label="负责人ID" align="center" prop="directorId" width="100" />
+      <el-table-column label="负责人" align="center" prop="directorName" width="100" />
       <el-table-column label="排序" align="center" prop="sortOrder" width="80" />
       <el-table-column label="状态" align="center" prop="status" width="90">
         <template #default="scope">
@@ -64,8 +64,10 @@
         </el-row>
         <el-row>
           <el-col :span="12">
-            <el-form-item label="负责人ID" prop="directorId">
-              <el-input v-model="form.directorId" placeholder="请输入负责人ID" />
+            <el-form-item label="负责人" prop="directorId">
+              <el-select v-model="form.directorId" placeholder="请选择负责人" style="width:100%">
+                <el-option v-for="item in directorOptions" :key="item.id" :label="item.name" :value="item.id" />
+              </el-select>
             </el-form-item>
           </el-col>
           <el-col :span="12">
@@ -91,6 +93,7 @@
 
 <script setup>
 import { listZone, getZone, addZone, updateZone, delZone } from "@/api/system/zone"
+import { listUsersByRoleIds } from "@/api/system/user"
 
 const { proxy } = getCurrentInstance()
 const dataList = ref([])
@@ -99,6 +102,7 @@ const showSearch = ref(true)
 const total = ref(0)
 const title = ref("")
 const open = ref(false)
+const directorOptions = ref([])
 
 const data = reactive({
   form: {},
@@ -135,12 +139,20 @@ function reset() {
 
 function handleQuery() { queryParams.value.pageNum = 1; getList() }
 function resetQuery() { proxy.resetForm("queryRef"); handleQuery() }
-function handleAdd() { reset(); open.value = true; title.value = "新增区域" }
+
+/** 加载负责人下拉选项（roleId=3） */
+function loadDirectorOptions() {
+  listUsersByRoleIds([3]).then(res => {
+    directorOptions.value = (res.data || []).map(u => ({ id: u.id, name: u.realName }))
+  })
+}
+function handleAdd() { reset(); loadDirectorOptions(); open.value = true; title.value = "新增区域" }
 
 function handleUpdate(row) {
   reset()
   getZone(row.id).then(response => {
     form.value = response.data || response
+    loadDirectorOptions()
     open.value = true
     title.value = "修改区域"
   })
