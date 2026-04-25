@@ -23,7 +23,7 @@ public interface AuthFeignClient {
     Result<List<String>> getPermCodes(@PathVariable Long id);
 
     /**
-     * 获取销售代表列表
+     * 获取销售代表列表（用于向后兼容）
      */
     @GetMapping("/api/sysUser/sales-reps")
     Result<List<Map<String, Object>>> listSalesReps();

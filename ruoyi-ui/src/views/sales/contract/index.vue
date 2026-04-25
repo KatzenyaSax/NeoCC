@@ -112,7 +112,7 @@
             </el-form-item>
           </el-col>
           <el-col :span="12">
-            <el-form-item label="产品" prop="productName">
+            <el-form-item label="产品" prop="productId">
               <el-select
                 v-model="form.productName"
                 placeholder="请搜索产品"
@@ -527,7 +527,11 @@ function reset() {
     loanUse: undefined,
     guaranteeInfo: undefined,
     remark: undefined,
-    status: 0
+    status: 0,
+    salesRepName: '',
+    deptName: '',
+    zoneName: '',
+    productName: ''
   }
   proxy.resetForm("formRef")
 }
@@ -745,8 +749,8 @@ function loadDeptOptions(searchValue) {
   listAllDepartment().then(response => {
     const depts = response.data || []
     deptOptions.value = depts
-      .filter(d => !searchValue || d.name.includes(searchValue))
-      .map(d => ({ id: d.id, name: d.name }))
+      .filter(d => !searchValue || d.deptName.includes(searchValue))
+      .map(d => ({ id: d.id, name: d.deptName }))
     deptLoading.value = false
   }).catch(() => {
     deptLoading.value = false
@@ -759,8 +763,8 @@ function loadZoneOptions(searchValue) {
   listAllZone().then(response => {
     const zones = response.data || []
     zoneOptions.value = zones
-      .filter(z => !searchValue || z.name.includes(searchValue))
-      .map(z => ({ id: z.id, name: z.name }))
+      .filter(z => !searchValue || z.zoneName.includes(searchValue))
+      .map(z => ({ id: z.id, name: z.zoneName }))
     zoneLoading.value = false
   }).catch(() => {
     zoneLoading.value = false

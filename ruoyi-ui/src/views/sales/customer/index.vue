@@ -91,6 +91,26 @@
             />
           </el-select>
         </el-form-item>
+        <el-form-item label="部门" prop="deptId">
+          <el-select v-model="form.deptId" placeholder="请选择部门" clearable>
+            <el-option
+              v-for="item in deptOptions"
+              :key="item.id"
+              :label="item.name"
+              :value="item.id"
+            />
+          </el-select>
+        </el-form-item>
+        <el-form-item label="战区" prop="zoneId">
+          <el-select v-model="form.zoneId" placeholder="请选择战区" clearable>
+            <el-option
+              v-for="item in zoneOptions"
+              :key="item.id"
+              :label="item.name"
+              :value="item.id"
+            />
+          </el-select>
+        </el-form-item>
         <el-form-item label="来源" prop="source">
           <el-input v-model="form.source" placeholder="请输入来源" />
         </el-form-item>
@@ -129,6 +149,8 @@
       <el-descriptions :column="2" border size="small">
         <el-descriptions-item label="客户名称">{{ detailForm.name || '-' }}</el-descriptions-item>
         <el-descriptions-item label="联系电话">{{ detailForm.phone || '-' }}</el-descriptions-item>
+        <el-descriptions-item label="部门">{{ getDeptName(detailForm.deptId) || '-' }}</el-descriptions-item>
+        <el-descriptions-item label="战区">{{ getZoneName(detailForm.zoneId) || '-' }}</el-descriptions-item>
         <el-descriptions-item label="身份证号">{{ detailForm.idCard || '-' }}</el-descriptions-item>
         <el-descriptions-item label="公司名称">{{ detailForm.companyName || '-' }}</el-descriptions-item>
         <el-descriptions-item label="公司法人">{{ detailForm.companyLegalPerson || '-' }}</el-descriptions-item>
@@ -156,6 +178,8 @@
 <script setup>
 import { listCustomer, getCustomer, delCustomer, addCustomer, updateCustomer, getUserNamesByIds } from "@/api/sales/customer"
 import { listSalesReps } from "@/api/system/user"
+import { listAllDepartment } from "@/api/system/department"
+import { listAllZone } from "@/api/system/zone"
 import { addCustomerTransfer } from "@/api/sales/customerTransfer"
 import useUserStore from '@/store/modules/user'
 
@@ -175,6 +199,8 @@ const open = ref(false)
 const detailOpen = ref(false)
 const detailForm = ref({})
 const salesRepOptions = ref([])
+const deptOptions = ref([])
+const zoneOptions = ref([])
 
 const data = reactive({
   form: {},
@@ -260,6 +286,8 @@ function reset() {
     intentionLevel: undefined,
     status: 1,
     salesRepId: undefined,
+    deptId: undefined,
+    zoneId: undefined,
     source: undefined,
     loanIntentionAmount: undefined,
     loanIntentionProduct: undefined,
@@ -270,6 +298,20 @@ function reset() {
     annotation: undefined
   }
   proxy.resetForm("customerRef")
+}
+
+/** 加载部门选项 */
+function loadDeptOptions() {
+  listAllDepartment().then(res => {
+    deptOptions.value = res.data || []
+  })
+}
+
+/** 加载战区选项 */
+function loadZoneOptions() {
+  listAllZone().then(res => {
+    zoneOptions.value = res.data || []
+  })
 }
 
 function customerTypeText(val) {
@@ -289,6 +331,26 @@ function formatMoney(val) {
   const num = parseFloat(val)
   if (isNaN(num)) return '-'
   return num.toLocaleString('zh-CN', { minimumFractionDigits: 2, maximumFractionDigits: 2 })
+}
+
+/** 获取部门名称 */
+function getDeptName(deptId) {
+  if (!deptId) return ''
+  const dept = deptOptions.value.find(d => d.id === deptId)
+  return dept ? dept.name : deptId
+}
+
+/** 获取战区名称 */
+function getZoneName(zoneId) {
+  if (!zoneId) return ''
+  const zone = zoneOptions.value.find(z => z.id === zoneId)
+  return zone ? zone.name : zoneId
+}
+
+/** 预加载部门和战区数据 */
+function preloadDeptAndZoneData() {
+  loadDeptOptions()
+  loadZoneOptions()
 }
 
 /** 加载销售代表下拉选项 */
@@ -344,6 +406,8 @@ function resetQuery() {
 /** 新增按钮操作 */
 function handleAdd() {
   reset()
+  loadDeptOptions()
+  loadZoneOptions()
   open.value = true
   title.value = "添加客户"
 }
@@ -351,6 +415,8 @@ function handleAdd() {
 /** 修改按钮操作 */
 function handleUpdate(row) {
   reset()
+  loadDeptOptions()
+  loadZoneOptions()
   const id = row.id
   getCustomer(id).then(response => {
     form.value = response.data || response
@@ -413,4 +479,5 @@ function handleDelete(row) {
 
 getList()
 loadSalesRepOptions()
+preloadDeptAndZoneData()
 </script>

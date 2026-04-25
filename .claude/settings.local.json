@@ -80,7 +80,8 @@
       "Bash(xxd)",
       "Bash(git commit:*)",
       "Bash(git checkout:*)",
-      "Skill(browse)"
+      "Skill(browse)",
+      "Bash(xargs grep *)"
     ]
   }
 }

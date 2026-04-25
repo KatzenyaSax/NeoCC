@@ -44,6 +44,10 @@ public class SecurityConfig {
                 .requestMatchers("/api/sysUser/{id}").permitAll()
                 .requestMatchers("/api/sysUser/{id}/roles").permitAll()
                 .requestMatchers("/api/sysUser/{id}/permCodes").permitAll()
+                .requestMatchers("/api/sysUser/sales-reps").permitAll()
+                .requestMatchers("/api/sysUser/ids-by-dept/**").permitAll()
+                .requestMatchers("/api/sysUser/ids-by-zone/**").permitAll()
+                .requestMatchers("/api/sysUser/by-role-ids").permitAll()
                 .requestMatchers("/auth/**").permitAll()
                 // doc04 修正后：Gateway StripPrefix=1，原始 /auth/login → auth服务收到 /login
                 .requestMatchers("/login", "/getInfo", "/getRouters", "/logout").permitAll()

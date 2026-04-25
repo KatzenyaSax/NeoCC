@@ -13,6 +13,9 @@ public class PageRequest {
     private String sortField;
     private String sortOrder = "asc";
     private String name;
+    private Long zoneId;
+    private Long deptId;
+    private Long salesRepId;
 
     public Integer getPage() {
         return pageNum != null ? pageNum : page;
