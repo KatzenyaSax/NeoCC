@@ -7,7 +7,7 @@ import org.springframework.web.bind.annotation.*;
 import java.util.List;
 import java.util.Map;
 
-@FeignClient(name = "dafuweng-auth", contextId = "authClientForSales", url = "http://localhost:8085")
+@FeignClient(name = "auth", contextId = "authClientForSales", url = "http://localhost:8085")
 public interface AuthFeignClient {
 
     /**
@@ -27,6 +27,15 @@ public interface AuthFeignClient {
      */
     @GetMapping("/api/sysUser/sales-reps")
     Result<List<Map<String, Object>>> listSalesReps();
+
+    /**
+     * 根据条件获取销售代表列表
+     */
+    @GetMapping("/api/sysUser/sales-reps")
+    Result<List<Map<String, Object>>> listSalesReps(
+            @RequestParam(required = false) Long zoneId,
+            @RequestParam(required = false) Long deptId,
+            @RequestParam(required = false) Long salesRepId);
 
     /**
      * 根据部门ID查询用户ID列表

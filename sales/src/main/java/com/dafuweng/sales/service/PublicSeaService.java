@@ -28,4 +28,9 @@ public interface PublicSeaService {
      * 获取销售代表列表（下拉用）
      */
     List<Map<String, Object>> listSalesReps();
+
+    /**
+     * 获取销售代表列表（带条件过滤）
+     */
+    List<Map<String, Object>> listSalesReps(Long zoneId, Long deptId, Long salesRepId);
 }

@@ -76,6 +76,21 @@
             />
           </el-select>
         </el-form-item>
+        <el-form-item label="对接销售代表" prop="salesRepId">
+          <el-select
+            v-model="form.salesRepId"
+            placeholder="请选择销售代表"
+            filterable
+            :loading="salesRepLoading"
+            style="width: 100%">
+            <el-option
+              v-for="item in salesRepOptions"
+              :key="item.id"
+              :label="item.realName"
+              :value="item.id"
+            />
+          </el-select>
+        </el-form-item>
         <el-form-item label="跟进方式" prop="contactType">
           <el-select v-model="form.contactType" placeholder="请选择跟进方式">
             <el-option label="电话" :value="1" />
@@ -119,9 +134,9 @@
 </template>
 
 <script setup>
-import { listContactRecord, getContactRecord, addContactRecord, updateContactRecord, delContactRecord } from "@/api/sales/contactRecord"
+import { listContactRecord, getContactRecord, addContactRecord, updateContactRecord, delContactRecord, listContactRecordByRoleConditions } from "@/api/sales/contactRecord"
 import { listCustomer } from "@/api/sales/customer"
-import { listSalesReps } from "@/api/sales/publicSea"
+import { listSalesReps } from "@/api/system/user"
 import useUserStore from '@/store/modules/user'
 
 const { proxy } = getCurrentInstance()
@@ -134,6 +149,8 @@ const title = ref("")
 const open = ref(false)
 const customerOptions = ref([])
 const customerLoading = ref(false)
+const salesRepOptions = ref([])
+const salesRepLoading = ref(false)
 
 const contactTypeMap = { 1: '电话', 2: '微信', 3: '面谈', 4: '其他' }
 const intentionMap = { 0: '无意向', 1: '低意向', 2: '中意向', 3: '高意向' }
@@ -158,11 +175,51 @@ const { queryParams, form, rules } = toRefs(data)
 
 function getList() {
   loading.value = true
-  listContactRecord(queryParams.value).then(response => {
-    dataList.value = response.data?.records || response.records || []
-    total.value = response.data?.total || response.total || 0
-    loading.value = false
-  })
+  const roles = userStore.roles || []
+  const userId = userStore.id
+  const deptId = userStore.deptId
+  const zoneId = userStore.zoneId
+  const isSalesRep = roles.some(r => r === 'ROLE_sales_rep' || r === 'ROLE_SALES_REP')
+  const isDeptManager = roles.some(r => r === 'ROLE_dept_manager' || r === 'ROLE_DEPT_MANAGER')
+  const isZoneDirector = roles.some(r => r === 'ROLE_zone_director' || r === 'ROLE_ZONE_DIRECTOR')
+  const isAdmin = roles.some(r => ['ROLE_admin', 'ROLE_super', 'admin', 'super'].includes(r))
+
+  if (isAdmin) {
+    // Admin: show all
+    listContactRecord(queryParams.value).then(response => {
+      dataList.value = response.data?.records || response.records || []
+      total.value = response.data?.total || response.total || 0
+      loading.value = false
+    })
+  } else if (isSalesRep) {
+    // Sales rep: only own records
+    listContactRecordByRoleConditions({ salesRepId: userId }).then(response => {
+      dataList.value = response.data || response || []
+      total.value = dataList.value.length
+      loading.value = false
+    })
+  } else if (isDeptManager) {
+    // Dept manager: all records in department
+    listContactRecordByRoleConditions({ deptId: deptId }).then(response => {
+      dataList.value = response.data || response || []
+      total.value = dataList.value.length
+      loading.value = false
+    })
+  } else if (isZoneDirector) {
+    // Zone director: all records in zone
+    listContactRecordByRoleConditions({ zoneId: zoneId }).then(response => {
+      dataList.value = response.data || response || []
+      total.value = dataList.value.length
+      loading.value = false
+    })
+  } else {
+    // Fallback: show all paginated
+    listContactRecord(queryParams.value).then(response => {
+      dataList.value = response.data?.records || response.records || []
+      total.value = response.data?.total || response.total || 0
+      loading.value = false
+    })
+  }
 }
 
 /** 加载客户和销售代表名称映射 */
@@ -185,7 +242,17 @@ function loadNameMaps() {
 
 function cancel() { open.value = false; reset() }
 function reset() {
-  form.value = { id: undefined, customerId: undefined, contactType: undefined, contactDate: undefined, content: undefined, intentionBefore: undefined, intentionAfter: undefined, followUpDate: undefined }
+  form.value = {
+    id: undefined,
+    customerId: undefined,
+    salesRepId: undefined,
+    contactType: undefined,
+    contactDate: undefined,
+    content: undefined,
+    intentionBefore: undefined,
+    intentionAfter: undefined,
+    followUpDate: undefined
+  }
   proxy.resetForm("formRef")
 }
 function handleQuery() { queryParams.value.pageNum = 1; getList() }
@@ -197,15 +264,44 @@ function handleSortChange({ prop, order }) {
   getList()
 }
 
-function handleAdd() { reset(); loadCustomerOptions(''); open.value = true; title.value = "新增跟进记录" }
+function handleAdd() { reset(); loadCustomerOptions(''); loadSalesRepOptions(); open.value = true; title.value = "新增跟进记录" }
 
 function handleUpdate(row) {
   reset()
   getContactRecord(row.id).then(response => {
     form.value = response.data || response
     loadCustomerOptions('')
+    loadSalesRepOptions()
     open.value = true
     title.value = "修改跟进记录"
+  })
+}
+
+// 加载销售代表列表（根据当前用户角色过滤）
+function loadSalesRepOptions() {
+  salesRepLoading.value = true
+  const roles = userStore.roles || []
+  const userId = userStore.id
+  const deptId = userStore.deptId
+  const zoneId = userStore.zoneId
+  const isSalesRep = roles.some(r => r === 'ROLE_sales_rep' || r === 'ROLE_SALES_REP')
+  const isDeptManager = roles.some(r => r === 'ROLE_dept_manager' || r === 'ROLE_DEPT_MANAGER')
+  const isZoneDirector = roles.some(r => r === 'ROLE_zone_director' || r === 'ROLE_ZONE_DIRECTOR')
+
+  let params = {}
+  if (isSalesRep) {
+    params = { salesRepId: userId }
+  } else if (isDeptManager) {
+    params = { deptId: deptId }
+  } else if (isZoneDirector) {
+    params = { zoneId: zoneId }
+  }
+
+  listSalesReps(params).then(response => {
+    salesRepOptions.value = response.data || response || []
+    salesRepLoading.value = false
+  }).catch(() => {
+    salesRepLoading.value = false
   })
 }
 
@@ -228,15 +324,20 @@ function loadCustomerOptions(searchValue) {
 
 function isSalesRepRole() {
   const roles = userStore.roles || []
-  return roles.some(r => r === 'SALES_REP' || 'ZONE_DIRECTOR' || 'DEPT_MANAGER' || 'SUPER_ADMIN' || 'GENERAL_MANAGER')
+  return roles.some(r => ['SALES_REP', 'ROLE_ZONE_DIRECTOR', 'DEPT_MANAGER', 'ROLE_SUPER_ADMIN', 'GENERAL_MANAGER',
+                          'ROLE_sales_rep', 'ROLE_zone_director', 'ROLE_dept_manager', 'ROLE_admin', 'ROLE_super'].includes(r))
 }
 
 function submitForm() {
   proxy.$refs["formRef"].validate(valid => {
     if (valid) {
+      const roles = userStore.roles || []
+      const isSalesRep = roles.some(r => r === 'ROLE_sales_rep' || r === 'SALES_REP')
       // 如果是销售代表角色，自动填充当前用户的ID
-      if (isSalesRepRole()) {
+      if (isSalesRep && !form.value.salesRepId) {
         form.value.salesRepId = userStore.id
+      }
+      if (isSalesRepRole()) {
         const fn = form.value.id ? updateContactRecord : addContactRecord
         fn(form.value).then(() => {
           proxy.$modal.msgSuccess(form.value.id ? "修改成功" : "新增成功")

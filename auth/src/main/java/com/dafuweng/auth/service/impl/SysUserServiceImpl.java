@@ -338,6 +338,35 @@ public class SysUserServiceImpl implements SysUserService {
     }
 
     @Override
+    public List<SysUserEntity> listSalesReps(Long zoneId, Long deptId, Long salesRepId) {
+        // 先获取所有销售代表
+        List<SysUserEntity> allSalesReps = sysUserDao.selectByRoleCode("sales_rep");
+
+        // 根据条件过滤
+        List<SysUserEntity> filteredReps = allSalesReps.stream()
+                .filter(user -> {
+                    // 如果有zoneId条件，只保留匹配的用户
+                    if (zoneId != null) {
+                        return Objects.equals(user.getZoneId(), zoneId);
+                    }
+                    // 如果有deptId条件，只保留匹配的用户
+                    if (deptId != null) {
+                        return Objects.equals(user.getDeptId(), deptId);
+                    }
+                    // 如果有salesRepId条件，只保留匹配的用户
+                    if (salesRepId != null) {
+                        return Objects.equals(user.getId(), salesRepId);
+                    }
+                    // 没有条件时返回所有
+                    return true;
+                })
+                .collect(Collectors.toList());
+
+        filteredReps.forEach(u -> u.setPassword(null));
+        return filteredReps;
+    }
+
+    @Override
     @Transactional
     public boolean changePassword(Long userId, String oldPassword, String newPassword) {
         SysUserEntity user = sysUserDao.selectById(userId);

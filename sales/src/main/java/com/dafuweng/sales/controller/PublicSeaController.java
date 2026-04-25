@@ -41,11 +41,14 @@ public class PublicSeaController {
     }
 
     /**
-     * 获取销售代表列表
-     * GET /api/customer/sales-reps
+     * 获取销售代表列表（公海客户使用）
+     * GET /api/customer/public-sea/sales-reps
      */
-    @GetMapping("/sales-reps")
-    public Result<?> listSalesReps() {
-        return Result.success(publicSeaService.listSalesReps());
+    @GetMapping("/public-sea/sales-reps")
+    public Result<?> listSalesReps(
+            @RequestParam(required = false) Long zoneId,
+            @RequestParam(required = false) Long deptId,
+            @RequestParam(required = false) Long salesRepId) {
+        return Result.success(publicSeaService.listSalesReps(zoneId, deptId, salesRepId));
     }
 }

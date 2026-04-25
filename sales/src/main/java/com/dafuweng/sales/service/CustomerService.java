@@ -1,18 +1,12 @@
 package com.dafuweng.sales.service;
 
 import com.dafuweng.sales.entity.CustomerEntity;
-import com.dafuweng.sales.dao.CustomerDao;
-import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
-import com.baomidou.mybatisplus.core.metadata.IPage;
-import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.dafuweng.common.entity.PageRequest;
 import com.dafuweng.common.entity.PageResponse;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-import org.springframework.util.StringUtils;
 
 import java.util.List;
+import java.util.Map;
 
 public interface CustomerService {
 
@@ -39,4 +33,9 @@ public interface CustomerService {
      * 获取客户总数
      */
     Long count();
+
+    /**
+     * 获取销售代表列表（带条件过滤）
+     */
+    List<Map<String, Object>> listSalesReps(Long zoneId, Long deptId, Long salesRepId);
 }

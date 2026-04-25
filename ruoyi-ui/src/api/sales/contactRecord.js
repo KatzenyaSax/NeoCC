@@ -9,6 +9,15 @@ export function listContactRecord(query) {
   })
 }
 
+// 按角色条件查询跟进记录列表
+export function listContactRecordByRoleConditions(params) {
+  return request({
+    url: '/contactRecord/list-by-role',
+    method: 'get',
+    params
+  })
+}
+
 // 查询跟进记录详细
 export function getContactRecord(id) {
   return request({

@@ -17,6 +17,18 @@ public class CustomerController {
     @Autowired
     private CustomerService customerService;
 
+    /**
+     * 获取销售代表列表（下拉用）
+     * GET /api/customer/sales-reps
+     */
+    @GetMapping("/sales-reps")
+    public Result<?> listSalesReps(
+            @RequestParam(required = false) Long zoneId,
+            @RequestParam(required = false) Long deptId,
+            @RequestParam(required = false) Long salesRepId) {
+        return Result.success(customerService.listSalesReps(zoneId, deptId, salesRepId));
+    }
+
     @GetMapping("/{id}")
     public Result<CustomerEntity> getById(@PathVariable Long id) {
         return Result.success(customerService.getById(id));

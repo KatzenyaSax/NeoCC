@@ -98,10 +98,14 @@ public class SysUserController {
     /**
      * 获取所有销售代表列表（下拉用）
      * GET /api/sysUser/sales-reps
+     * 支持根据zoneId、deptId或salesRepId过滤
      */
     @GetMapping("/sales-reps")
-    public Result<List<SysUserEntity>> listSalesReps() {
-        return Result.success(sysUserService.listSalesReps());
+    public Result<List<SysUserEntity>> listSalesReps(
+            @RequestParam(required = false) Long zoneId,
+            @RequestParam(required = false) Long deptId,
+            @RequestParam(required = false) Long salesRepId) {
+        return Result.success(sysUserService.listSalesReps(zoneId, deptId, salesRepId));
     }
 
     /**

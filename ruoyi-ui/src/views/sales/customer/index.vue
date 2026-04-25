@@ -156,6 +156,7 @@
 <script setup>
 import { listCustomer, getCustomer, delCustomer, addCustomer, updateCustomer, getUserNamesByIds } from "@/api/sales/customer"
 import { listSalesReps } from "@/api/system/user"
+import { addCustomerTransfer } from "@/api/sales/customerTransfer"
 import useUserStore from '@/store/modules/user'
 
 const { proxy } = getCurrentInstance()
@@ -292,7 +293,24 @@ function formatMoney(val) {
 
 /** 加载销售代表下拉选项 */
 function loadSalesRepOptions() {
-  listSalesReps().then(res => {
+  const roles = userStore.roles || []
+  const userId = userStore.id
+  const deptId = userStore.deptId
+  const zoneId = userStore.zoneId
+  const isSalesRepRole = roles.some(r => r === 'ROLE_SALES_REP' || r === 'sales_rep')
+  const isDeptManager = roles.some(r => r === 'ROLE_DEPT_MANAGER' || r === 'sales_manager')
+  const isZoneDirector = roles.some(r => r === 'ROLE_ZONE_DIRECTOR')
+
+  let params = {}
+  if (isSalesRepRole) {
+    params = { salesRepId: userId }
+  } else if (isDeptManager) {
+    params = { deptId: deptId }
+  } else if (isZoneDirector) {
+    params = { zoneId: zoneId }
+  }
+
+  listSalesReps(params).then(res => {
     salesRepOptions.value = res.data || []
   })
 }
@@ -346,10 +364,31 @@ function submitForm() {
   proxy.$refs["customerRef"].validate(valid => {
     if (valid) {
       if (form.value.id != undefined) {
-        updateCustomer(form.value).then(response => {
-          proxy.$modal.msgSuccess("修改成功")
-          open.value = false
-          getList()
+        // 修改前先获取原始客户信息，检查销售代表是否变化
+        getCustomer(form.value.id).then(originalRes => {
+          const originalCustomer = originalRes.data || originalRes
+          // 调用更新接口
+          updateCustomer(form.value).then(response => {
+            // 如果销售代表发生了变化，创建转移日志
+            if (originalCustomer.salesRepId !== form.value.salesRepId) {
+              // 创建转移日志
+              addCustomerTransfer({
+                customerId: form.value.id,
+                fromRepId: originalCustomer.salesRepId,
+                toRepId: form.value.salesRepId,
+                operateType: "ADJUST",
+                reason: "客户管理修改",
+                operatedBy: userStore.id
+              }).then(() => {
+                // 转移日志创建成功
+              }).catch(() => {
+                // 忽略转移日志创建失败的情况
+              })
+            }
+            proxy.$modal.msgSuccess("修改成功")
+            open.value = false
+            getList()
+          })
         })
       } else {
         addCustomer(form.value).then(response => {

@@ -19,9 +19,10 @@ export function transferCustomer(data) {
 }
 
 // 获取销售代表列表（下拉用）
-export function listSalesReps() {
+export function listSalesReps(params) {
   return request({
-    url: '/customer/sales-reps',
-    method: 'get'
+    url: '/customer/public-sea/sales-reps',
+    method: 'get',
+    params: params
   })
 }

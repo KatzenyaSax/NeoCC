@@ -41,6 +41,14 @@ public interface SysUserService {
 
     List<SysUserEntity> listSalesReps();
 
+    /**
+     * 根据条件获取销售代表列表（下拉用）
+     * @param zoneId 战区ID（可选）
+     * @param deptId 部门ID（可选）
+     * @param salesRepId 销售代表ID（可选）
+     */
+    List<SysUserEntity> listSalesReps(Long zoneId, Long deptId, Long salesRepId);
+
     boolean changePassword(Long userId, String oldPassword, String newPassword);
 
     void resetPassword(Long userId, String newPassword);

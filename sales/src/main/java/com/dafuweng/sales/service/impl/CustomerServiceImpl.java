@@ -8,18 +8,61 @@ import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.dafuweng.common.entity.PageRequest;
 import com.dafuweng.common.entity.PageResponse;
+import com.dafuweng.common.entity.Result;
+import com.dafuweng.sales.feign.AuthFeignClient;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.StringUtils;
 
-import java.util.List;
+import java.util.*;
+import java.util.stream.Collectors;
 
 @Service
 public class CustomerServiceImpl implements CustomerService {
 
     @Autowired
     private CustomerDao customerDao;
+
+    @Autowired
+    private AuthFeignClient authFeignClient;
+
+    @Override
+    public List<Map<String, Object>> listSalesReps(Long zoneId, Long deptId, Long salesRepId) {
+        // 使用auth模块的新接口
+        // 由于auth模块的接口没有直接暴露带参数的sales-reps接口，我们需要自己实现过滤
+        Result<?> res = authFeignClient.listSalesReps();
+        if (res != null && res.getCode() == 200 && res.getData() != null) {
+            @SuppressWarnings("unchecked")
+            List<Map<String, Object>> allSalesReps = (List<Map<String, Object>>) res.getData();
+
+            // 根据条件过滤
+            List<Map<String, Object>> filteredReps = allSalesReps.stream()
+                    .filter(rep -> {
+                        // 如果有zoneId条件，只保留匹配的用户
+                        if (zoneId != null) {
+                            Object repZoneId = rep.get("zoneId");
+                            return repZoneId != null && Objects.equals(Long.parseLong(String.valueOf(repZoneId)), zoneId);
+                        }
+                        // 如果有deptId条件，只保留匹配的用户
+                        if (deptId != null) {
+                            Object repDeptId = rep.get("deptId");
+                            return repDeptId != null && Objects.equals(Long.parseLong(String.valueOf(repDeptId)), deptId);
+                        }
+                        // 如果有salesRepId条件，只保留匹配的用户
+                        if (salesRepId != null) {
+                            Object repId = rep.get("id");
+                            return repId != null && Objects.equals(Long.parseLong(String.valueOf(repId)), salesRepId);
+                        }
+                        // 没有条件时返回所有
+                        return true;
+                    })
+                    .collect(Collectors.toList());
+
+            return filteredReps;
+        }
+        return new ArrayList<>();
+    }
 
     @Override
     public CustomerEntity getById(Long id) {

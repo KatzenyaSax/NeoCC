@@ -217,8 +217,25 @@ function handleTransfer(row) {
     reason: ''
   }
   transferOpen.value = true
-  // 加载销售代表列表
-  listSalesReps().then(res => {
+  // 加载销售代表列表（根据角色过滤）
+  const roles = userStore.roles || []
+  const userId = userStore.id
+  const deptId = userStore.deptId
+  const zoneId = userStore.zoneId
+  const isSalesRepRole = roles.some(r => r === 'ROLE_SALES_REP' || r === 'sales_rep')
+  const isDeptManager = roles.some(r => r === 'ROLE_DEPT_MANAGER' || r === 'sales_manager')
+  const isZoneDirector = roles.some(r => r === 'ROLE_ZONE_DIRECTOR')
+
+  let params = {}
+  if (isSalesRepRole) {
+    params = { salesRepId: userId }
+  } else if (isDeptManager) {
+    params = { deptId: deptId }
+  } else if (isZoneDirector) {
+    params = { zoneId: zoneId }
+  }
+
+  listSalesReps(params).then(res => {
     salesRepList.value = res.data || []
   })
 }
