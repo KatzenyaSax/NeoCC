@@ -44,6 +44,7 @@ public class SysDepartmentServiceImpl implements SysDepartmentService {
     public PageResponse<SysDepartmentEntity> pageList(PageRequest request) {
         IPage<SysDepartmentEntity> page = new Page<>(request.getPage(), request.getSize());
         LambdaQueryWrapper<SysDepartmentEntity> wrapper = new LambdaQueryWrapper<>();
+        wrapper.eq(SysDepartmentEntity::getDeleted, (short) 0);
         if (StringUtils.hasText(request.getSortField())) {
             if ("asc".equalsIgnoreCase(request.getSortOrder())) {
                 wrapper.orderByAsc(SysDepartmentEntity::getId);
@@ -63,6 +64,7 @@ public class SysDepartmentServiceImpl implements SysDepartmentService {
         // 1. 查询部门分页数据
         IPage<SysDepartmentEntity> page = new Page<>(request.getPage(), request.getSize());
         LambdaQueryWrapper<SysDepartmentEntity> wrapper = new LambdaQueryWrapper<>();
+        wrapper.eq(SysDepartmentEntity::getDeleted, (short) 0);
         if (StringUtils.hasText(request.getSortField())) {
             if ("asc".equalsIgnoreCase(request.getSortField())) {
                 wrapper.orderByAsc(SysDepartmentEntity::getId);
@@ -140,6 +142,7 @@ public class SysDepartmentServiceImpl implements SysDepartmentService {
     @Override
     public List<SysDepartmentEntity> listByParentId(Long parentId) {
         LambdaQueryWrapper<SysDepartmentEntity> wrapper = new LambdaQueryWrapper<>();
+        wrapper.eq(SysDepartmentEntity::getDeleted, (short) 0);
         wrapper.eq(SysDepartmentEntity::getParentId, parentId);
         wrapper.orderByAsc(SysDepartmentEntity::getSortOrder);
         return sysDepartmentDao.selectList(wrapper);
@@ -148,6 +151,7 @@ public class SysDepartmentServiceImpl implements SysDepartmentService {
     @Override
     public List<SysDepartmentEntity> listByZoneId(Long zoneId) {
         LambdaQueryWrapper<SysDepartmentEntity> wrapper = new LambdaQueryWrapper<>();
+        wrapper.eq(SysDepartmentEntity::getDeleted, (short) 0);
         wrapper.eq(SysDepartmentEntity::getZoneId, zoneId);
         wrapper.orderByAsc(SysDepartmentEntity::getSortOrder);
         return sysDepartmentDao.selectList(wrapper);
@@ -159,6 +163,7 @@ public class SysDepartmentServiceImpl implements SysDepartmentService {
             return new HashMap<>();
         }
         LambdaQueryWrapper<SysDepartmentEntity> wrapper = new LambdaQueryWrapper<>();
+        wrapper.eq(SysDepartmentEntity::getDeleted, (short) 0);
         wrapper.in(SysDepartmentEntity::getId, ids);
         List<SysDepartmentEntity> depts = sysDepartmentDao.selectList(wrapper);
         return depts.stream().collect(java.util.stream.Collectors.toMap(SysDepartmentEntity::getId, SysDepartmentEntity::getDeptName));
@@ -167,6 +172,7 @@ public class SysDepartmentServiceImpl implements SysDepartmentService {
     @Override
     @Transactional
     public SysDepartmentEntity save(SysDepartmentEntity entity) {
+        entity.setDeleted((short) 0);
         sysDepartmentDao.insert(entity);
         return entity;
     }
@@ -174,7 +180,11 @@ public class SysDepartmentServiceImpl implements SysDepartmentService {
     @Override
     @Transactional
     public SysDepartmentEntity update(SysDepartmentEntity entity) {
-        sysDepartmentDao.updateById(entity);
+        if (entity.getDeleted() != null && entity.getDeleted() == 1) {
+            sysDepartmentDao.softDeleteById(entity.getId());
+        } else {
+            sysDepartmentDao.updateById(entity);
+        }
         return entity;
     }
 

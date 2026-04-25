@@ -88,6 +88,7 @@ public class ContractServiceImpl implements ContractService {
         } else {
             wrapper.orderByDesc(ContractEntity::getCreatedAt);
         }
+        wrapper.eq(ContractEntity::getDeleted, (short) 0);
         IPage<ContractEntity> result = contractDao.selectPage(page, wrapper);
         return PageResponse.of(result.getTotal(), result.getRecords(),
             (int) page.getCurrent() , (int) page.getSize());
@@ -97,6 +98,7 @@ public class ContractServiceImpl implements ContractService {
     public List<ContractEntity> listBySalesRepId(Long salesRepId) {
         LambdaQueryWrapper<ContractEntity> wrapper = new LambdaQueryWrapper<>();
         wrapper.eq(ContractEntity::getSalesRepId, salesRepId);
+        wrapper.eq(ContractEntity::getDeleted, (short) 0);
         return contractDao.selectList(wrapper);
     }
 
@@ -104,6 +106,7 @@ public class ContractServiceImpl implements ContractService {
     public List<ContractEntity> listByStatus(Short status) {
         LambdaQueryWrapper<ContractEntity> wrapper = new LambdaQueryWrapper<>();
         wrapper.eq(ContractEntity::getStatus, status);
+        wrapper.eq(ContractEntity::getDeleted, (short) 0);
         return contractDao.selectList(wrapper);
     }
 
@@ -116,6 +119,7 @@ public class ContractServiceImpl implements ContractService {
             wrapper.eq(ContractEntity::getStatus, status);
         }
 
+        wrapper.eq(ContractEntity::getDeleted, (short) 0);
         wrapper.orderByDesc(ContractEntity::getCreatedAt);
         IPage<ContractEntity> result = contractDao.selectPage(page, wrapper);
         return PageResponse.of(result.getTotal(), result.getRecords(),
@@ -125,6 +129,7 @@ public class ContractServiceImpl implements ContractService {
     @Override
     @Transactional
     public ContractEntity save(ContractEntity entity) {
+        entity.setDeleted((short) 0);
         contractDao.insert(entity);
         return entity;
     }
@@ -132,7 +137,11 @@ public class ContractServiceImpl implements ContractService {
     @Override
     @Transactional
     public ContractEntity update(ContractEntity entity) {
-        contractDao.updateById(entity);
+        if (entity.getDeleted() != null && entity.getDeleted() == 1) {
+            contractDao.softDeleteById(entity.getId());
+        } else {
+            contractDao.updateById(entity);
+        }
         return entity;
     }
 

@@ -2,7 +2,6 @@ package com.dafuweng.system.entity;
 
 import com.baomidou.mybatisplus.annotation.TableField;
 import com.baomidou.mybatisplus.annotation.TableId;
-import com.baomidou.mybatisplus.annotation.TableLogic;
 import com.baomidou.mybatisplus.annotation.TableName;
 import lombok.Data;
 
@@ -39,6 +38,5 @@ public class SysZoneEntity implements Serializable {
 
     private Date updatedAt;
 
-    @TableLogic
     private Short deleted;
 }

@@ -32,6 +32,7 @@ public class SysDictServiceImpl implements SysDictService {
     public PageResponse<SysDictEntity> pageList(PageRequest request) {
         IPage<SysDictEntity> page = new Page<>(request.getPage(), request.getSize());
         LambdaQueryWrapper<SysDictEntity> wrapper = new LambdaQueryWrapper<>();
+        wrapper.eq(SysDictEntity::getDeleted, (short) 0);
         if (StringUtils.hasText(request.getSortField())) {
             if ("asc".equalsIgnoreCase(request.getSortOrder())) {
                 wrapper.orderByAsc(SysDictEntity::getId);
@@ -56,6 +57,7 @@ public class SysDictServiceImpl implements SysDictService {
     @Transactional
     @CacheEvict(value = "dict", key = "#entity.dictType")
     public SysDictEntity save(SysDictEntity entity) {
+        entity.setDeleted((short) 0);
         sysDictDao.insert(entity);
         return entity;
     }
@@ -64,7 +66,11 @@ public class SysDictServiceImpl implements SysDictService {
     @Transactional
     @CacheEvict(value = "dict", key = "#entity.dictType")
     public SysDictEntity update(SysDictEntity entity) {
-        sysDictDao.updateById(entity);
+        if (entity.getDeleted() != null && entity.getDeleted() == 1) {
+            sysDictDao.softDeleteById(entity.getId());
+        } else {
+            sysDictDao.updateById(entity);
+        }
         return entity;
     }
 

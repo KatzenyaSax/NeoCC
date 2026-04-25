@@ -37,6 +37,7 @@ public class SysZoneServiceImpl implements SysZoneService {
     public PageResponse<SysZoneEntity> pageList(PageRequest request) {
         IPage<SysZoneEntity> page = new Page<>(request.getPage(), request.getSize());
         LambdaQueryWrapper<SysZoneEntity> wrapper = new LambdaQueryWrapper<>();
+        wrapper.eq(SysZoneEntity::getDeleted, (short) 0);
         if (StringUtils.hasText(request.getSortField())) {
             if ("asc".equalsIgnoreCase(request.getSortOrder())) {
                 wrapper.orderByAsc(SysZoneEntity::getId);
@@ -55,6 +56,7 @@ public class SysZoneServiceImpl implements SysZoneService {
     @Override
     public List<SysZoneEntity> listAll() {
         LambdaQueryWrapper<SysZoneEntity> wrapper = new LambdaQueryWrapper<>();
+        wrapper.eq(SysZoneEntity::getDeleted, (short) 0);
         wrapper.orderByAsc(SysZoneEntity::getSortOrder);
         List<SysZoneEntity> zones = sysZoneDao.selectList(wrapper);
         fillDirectorNames(zones);
@@ -64,6 +66,7 @@ public class SysZoneServiceImpl implements SysZoneService {
     @Override
     public List<SysZoneEntity> listByStatus(Short status) {
         LambdaQueryWrapper<SysZoneEntity> wrapper = new LambdaQueryWrapper<>();
+        wrapper.eq(SysZoneEntity::getDeleted, (short) 0);
         wrapper.eq(SysZoneEntity::getStatus, status);
         wrapper.orderByAsc(SysZoneEntity::getSortOrder);
         List<SysZoneEntity> zones = sysZoneDao.selectList(wrapper);
@@ -74,6 +77,7 @@ public class SysZoneServiceImpl implements SysZoneService {
     @Override
     @Transactional
     public SysZoneEntity save(SysZoneEntity entity) {
+        entity.setDeleted((short) 0);
         sysZoneDao.insert(entity);
         return entity;
     }
@@ -81,7 +85,11 @@ public class SysZoneServiceImpl implements SysZoneService {
     @Override
     @Transactional
     public SysZoneEntity update(SysZoneEntity entity) {
-        sysZoneDao.updateById(entity);
+        if (entity.getDeleted() != null && entity.getDeleted() == 1) {
+            sysZoneDao.softDeleteById(entity.getId());
+        } else {
+            sysZoneDao.updateById(entity);
+        }
         return entity;
     }
 
@@ -97,6 +105,7 @@ public class SysZoneServiceImpl implements SysZoneService {
             return new HashMap<>();
         }
         LambdaQueryWrapper<SysZoneEntity> wrapper = new LambdaQueryWrapper<>();
+        wrapper.eq(SysZoneEntity::getDeleted, (short) 0);
         wrapper.in(SysZoneEntity::getId, ids);
         List<SysZoneEntity> zones = sysZoneDao.selectList(wrapper);
         return zones.stream().collect(Collectors.toMap(SysZoneEntity::getId, SysZoneEntity::getZoneName));

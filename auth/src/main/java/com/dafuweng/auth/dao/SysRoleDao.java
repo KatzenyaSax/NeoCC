@@ -5,6 +5,7 @@ import com.dafuweng.auth.entity.SysRoleEntity;
 import org.apache.ibatis.annotations.Mapper;
 import org.apache.ibatis.annotations.Param;
 import org.apache.ibatis.annotations.Select;
+import org.apache.ibatis.annotations.Update;
 
 import java.util.List;
 import java.util.Map;
@@ -17,4 +18,7 @@ public interface SysRoleDao extends BaseMapper<SysRoleEntity> {
 
     @Select("SELECT MIN(t1.id + 1) FROM sys_role t1 WHERE NOT EXISTS (SELECT 1 FROM sys_role t2 WHERE t2.id = t1.id + 1 AND t2.deleted = 0)")
     Long selectMinUnusedId();
+
+    @Update("UPDATE sys_role SET deleted = 1 WHERE id = #{id}")
+    int softDeleteById(@Param("id") Long id);
 }

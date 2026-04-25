@@ -103,6 +103,7 @@ public class PublicSeaServiceImpl implements PublicSeaService {
         customerDao.updateById(customer);
         // 5. 写入转移日志
         CustomerTransferLogEntity log = new CustomerTransferLogEntity();
+        log.setId(customerTransferLogDao.selectMinUnusedId());
         log.setCustomerId(customerId);
         log.setFromRepId(null);
         log.setToRepId(toRepId);

@@ -133,10 +133,10 @@ function handleSortChange({ prop, order }) {
 
 function handleAdd() {
   reset()
-  open.value = true
-  title.value = "新增字典"
   getMinUnusedDictId().then(res => {
     form.value.id = res.data || res
+    open.value = true
+    title.value = "新增字典"
   })
 }
 
@@ -152,9 +152,10 @@ function handleUpdate(row) {
 function submitForm() {
   proxy.$refs["formRef"].validate(valid => {
     if (valid) {
-      const fn = form.value.id ? updateDict : addDict
+      const isAdd = title.value.includes('新增')
+      const fn = isAdd ? addDict : updateDict
       fn(form.value).then(() => {
-        proxy.$modal.msgSuccess(form.value.id ? "修改成功" : "新增成功")
+        proxy.$modal.msgSuccess(isAdd ? "新增成功" : "修改成功")
         open.value = false
         getList()
       })

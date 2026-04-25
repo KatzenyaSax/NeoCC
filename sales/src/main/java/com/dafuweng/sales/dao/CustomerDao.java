@@ -5,6 +5,7 @@ import com.dafuweng.sales.entity.CustomerEntity;
 import org.apache.ibatis.annotations.Mapper;
 import org.apache.ibatis.annotations.Param;
 import org.apache.ibatis.annotations.Select;
+import org.apache.ibatis.annotations.Update;
 
 import java.util.List;
 
@@ -17,6 +18,9 @@ public interface CustomerDao extends BaseMapper<CustomerEntity> {
 
     List<CustomerEntity> selectCustomerToPublicSea(@Param("publicSeaDays") Integer publicSeaDays);
 
-    @Select("SELECT COALESCE(MIN(t.id + 1), 1) FROM (SELECT 1 as id UNION SELECT MAX(id) + 1 FROM customer) t WHERE NOT EXISTS (SELECT 1 FROM customer c WHERE c.id = t.id)")
+    @Select("SELECT COALESCE(MIN(t.id + 1), 1) FROM (SELECT 1 as id UNION SELECT MAX(id) + 1 FROM customer) t WHERE NOT EXISTS (SELECT 1 FROM customer c WHERE c.id = t.id AND c.deleted = 0)")
     Long selectMinUnusedId();
+
+    @Update("UPDATE customer SET deleted = 1 WHERE id = #{id}")
+    int softDeleteById(@Param("id") Long id);
 }

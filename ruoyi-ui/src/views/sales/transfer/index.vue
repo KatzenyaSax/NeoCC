@@ -37,9 +37,10 @@
       <el-table-column label="转移原因" align="center" prop="reason" show-overflow-tooltip />
       <el-table-column label="操作人" align="center" prop="operatedByName" width="100" />
       <el-table-column label="操作时间" align="center" prop="operatedAt" width="160" />
-      <el-table-column label="操作" align="center" width="160" fixed="right">
+      <el-table-column label="操作" align="center" width="220" fixed="right">
         <template #default="scope">
-          <el-button link type="primary" icon="Edit" @click="handleUpdate(scope.row)">修改</el-button>
+          <el-button link type="primary" icon="View" @click="handleDetail(scope.row)">详情</el-button>
+          <el-button v-if="!isSalesRepOnly" link type="primary" icon="Edit" @click="handleUpdate(scope.row)">修改</el-button>
           <el-button link type="danger" icon="Delete" @click="handleDelete(scope.row)">删除</el-button>
         </template>
       </el-table-column>
@@ -50,18 +51,24 @@
     <!-- 新增/修改对话框 -->
     <el-dialog :title="title" v-model="open" width="600px" append-to-body>
       <el-form ref="formRef" :model="form" :rules="rules" label-width="110px">
-        <el-form-item label="客户ID" prop="customerId">
-          <el-input v-model="form.customerId" placeholder="请输入客户ID" />
+        <el-form-item label="客户" prop="customerId">
+          <el-select v-model="form.customerId" placeholder="请选择客户" style="width:100%" filterable>
+            <el-option v-for="item in customerOptions" :key="item.id" :label="item.name" :value="item.id" />
+          </el-select>
         </el-form-item>
         <el-row>
           <el-col :span="12">
-            <el-form-item label="转出销售ID" prop="fromRepId">
-              <el-input v-model="form.fromRepId" placeholder="请输入转出销售ID" />
+            <el-form-item label="转出销售" prop="fromRepId">
+              <el-select v-model="form.fromRepId" placeholder="请选择转出销售" style="width:100%" filterable>
+                <el-option v-for="item in salesRepOptions" :key="item.userId" :label="item.nickName" :value="item.userId" />
+              </el-select>
             </el-form-item>
           </el-col>
           <el-col :span="12">
-            <el-form-item label="转入销售ID" prop="toRepId">
-              <el-input v-model="form.toRepId" placeholder="请输入转入销售ID" />
+            <el-form-item label="转入销售" prop="toRepId">
+              <el-select v-model="form.toRepId" placeholder="请选择转入销售" style="width:100%" filterable>
+                <el-option v-for="item in salesRepOptions" :key="item.userId" :label="item.nickName" :value="item.userId" />
+              </el-select>
             </el-form-item>
           </el-col>
         </el-row>
@@ -75,8 +82,8 @@
         <el-form-item label="转移原因" prop="reason">
           <el-input v-model="form.reason" type="textarea" :rows="3" placeholder="请输入转移原因" />
         </el-form-item>
-        <el-form-item label="操作人ID" prop="operatedBy">
-          <el-input v-model="form.operatedBy" placeholder="请输入操作人ID" />
+        <el-form-item label="操作人" prop="operatedByName">
+          <el-input v-model="form.operatedByName" placeholder="操作人" disabled />
         </el-form-item>
       </el-form>
       <template #footer>
@@ -84,12 +91,56 @@
         <el-button @click="cancel">取 消</el-button>
       </template>
     </el-dialog>
+
+    <!-- 详情对话框 -->
+    <el-dialog :title="detailTitle" v-model="detailOpen" width="600px" append-to-body>
+      <el-form ref="detailFormRef" :model="form" label-width="110px" disabled>
+        <el-form-item label="客户">
+          <el-select v-model="form.customerId" placeholder="请选择客户" style="width:100%">
+            <el-option v-for="item in customerOptions" :key="item.id" :label="item.name" :value="item.id" />
+          </el-select>
+        </el-form-item>
+        <el-row>
+          <el-col :span="12">
+            <el-form-item label="转出销售">
+              <el-select v-model="form.fromRepId" placeholder="请选择转出销售" style="width:100%">
+                <el-option v-for="item in salesRepOptions" :key="item.userId" :label="item.nickName" :value="item.userId" />
+              </el-select>
+            </el-form-item>
+          </el-col>
+          <el-col :span="12">
+            <el-form-item label="转入销售">
+              <el-select v-model="form.toRepId" placeholder="请选择转入销售" style="width:100%">
+                <el-option v-for="item in salesRepOptions" :key="item.userId" :label="item.nickName" :value="item.userId" />
+              </el-select>
+            </el-form-item>
+          </el-col>
+        </el-row>
+        <el-form-item label="操作类型">
+          <el-select v-model="form.operateType" placeholder="请选择操作类型" style="width:100%">
+            <el-option label="主动转移" value="TRANSFER" />
+            <el-option label="离职转移" value="RESIGN" />
+            <el-option label="调配转移" value="ADJUST" />
+          </el-select>
+        </el-form-item>
+        <el-form-item label="转移原因">
+          <el-input v-model="form.reason" type="textarea" :rows="3" placeholder="请输入转移原因" />
+        </el-form-item>
+        <el-form-item label="操作人">
+          <el-input v-model="form.operatedByName" placeholder="操作人" />
+        </el-form-item>
+      </el-form>
+      <template #footer>
+        <el-button @click="detailOpen = false">关 闭</el-button>
+      </template>
+    </el-dialog>
   </div>
 </template>
 
 <script setup>
 import { listCustomerTransfer, getCustomerTransfer, addCustomerTransfer, updateCustomerTransfer, delCustomerTransfer, getMinUnusedTransferId } from "@/api/sales/customerTransfer"
-import { getUserNamesByIds, getCustomerNamesByIds } from "@/api/sales/customer"
+import { getUserNamesByIds, getCustomerNamesByIds, listCustomer } from "@/api/sales/customer"
+import { listSalesReps } from "@/api/system/user"
 import useUserStore from '@/store/modules/user'
 
 const { proxy } = getCurrentInstance()
@@ -100,6 +151,17 @@ const showSearch = ref(true)
 const total = ref(0)
 const title = ref("")
 const open = ref(false)
+const detailOpen = ref(false)
+const detailTitle = ref("")
+
+const customerOptions = ref([])
+const salesRepOptions = ref([])
+
+const isSalesRepOnly = computed(() => {
+  const roles = userStore.roles || []
+  return roles.some(r => r === 'ROLE_SALES_REP') &&
+    !roles.some(r => ['ROLE_DEPT_MANAGER', 'ROLE_ZONE_DIRECTOR', 'ROLE_SUPER_ADMIN', 'ROLE_GENERAL_MANAGER'].includes(r))
+})
 
 const operateTypeLabelMap = { TRANSFER: '主动转移', RESIGN: '离职转移', ADJUST: '调配转移' }
 const operateTypeTagMap = { TRANSFER: 'primary', RESIGN: 'danger', ADJUST: 'warning' }
@@ -117,9 +179,9 @@ const data = reactive({
     sortOrder: 'asc'
   },
   rules: {
-    customerId: [{ required: true, message: "客户ID不能为空", trigger: "blur" }],
-    fromRepId: [{ required: true, message: "转出销售ID不能为空", trigger: "blur" }],
-    toRepId: [{ required: true, message: "转入销售ID不能为空", trigger: "blur" }],
+    customerId: [{ required: true, message: "客户不能为空", trigger: "change" }],
+    fromRepId: [{ required: true, message: "转出销售不能为空", trigger: "change" }],
+    toRepId: [{ required: true, message: "转入销售不能为空", trigger: "change" }],
     operateType: [{ required: true, message: "操作类型不能为空", trigger: "change" }]
   }
 })
@@ -180,9 +242,21 @@ function cancel() { open.value = false; reset() }
 function reset() {
   form.value = {
     id: undefined, customerId: undefined, fromRepId: undefined,
-    toRepId: undefined, operateType: undefined, reason: undefined, operatedBy: undefined
+    toRepId: undefined, operateType: undefined, reason: undefined, operatedBy: undefined, operatedByName: undefined
   }
   proxy.resetForm("formRef")
+}
+
+function loadCustomerOptions() {
+  listCustomer({ pageNum: 1, pageSize: 1000 }).then(res => {
+    customerOptions.value = res.data?.records || res.records || []
+  })
+}
+
+function loadSalesRepOptions() {
+  listSalesReps({ pageNum: 1, pageSize: 1000 }).then(res => {
+    salesRepOptions.value = res.data?.records || res.records || []
+  })
 }
 
 function handleQuery() { queryParams.value.pageNum = 1; getList() }
@@ -196,6 +270,10 @@ function handleSortChange({ prop, order }) {
 
 function handleAdd() {
   reset()
+  loadCustomerOptions()
+  loadSalesRepOptions()
+  form.value.operatedBy = userStore.id
+  form.value.operatedByName = userStore.nickName
   getMinUnusedTransferId().then(res => {
     form.value.id = res.data
     open.value = true
@@ -205,19 +283,37 @@ function handleAdd() {
 
 function handleUpdate(row) {
   reset()
-  getCustomerTransfer(row.id).then(response => {
+  Promise.all([loadCustomerOptions(), loadSalesRepOptions()]).then(() => {
+    return getCustomerTransfer(row.id)
+  }).then(response => {
     form.value = response.data || response
+    // 设置操作人名称
+    const rep = salesRepOptions.value.find(s => s.userId === form.value.operatedBy)
+    form.value.operatedByName = rep ? rep.nickName : (form.value.operatedBy || userStore.nickName)
     open.value = true
     title.value = "修改客户转移记录"
+  })
+}
+
+function handleDetail(row) {
+  loadCustomerOptions()
+  loadSalesRepOptions()
+  getCustomerTransfer(row.id).then(response => {
+    form.value = response.data || response
+    const rep = salesRepOptions.value.find(s => s.userId === form.value.operatedBy)
+    form.value.operatedByName = rep ? rep.nickName : (form.value.operatedBy || userStore.nickName)
+    detailOpen.value = true
+    detailTitle.value = "客户转移记录详情"
   })
 }
 
 function submitForm() {
   proxy.$refs["formRef"].validate(valid => {
     if (!valid) return
-    const fn = form.value.id ? updateCustomerTransfer : addCustomerTransfer
+    const isAdd = title.value.includes('新增')
+    const fn = isAdd ? addCustomerTransfer : updateCustomerTransfer
     fn(form.value).then(() => {
-      proxy.$modal.msgSuccess(form.value.id ? "修改成功" : "新增成功")
+      proxy.$modal.msgSuccess(isAdd ? "新增成功" : "修改成功")
       open.value = false
       getList()
     })

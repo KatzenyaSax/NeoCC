@@ -54,6 +54,7 @@ public class WorkLogServiceImpl implements WorkLogService {
         } else {
             wrapper.orderByDesc(WorkLogEntity::getCreatedAt);
         }
+        wrapper.eq(WorkLogEntity::getDeleted, (short) 0);
 
         IPage<WorkLogEntity> result = workLogDao.selectPage(page, wrapper);
         return PageResponse.of(result.getTotal(), result.getRecords(),
@@ -91,6 +92,7 @@ public class WorkLogServiceImpl implements WorkLogService {
     public List<WorkLogEntity> listBySalesRepId(Long salesRepId) {
         LambdaQueryWrapper<WorkLogEntity> wrapper = new LambdaQueryWrapper<>();
         wrapper.eq(WorkLogEntity::getSalesRepId, salesRepId);
+        wrapper.eq(WorkLogEntity::getDeleted, (short) 0);
         return workLogDao.selectList(wrapper);
     }
 
@@ -101,6 +103,7 @@ public class WorkLogServiceImpl implements WorkLogService {
         }
         LambdaQueryWrapper<WorkLogEntity> wrapper = new LambdaQueryWrapper<>();
         wrapper.in(WorkLogEntity::getSalesRepId, salesRepIds);
+        wrapper.eq(WorkLogEntity::getDeleted, (short) 0);
         wrapper.orderByDesc(WorkLogEntity::getLogDate);
         return workLogDao.selectList(wrapper);
     }
@@ -113,6 +116,7 @@ public class WorkLogServiceImpl implements WorkLogService {
     @Override
     @Transactional
     public WorkLogEntity save(WorkLogEntity entity) {
+        entity.setDeleted((short) 0);
         workLogDao.insert(entity);
         return entity;
     }
@@ -120,7 +124,11 @@ public class WorkLogServiceImpl implements WorkLogService {
     @Override
     @Transactional
     public WorkLogEntity update(WorkLogEntity entity) {
-        workLogDao.updateById(entity);
+        if (entity.getDeleted() != null && entity.getDeleted() == 1) {
+            workLogDao.softDeleteById(entity.getId());
+        } else {
+            workLogDao.updateById(entity);
+        }
         return entity;
     }
 

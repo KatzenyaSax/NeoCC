@@ -40,6 +40,7 @@ public class ServiceFeeRecordServiceImpl implements ServiceFeeRecordService {
     public PageResponse<ServiceFeeRecordEntity> pageList(PageRequest request) {
         IPage<ServiceFeeRecordEntity> page = new Page<>(request.getPage(), request.getSize());
         LambdaQueryWrapper<ServiceFeeRecordEntity> wrapper = new LambdaQueryWrapper<>();
+        wrapper.eq(ServiceFeeRecordEntity::getDeleted, (short) 0);
         if (StringUtils.hasText(request.getSortField())) {
             if ("asc".equalsIgnoreCase(request.getSortOrder())) {
                 wrapper.orderByAsc(ServiceFeeRecordEntity::getId);
@@ -56,12 +57,16 @@ public class ServiceFeeRecordServiceImpl implements ServiceFeeRecordService {
 
     @Override
     public List<ServiceFeeRecordEntity> listByContractId(Long contractId) {
-        return serviceFeeRecordDao.selectByContractId(contractId);
+        LambdaQueryWrapper<ServiceFeeRecordEntity> wrapper = new LambdaQueryWrapper<>();
+        wrapper.eq(ServiceFeeRecordEntity::getContractId, contractId);
+        wrapper.eq(ServiceFeeRecordEntity::getDeleted, (short) 0);
+        return serviceFeeRecordDao.selectList(wrapper);
     }
 
     @Override
     @Transactional
     public ServiceFeeRecordEntity save(ServiceFeeRecordEntity entity) {
+        entity.setDeleted((short) 0);
         serviceFeeRecordDao.insert(entity);
         return entity;
     }
@@ -69,7 +74,11 @@ public class ServiceFeeRecordServiceImpl implements ServiceFeeRecordService {
     @Override
     @Transactional
     public ServiceFeeRecordEntity update(ServiceFeeRecordEntity entity) {
-        serviceFeeRecordDao.updateById(entity);
+        if (entity.getDeleted() != null && entity.getDeleted() == 1) {
+            serviceFeeRecordDao.softDeleteById(entity.getId());
+        } else {
+            serviceFeeRecordDao.updateById(entity);
+        }
         return entity;
     }
 

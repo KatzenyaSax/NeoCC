@@ -31,6 +31,7 @@ public class CommissionRecordServiceImpl implements CommissionRecordService {
     public PageResponse<CommissionRecordEntity> pageList(PageRequest request) {
         IPage<CommissionRecordEntity> page = new Page<>(request.getPage(), request.getSize());
         LambdaQueryWrapper<CommissionRecordEntity> wrapper = new LambdaQueryWrapper<>();
+        wrapper.eq(CommissionRecordEntity::getDeleted, (short) 0);
         if (StringUtils.hasText(request.getSortField())) {
             if ("asc".equalsIgnoreCase(request.getSortOrder())) {
                 wrapper.orderByAsc(CommissionRecordEntity::getId);
@@ -47,12 +48,16 @@ public class CommissionRecordServiceImpl implements CommissionRecordService {
 
     @Override
     public List<CommissionRecordEntity> listBySalesRepId(Long salesRepId) {
-        return commissionRecordDao.selectBySalesRepId(salesRepId);
+        LambdaQueryWrapper<CommissionRecordEntity> wrapper = new LambdaQueryWrapper<>();
+        wrapper.eq(CommissionRecordEntity::getSalesRepId, salesRepId);
+        wrapper.eq(CommissionRecordEntity::getDeleted, (short) 0);
+        return commissionRecordDao.selectList(wrapper);
     }
 
     @Override
     @Transactional
     public CommissionRecordEntity save(CommissionRecordEntity entity) {
+        entity.setDeleted((short) 0);
         commissionRecordDao.insert(entity);
         return entity;
     }
@@ -60,7 +65,11 @@ public class CommissionRecordServiceImpl implements CommissionRecordService {
     @Override
     @Transactional
     public CommissionRecordEntity update(CommissionRecordEntity entity) {
-        commissionRecordDao.updateById(entity);
+        if (entity.getDeleted() != null && entity.getDeleted() == 1) {
+            commissionRecordDao.softDeleteById(entity.getId());
+        } else {
+            commissionRecordDao.updateById(entity);
+        }
         return entity;
     }
 

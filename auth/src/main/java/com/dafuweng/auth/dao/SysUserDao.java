@@ -5,6 +5,7 @@ import com.dafuweng.auth.entity.SysUserEntity;
 import org.apache.ibatis.annotations.Mapper;
 import org.apache.ibatis.annotations.Param;
 import org.apache.ibatis.annotations.Select;
+import org.apache.ibatis.annotations.Update;
 
 import java.util.List;
 import java.util.Map;
@@ -27,4 +28,7 @@ public interface SysUserDao extends BaseMapper<SysUserEntity> {
 
     @Select("SELECT MIN(t1.id + 1) FROM sys_user t1 WHERE NOT EXISTS (SELECT 1 FROM sys_user t2 WHERE t2.id = t1.id + 1 AND t2.deleted = 0)")
     Long selectMinAvailableId();
+
+    @Update("UPDATE sys_user SET deleted = 1 WHERE id = #{id}")
+    int softDeleteById(@Param("id") Long id);
 }

@@ -338,9 +338,10 @@ function submitForm() {
         form.value.salesRepId = userStore.id
       }
       if (isSalesRepRole()) {
-        const fn = form.value.id ? updateContactRecord : addContactRecord
+        const isAdd = title.value.includes('新增')
+        const fn = isAdd ? addContactRecord : updateContactRecord
         fn(form.value).then(() => {
-          proxy.$modal.msgSuccess(form.value.id ? "修改成功" : "新增成功")
+          proxy.$modal.msgSuccess(isAdd ? "新增成功" : "修改成功")
           open.value = false
           getList()
         })

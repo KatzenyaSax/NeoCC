@@ -81,7 +81,12 @@
       "Bash(git commit:*)",
       "Bash(git checkout:*)",
       "Skill(browse)",
-      "Bash(xargs grep *)"
+      "Bash(xargs grep *)",
+      "Bash(xxd CustomerTransferLogServiceImpl.java)",
+      "Bash(javac -version)",
+      "Bash(python3 -c ' *)",
+      "Read(//c/Users/a1829/.m2/repository/**)",
+      "Bash(javac -d /tmp/test_compile -cp \"src/main/java;target/classes;$\\(find ~/.m2/repository -name '*.jar')"
     ]
   }
 }

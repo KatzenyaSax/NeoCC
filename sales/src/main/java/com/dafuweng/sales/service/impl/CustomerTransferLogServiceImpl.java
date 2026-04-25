@@ -39,6 +39,7 @@ public class CustomerTransferLogServiceImpl implements CustomerTransferLogServic
         } else {
             wrapper.orderByDesc(CustomerTransferLogEntity::getOperatedAt);
         }
+        wrapper.eq(CustomerTransferLogEntity::getDeleted, (short) 0);
         IPage<CustomerTransferLogEntity> result = customerTransferLogDao.selectPage(page, wrapper);
         return PageResponse.of(result.getTotal(), result.getRecords(),
             (int) page.getCurrent() , (int) page.getSize());
@@ -52,14 +53,32 @@ public class CustomerTransferLogServiceImpl implements CustomerTransferLogServic
     @Override
     @Transactional
     public CustomerTransferLogEntity save(CustomerTransferLogEntity entity) {
-        customerTransferLogDao.insert(entity);
+        entity.setDeleted((short) 0);
+        if (entity.getId() == null) {
+            entity.setId(customerTransferLogDao.selectMinUnusedId());
+        }
+        try {
+            customerTransferLogDao.insert(entity);
+        } catch (Exception e) {
+            if (e.getMessage() != null && e.getMessage().contains("Duplicate entry")) {
+                // Retry once with a new ID
+                entity.setId(customerTransferLogDao.selectMinUnusedId());
+                customerTransferLogDao.insert(entity);
+            } else {
+                throw e;
+            }
+        }
         return entity;
     }
 
     @Override
     @Transactional
     public CustomerTransferLogEntity update(CustomerTransferLogEntity entity) {
-        customerTransferLogDao.updateById(entity);
+        if (entity.getDeleted() != null && entity.getDeleted() == 1) {
+            customerTransferLogDao.softDeleteById(entity.getId());
+        } else {
+            customerTransferLogDao.updateById(entity);
+        }
         return entity;
     }
 

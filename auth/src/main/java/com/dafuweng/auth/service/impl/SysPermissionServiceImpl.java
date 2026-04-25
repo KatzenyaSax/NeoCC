@@ -33,6 +33,7 @@ public class SysPermissionServiceImpl implements SysPermissionService {
     public PageResponse<SysPermissionEntity> pageList(PageRequest request) {
         IPage<SysPermissionEntity> page = new Page<>(request.getPage(), request.getSize());
         LambdaQueryWrapper<SysPermissionEntity> wrapper = new LambdaQueryWrapper<>();
+        wrapper.eq(SysPermissionEntity::getDeleted, (short) 0);
         if (StringUtils.hasText(request.getSortField())) {
             if ("asc".equalsIgnoreCase(request.getSortOrder())) {
                 wrapper.orderByAsc(SysPermissionEntity::getId);
@@ -50,6 +51,7 @@ public class SysPermissionServiceImpl implements SysPermissionService {
     @Override
     public List<SysPermissionEntity> listByStatus(Short status) {
         LambdaQueryWrapper<SysPermissionEntity> wrapper = new LambdaQueryWrapper<>();
+        wrapper.eq(SysPermissionEntity::getDeleted, (short) 0);
         wrapper.eq(SysPermissionEntity::getStatus, status);
         wrapper.orderByAsc(SysPermissionEntity::getSortOrder);
         return sysPermissionDao.selectList(wrapper);
@@ -58,6 +60,7 @@ public class SysPermissionServiceImpl implements SysPermissionService {
     @Override
     public List<SysPermissionEntity> treeList() {
         LambdaQueryWrapper<SysPermissionEntity> wrapper = new LambdaQueryWrapper<>();
+        wrapper.eq(SysPermissionEntity::getDeleted, (short) 0);
         wrapper.orderByAsc(SysPermissionEntity::getSortOrder);
         return sysPermissionDao.selectList(wrapper);
     }
@@ -65,6 +68,7 @@ public class SysPermissionServiceImpl implements SysPermissionService {
     @Override
     public List<SysPermissionEntity> listByParentId(Long parentId) {
         LambdaQueryWrapper<SysPermissionEntity> wrapper = new LambdaQueryWrapper<>();
+        wrapper.eq(SysPermissionEntity::getDeleted, (short) 0);
         wrapper.eq(SysPermissionEntity::getParentId, parentId);
         wrapper.orderByAsc(SysPermissionEntity::getSortOrder);
         return sysPermissionDao.selectList(wrapper);
@@ -73,6 +77,7 @@ public class SysPermissionServiceImpl implements SysPermissionService {
     @Override
     @Transactional
     public SysPermissionEntity save(SysPermissionEntity entity) {
+        entity.setDeleted((short) 0);
         sysPermissionDao.insert(entity);
         return entity;
     }
@@ -80,7 +85,13 @@ public class SysPermissionServiceImpl implements SysPermissionService {
     @Override
     @Transactional
     public SysPermissionEntity update(SysPermissionEntity entity) {
-        sysPermissionDao.updateById(entity);
+        if (entity.getDeleted() != null && entity.getDeleted() == 1) {
+            // Soft delete - use custom method to SET deleted=1 instead of filtering by deleted=0
+            sysPermissionDao.softDeleteById(entity.getId());
+        } else {
+            // Normal update
+            sysPermissionDao.updateById(entity);
+        }
         return entity;
     }
 

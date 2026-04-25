@@ -54,6 +54,7 @@ public class LoanAuditServiceImpl implements LoanAuditService {
     public PageResponse<LoanAuditEntity> pageList(PageRequest request) {
         IPage<LoanAuditEntity> page = new Page<>(request.getPage(), request.getSize());
         LambdaQueryWrapper<LoanAuditEntity> wrapper = new LambdaQueryWrapper<>();
+        wrapper.eq(LoanAuditEntity::getDeleted, (short) 0);
         if (StringUtils.hasText(request.getSortField())) {
             if ("asc".equalsIgnoreCase(request.getSortOrder())) {
                 wrapper.orderByAsc(LoanAuditEntity::getId);
@@ -72,12 +73,14 @@ public class LoanAuditServiceImpl implements LoanAuditService {
     public List<LoanAuditEntity> listByFinanceSpecialistId(Long financeSpecialistId) {
         LambdaQueryWrapper<LoanAuditEntity> wrapper = new LambdaQueryWrapper<>();
         wrapper.eq(LoanAuditEntity::getFinanceSpecialistId, financeSpecialistId);
+        wrapper.eq(LoanAuditEntity::getDeleted, (short) 0);
         return loanAuditDao.selectList(wrapper);
     }
 
     @Override
     @Transactional
     public LoanAuditEntity save(LoanAuditEntity entity) {
+        entity.setDeleted((short) 0);
         loanAuditDao.insert(entity);
         return entity;
     }
@@ -85,7 +88,11 @@ public class LoanAuditServiceImpl implements LoanAuditService {
     @Override
     @Transactional
     public LoanAuditEntity update(LoanAuditEntity entity) {
-        loanAuditDao.updateById(entity);
+        if (entity.getDeleted() != null && entity.getDeleted() == 1) {
+            loanAuditDao.softDeleteById(entity.getId());
+        } else {
+            loanAuditDao.updateById(entity);
+        }
         return entity;
     }
 

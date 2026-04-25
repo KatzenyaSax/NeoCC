@@ -69,6 +69,7 @@ public class SysUserServiceImpl implements SysUserService {
     public PageResponse<SysUserEntity> pageList(PageRequest request) {
         IPage<SysUserEntity> page = new Page<>(request.getPage(), request.getSize());
         LambdaQueryWrapper<SysUserEntity> wrapper = new LambdaQueryWrapper<>();
+        wrapper.eq(SysUserEntity::getDeleted, (short) 0);
         applySort(wrapper, request);
         IPage<SysUserEntity> result = sysUserDao.selectPage(page, wrapper);
         result.getRecords().forEach(u -> u.setPassword(null));
@@ -121,6 +122,7 @@ public class SysUserServiceImpl implements SysUserService {
         // 1. query user page data
         IPage<SysUserEntity> page = new Page<>(request.getPage(), request.getSize());
         LambdaQueryWrapper<SysUserEntity> wrapper = new LambdaQueryWrapper<>();
+        wrapper.eq(SysUserEntity::getDeleted, (short) 0);
         applySort(wrapper, request);
         IPage<SysUserEntity> result = sysUserDao.selectPage(page, wrapper);
         result.getRecords().forEach(u -> u.setPassword(null));
@@ -313,6 +315,7 @@ public class SysUserServiceImpl implements SysUserService {
     @Override
     @Transactional
     public SysUserEntity save(SysUserEntity entity) {
+        entity.setDeleted((short) 0);
         sysUserDao.insert(entity);
         return entity;
     }
@@ -320,7 +323,13 @@ public class SysUserServiceImpl implements SysUserService {
     @Override
     @Transactional
     public SysUserEntity update(SysUserEntity entity) {
-        sysUserDao.updateById(entity);
+        if (entity.getDeleted() != null && entity.getDeleted() == 1) {
+            // Soft delete - use custom method to SET deleted=1 instead of filtering by deleted=0
+            sysUserDao.softDeleteById(entity.getId());
+        } else {
+            // Normal update
+            sysUserDao.updateById(entity);
+        }
         return entity;
     }
 

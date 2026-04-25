@@ -44,6 +44,7 @@ public class SysParamServiceImpl implements SysParamService {
     public PageResponse<SysParamEntity> pageList(PageRequest request) {
         IPage<SysParamEntity> page = new Page<>(request.getPage(), request.getSize());
         LambdaQueryWrapper<SysParamEntity> wrapper = new LambdaQueryWrapper<>();
+        wrapper.eq(SysParamEntity::getDeleted, (short) 0);
         if (StringUtils.hasText(request.getSortField())) {
             if ("asc".equalsIgnoreCase(request.getSortOrder())) {
                 wrapper.orderByAsc(SysParamEntity::getId);
@@ -61,6 +62,7 @@ public class SysParamServiceImpl implements SysParamService {
     @Override
     public List<SysParamEntity> listByParamGroup(String paramGroup) {
         LambdaQueryWrapper<SysParamEntity> wrapper = new LambdaQueryWrapper<>();
+        wrapper.eq(SysParamEntity::getDeleted, (short) 0);
         wrapper.eq(SysParamEntity::getParamGroup, paramGroup);
         wrapper.orderByAsc(SysParamEntity::getSortOrder);
         return sysParamDao.selectList(wrapper);
@@ -70,6 +72,7 @@ public class SysParamServiceImpl implements SysParamService {
     @Transactional
     @CacheEvict(value = "param", key = "#entity.paramKey")
     public SysParamEntity save(SysParamEntity entity) {
+        entity.setDeleted((short) 0);
         sysParamDao.insert(entity);
         return entity;
     }
@@ -78,7 +81,11 @@ public class SysParamServiceImpl implements SysParamService {
     @Transactional
     @CacheEvict(value = "param", key = "#entity.paramKey")
     public SysParamEntity update(SysParamEntity entity) {
-        sysParamDao.updateById(entity);
+        if (entity.getDeleted() != null && entity.getDeleted() == 1) {
+            sysParamDao.softDeleteById(entity.getId());
+        } else {
+            sysParamDao.updateById(entity);
+        }
         return entity;
     }
 

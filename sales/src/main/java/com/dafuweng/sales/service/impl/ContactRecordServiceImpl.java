@@ -39,6 +39,7 @@ public class ContactRecordServiceImpl implements ContactRecordService {
         } else {
             wrapper.orderByDesc(ContactRecordEntity::getCreatedAt);
         }
+        wrapper.eq(ContactRecordEntity::getDeleted, (short) 0);
         IPage<ContactRecordEntity> result = contactRecordDao.selectPage(page, wrapper);
         return PageResponse.of(result.getTotal(), result.getRecords(),
             (int) page.getCurrent() , (int) page.getSize());
@@ -61,6 +62,7 @@ public class ContactRecordServiceImpl implements ContactRecordService {
         }
         LambdaQueryWrapper<ContactRecordEntity> wrapper = new LambdaQueryWrapper<>();
         wrapper.in(ContactRecordEntity::getSalesRepId, salesRepIds);
+        wrapper.eq(ContactRecordEntity::getDeleted, (short) 0);
         wrapper.orderByDesc(ContactRecordEntity::getContactDate);
         return contactRecordDao.selectList(wrapper);
     }
@@ -68,6 +70,7 @@ public class ContactRecordServiceImpl implements ContactRecordService {
     @Override
     @Transactional
     public ContactRecordEntity save(ContactRecordEntity entity) {
+        entity.setDeleted((short) 0);
         contactRecordDao.insert(entity);
         return entity;
     }
@@ -75,7 +78,11 @@ public class ContactRecordServiceImpl implements ContactRecordService {
     @Override
     @Transactional
     public ContactRecordEntity update(ContactRecordEntity entity) {
-        contactRecordDao.updateById(entity);
+        if (entity.getDeleted() != null && entity.getDeleted() == 1) {
+            contactRecordDao.softDeleteById(entity.getId());
+        } else {
+            contactRecordDao.updateById(entity);
+        }
         return entity;
     }
 

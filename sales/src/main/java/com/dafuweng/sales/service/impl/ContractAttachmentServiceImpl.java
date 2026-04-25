@@ -39,6 +39,7 @@ public class ContractAttachmentServiceImpl implements ContractAttachmentService 
         } else {
             wrapper.orderByDesc(ContractAttachmentEntity::getId);
         }
+        wrapper.eq(ContractAttachmentEntity::getDeleted, (short) 0);
         IPage<ContractAttachmentEntity> result = contractAttachmentDao.selectPage(page, wrapper);
         return PageResponse.of(result.getTotal(), result.getRecords(),
             (int) page.getCurrent() , (int) page.getSize());
@@ -52,6 +53,7 @@ public class ContractAttachmentServiceImpl implements ContractAttachmentService 
     @Override
     @Transactional
     public ContractAttachmentEntity save(ContractAttachmentEntity entity) {
+        entity.setDeleted((short) 0);
         contractAttachmentDao.insert(entity);
         return entity;
     }
@@ -59,7 +61,11 @@ public class ContractAttachmentServiceImpl implements ContractAttachmentService 
     @Override
     @Transactional
     public ContractAttachmentEntity update(ContractAttachmentEntity entity) {
-        contractAttachmentDao.updateById(entity);
+        if (entity.getDeleted() != null && entity.getDeleted() == 1) {
+            contractAttachmentDao.softDeleteById(entity.getId());
+        } else {
+            contractAttachmentDao.updateById(entity);
+        }
         return entity;
     }
 

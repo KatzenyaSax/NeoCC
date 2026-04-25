@@ -106,6 +106,7 @@ public class CustomerServiceImpl implements CustomerService {
         } else {
             wrapper.orderByDesc(CustomerEntity::getCreatedAt);
         }
+        wrapper.eq(CustomerEntity::getDeleted, (short) 0);
         IPage<CustomerEntity> result = customerDao.selectPage(page, wrapper);
         return PageResponse.of(result.getTotal(), result.getRecords(),
             (int) page.getCurrent(), (int) page.getSize());
@@ -113,12 +114,18 @@ public class CustomerServiceImpl implements CustomerService {
 
     @Override
     public List<CustomerEntity> listBySalesRepId(Long salesRepId) {
-        return customerDao.selectBySalesRepId(salesRepId);
+        LambdaQueryWrapper<CustomerEntity> wrapper = new LambdaQueryWrapper<>();
+        wrapper.eq(CustomerEntity::getSalesRepId, salesRepId);
+        wrapper.eq(CustomerEntity::getDeleted, (short) 0);
+        return customerDao.selectList(wrapper);
     }
 
     @Override
     public List<CustomerEntity> listByStatus(Short status) {
-        return customerDao.selectByStatus(status);
+        LambdaQueryWrapper<CustomerEntity> wrapper = new LambdaQueryWrapper<>();
+        wrapper.eq(CustomerEntity::getStatus, status);
+        wrapper.eq(CustomerEntity::getDeleted, (short) 0);
+        return customerDao.selectList(wrapper);
     }
 
     @Override
@@ -129,6 +136,7 @@ public class CustomerServiceImpl implements CustomerService {
     @Override
     @Transactional
     public CustomerEntity save(CustomerEntity entity) {
+        entity.setDeleted((short) 0);
         customerDao.insert(entity);
         return entity;
     }
@@ -136,7 +144,11 @@ public class CustomerServiceImpl implements CustomerService {
     @Override
     @Transactional
     public CustomerEntity update(CustomerEntity entity) {
-        customerDao.updateById(entity);
+        if (entity.getDeleted() != null && entity.getDeleted() == 1) {
+            customerDao.softDeleteById(entity.getId());
+        } else {
+            customerDao.updateById(entity);
+        }
         return entity;
     }
 

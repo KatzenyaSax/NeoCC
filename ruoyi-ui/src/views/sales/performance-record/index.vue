@@ -214,9 +214,10 @@ function handleUpdate(row) {
 function submitForm() {
   proxy.$refs["formRef"].validate(valid => {
     if (!valid) return
-    const fn = form.value.id ? updatePerformanceRecord : addPerformanceRecord
+    const isAdd = title.value.includes('新增')
+    const fn = isAdd ? addPerformanceRecord : updatePerformanceRecord
     fn(form.value).then(() => {
-      proxy.$modal.msgSuccess(form.value.id ? "修改成功" : "新增成功")
+      proxy.$modal.msgSuccess(isAdd ? "新增成功" : "修改成功")
       open.value = false
       getList()
     })

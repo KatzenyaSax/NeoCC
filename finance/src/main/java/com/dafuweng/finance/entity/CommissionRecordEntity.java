@@ -1,7 +1,6 @@
 package com.dafuweng.finance.entity;
 
 import com.baomidou.mybatisplus.annotation.TableId;
-import com.baomidou.mybatisplus.annotation.TableLogic;
 import com.baomidou.mybatisplus.annotation.TableName;
 import lombok.Data;
 
@@ -42,6 +41,5 @@ public class CommissionRecordEntity implements Serializable {
 
     private Date updatedAt;
 
-    @TableLogic
     private Short deleted;
 }

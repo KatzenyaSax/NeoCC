@@ -66,6 +66,11 @@
           AND status NOT IN (3, 4, 5)
           AND next_follow_up_date &lt; NOW()
           AND created_at &lt; DATE_SUB(NOW(), INTERVAL #{publicSeaDays} DAY)
+        <if test="wrapper != null">
+            <foreach collection="wrapper.customSqlSegment" item="sql">
+                ${sql}
+            </foreach>
+        </if>
     </select>
 
 </mapper>

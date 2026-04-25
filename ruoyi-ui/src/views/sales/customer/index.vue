@@ -91,26 +91,7 @@
             />
           </el-select>
         </el-form-item>
-        <el-form-item label="部门" prop="deptId">
-          <el-select v-model="form.deptId" placeholder="请选择部门" clearable>
-            <el-option
-              v-for="item in deptOptions"
-              :key="item.id"
-              :label="item.name"
-              :value="item.id"
-            />
-          </el-select>
-        </el-form-item>
-        <el-form-item label="战区" prop="zoneId">
-          <el-select v-model="form.zoneId" placeholder="请选择战区" clearable>
-            <el-option
-              v-for="item in zoneOptions"
-              :key="item.id"
-              :label="item.name"
-              :value="item.id"
-            />
-          </el-select>
-        </el-form-item>
+
         <el-form-item label="来源" prop="source">
           <el-input v-model="form.source" placeholder="请输入来源" />
         </el-form-item>
@@ -180,7 +161,7 @@ import { listCustomer, getCustomer, delCustomer, addCustomer, updateCustomer, ge
 import { listSalesReps } from "@/api/system/user"
 import { listAllDepartment } from "@/api/system/department"
 import { listAllZone } from "@/api/system/zone"
-import { addCustomerTransfer } from "@/api/sales/customerTransfer"
+import { addCustomerTransfer, getMinUnusedTransferId } from "@/api/sales/customerTransfer"
 import useUserStore from '@/store/modules/user'
 
 const { proxy } = getCurrentInstance()
@@ -444,6 +425,12 @@ function submitForm() {
               form.value.zoneId = newSalesRep.zoneId
             }
           }
+          // 如果客户状态变为公海，清除销售代表相关信息
+          if (originalCustomer.status !== 5 && form.value.status === 5) {
+            form.value.deptId = null
+            form.value.zoneId = null
+            form.value.salesRepId = null
+          }
           // 调用更新接口
           updateCustomer(form.value).then(response => {
             // 如果销售代表发生了变化，创建转移日志
@@ -463,17 +450,38 @@ function submitForm() {
                 reason = "总经理调整"
               }
               // 创建转移日志
-              addCustomerTransfer({
-                customerId: form.value.id,
-                fromRepId: originalCustomer.salesRepId,
-                toRepId: form.value.salesRepId,
-                operateType: operateType,
-                reason: reason,
-                operatedBy: userStore.id
-              }).then(() => {
-                // 转移日志创建成功
-              }).catch(() => {
-                // 忽略转移日志创建失败的情况
+              getMinUnusedTransferId().then(res => {
+                addCustomerTransfer({
+                  id: res.data || res,
+                  customerId: form.value.id,
+                  fromRepId: originalCustomer.salesRepId,
+                  toRepId: form.value.salesRepId,
+                  operateType: operateType,
+                  reason: reason,
+                  operatedBy: userStore.id
+                }).then(() => {
+                  // 转移日志创建成功
+                }).catch(() => {
+                  // 忽略转移日志创建失败的情况
+                })
+              })
+            }
+            // 如果客户状态变为公海，创建转移日志
+            if (originalCustomer.status !== 5 && form.value.status === 5) {
+              getMinUnusedTransferId().then(res => {
+                addCustomerTransfer({
+                  id: res.data || res,
+                  customerId: form.value.id,
+                  fromRepId: originalCustomer.salesRepId,
+                  toRepId: null,
+                  operateType: "PUBLIC_SEA",
+                  reason: "客户进入公海",
+                  operatedBy: userStore.id
+                }).then(() => {
+                  // 转移日志创建成功
+                }).catch(() => {
+                  // 忽略转移日志创建失败的情况
+                })
               })
             }
             proxy.$modal.msgSuccess("修改成功")

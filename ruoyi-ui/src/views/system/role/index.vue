@@ -51,7 +51,7 @@
         <el-row>
           <el-col :span="12">
             <el-form-item label="角色编码" prop="roleCode">
-              <el-input v-model="form.roleCode" placeholder="请输入角色编码" :disabled="!!form.id" />
+              <el-input v-model="form.roleCode" placeholder="请输入角色编码"  />
             </el-form-item>
           </el-col>
           <el-col :span="12">
@@ -175,9 +175,10 @@ function handleUpdate(row) {
 function submitForm() {
   proxy.$refs["formRef"].validate(valid => {
     if (!valid) return
-    const fn = form.value.id ? updateRole : addRole
+    const isAdd = title.value.includes('新增')
+    const fn = isAdd ? addRole : updateRole
     fn(form.value).then(() => {
-      proxy.$modal.msgSuccess(form.value.id ? "修改成功" : "新增成功")
+      proxy.$modal.msgSuccess(isAdd ? "新增成功" : "修改成功")
       open.value = false
       getList()
     })

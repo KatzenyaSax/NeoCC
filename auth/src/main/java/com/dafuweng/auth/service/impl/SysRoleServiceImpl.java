@@ -43,6 +43,7 @@ public class SysRoleServiceImpl implements SysRoleService {
     public PageResponse<SysRoleEntity> pageList(PageRequest request) {
         IPage<SysRoleEntity> page = new Page<>(request.getPage(), request.getSize());
         LambdaQueryWrapper<SysRoleEntity> wrapper = new LambdaQueryWrapper<>();
+        wrapper.eq(SysRoleEntity::getDeleted, (short) 0);
         if (StringUtils.hasText(request.getSortField())) {
             if ("asc".equalsIgnoreCase(request.getSortOrder())) {
                 wrapper.orderByAsc(SysRoleEntity::getId);
@@ -60,6 +61,7 @@ public class SysRoleServiceImpl implements SysRoleService {
     @Override
     public List<SysRoleEntity> listByStatus(Short status) {
         LambdaQueryWrapper<SysRoleEntity> wrapper = new LambdaQueryWrapper<>();
+        wrapper.eq(SysRoleEntity::getDeleted, (short) 0);
         wrapper.eq(SysRoleEntity::getStatus, status);
         return sysRoleDao.selectList(wrapper);
     }
@@ -90,6 +92,7 @@ public class SysRoleServiceImpl implements SysRoleService {
     @Override
     @Transactional
     public SysRoleEntity save(SysRoleEntity entity) {
+        entity.setDeleted((short) 0);
         sysRoleDao.insert(entity);
         return entity;
     }
@@ -97,7 +100,13 @@ public class SysRoleServiceImpl implements SysRoleService {
     @Override
     @Transactional
     public SysRoleEntity update(SysRoleEntity entity) {
-        sysRoleDao.updateById(entity);
+        if (entity.getDeleted() != null && entity.getDeleted() == 1) {
+            // Soft delete - use custom method to SET deleted=1 instead of filtering by deleted=0
+            sysRoleDao.softDeleteById(entity.getId());
+        } else {
+            // Normal update
+            sysRoleDao.updateById(entity);
+        }
         return entity;
     }
 

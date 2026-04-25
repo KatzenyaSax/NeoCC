@@ -5,6 +5,7 @@ import com.dafuweng.sales.entity.ContractAttachmentEntity;
 import org.apache.ibatis.annotations.Mapper;
 import org.apache.ibatis.annotations.Param;
 import org.apache.ibatis.annotations.Select;
+import org.apache.ibatis.annotations.Update;
 
 import java.util.List;
 
@@ -13,6 +14,9 @@ public interface ContractAttachmentDao extends BaseMapper<ContractAttachmentEnti
 
     List<ContractAttachmentEntity> selectByContractId(@Param("contractId") Long contractId);
 
-    @Select("SELECT COALESCE(MIN(t.id + 1), 1) FROM (SELECT 1 as id UNION SELECT MAX(id) + 1 FROM contract_attachment) t WHERE NOT EXISTS (SELECT 1 FROM contract_attachment c WHERE c.id = t.id)")
+    @Select("SELECT COALESCE(MIN(t.id + 1), 1) FROM (SELECT 1 as id UNION SELECT MAX(id) + 1 FROM contract_attachment) t WHERE NOT EXISTS (SELECT 1 FROM contract_attachment c WHERE c.id = t.id AND c.deleted = 0)")
     Long selectMinUnusedId();
+
+    @Update("UPDATE contract_attachment SET deleted = 1 WHERE id = #{id}")
+    int softDeleteById(@Param("id") Long id);
 }

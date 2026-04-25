@@ -30,6 +30,7 @@ public class BankServiceImpl implements BankService {
     public PageResponse<BankEntity> pageList(PageRequest request) {
         IPage<BankEntity> page = new Page<>(request.getPage(), request.getSize());
         LambdaQueryWrapper<BankEntity> wrapper = new LambdaQueryWrapper<>();
+        wrapper.eq(BankEntity::getDeleted, (short) 0);
         if (StringUtils.hasText(request.getSortField())) {
             if ("asc".equalsIgnoreCase(request.getSortOrder())) {
                 wrapper.orderByAsc(BankEntity::getId);
@@ -48,12 +49,14 @@ public class BankServiceImpl implements BankService {
     public List<BankEntity> listByStatus(Short status) {
         LambdaQueryWrapper<BankEntity> wrapper = new LambdaQueryWrapper<>();
         wrapper.eq(BankEntity::getStatus, status);
+        wrapper.eq(BankEntity::getDeleted, (short) 0);
         return bankDao.selectList(wrapper);
     }
 
     @Override
     @Transactional
     public BankEntity save(BankEntity entity) {
+        entity.setDeleted((short) 0);
         bankDao.insert(entity);
         return entity;
     }
@@ -61,7 +64,11 @@ public class BankServiceImpl implements BankService {
     @Override
     @Transactional
     public BankEntity update(BankEntity entity) {
-        bankDao.updateById(entity);
+        if (entity.getDeleted() != null && entity.getDeleted() == 1) {
+            bankDao.softDeleteById(entity.getId());
+        } else {
+            bankDao.updateById(entity);
+        }
         return entity;
     }
 

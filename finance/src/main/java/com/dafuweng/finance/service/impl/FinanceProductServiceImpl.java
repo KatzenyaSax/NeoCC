@@ -30,6 +30,7 @@ public class FinanceProductServiceImpl implements FinanceProductService {
     public PageResponse<FinanceProductEntity> pageList(PageRequest request) {
         IPage<FinanceProductEntity> page = new Page<>(request.getPage(), request.getSize());
         LambdaQueryWrapper<FinanceProductEntity> wrapper = new LambdaQueryWrapper<>();
+        wrapper.eq(FinanceProductEntity::getDeleted, (short) 0);
         if (StringUtils.hasText(request.getSortField())) {
             if ("asc".equalsIgnoreCase(request.getSortOrder())) {
                 wrapper.orderByAsc(FinanceProductEntity::getId);
@@ -46,19 +47,24 @@ public class FinanceProductServiceImpl implements FinanceProductService {
 
     @Override
     public List<FinanceProductEntity> listByBankId(Long bankId) {
-        return financeProductDao.selectByBankId(bankId);
+        LambdaQueryWrapper<FinanceProductEntity> wrapper = new LambdaQueryWrapper<>();
+        wrapper.eq(FinanceProductEntity::getBankId, bankId);
+        wrapper.eq(FinanceProductEntity::getDeleted, (short) 0);
+        return financeProductDao.selectList(wrapper);
     }
 
     @Override
     public List<FinanceProductEntity> listByStatus(Short status) {
         LambdaQueryWrapper<FinanceProductEntity> wrapper = new LambdaQueryWrapper<>();
         wrapper.eq(FinanceProductEntity::getStatus, status);
+        wrapper.eq(FinanceProductEntity::getDeleted, (short) 0);
         return financeProductDao.selectList(wrapper);
     }
 
     @Override
     @Transactional
     public FinanceProductEntity save(FinanceProductEntity entity) {
+        entity.setDeleted((short) 0);
         financeProductDao.insert(entity);
         return entity;
     }
@@ -66,7 +72,11 @@ public class FinanceProductServiceImpl implements FinanceProductService {
     @Override
     @Transactional
     public FinanceProductEntity update(FinanceProductEntity entity) {
-        financeProductDao.updateById(entity);
+        if (entity.getDeleted() != null && entity.getDeleted() == 1) {
+            financeProductDao.softDeleteById(entity.getId());
+        } else {
+            financeProductDao.updateById(entity);
+        }
         return entity;
     }
 

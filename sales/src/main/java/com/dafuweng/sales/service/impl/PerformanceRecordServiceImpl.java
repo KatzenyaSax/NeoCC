@@ -39,6 +39,7 @@ public class PerformanceRecordServiceImpl implements PerformanceRecordService {
         } else {
             wrapper.orderByDesc(PerformanceRecordEntity::getCreatedAt);
         }
+        wrapper.eq(PerformanceRecordEntity::getDeleted, (short) 0);
         IPage<PerformanceRecordEntity> result = performanceRecordDao.selectPage(page, wrapper);
         return PageResponse.of(result.getTotal(), result.getRecords(),
             (int) page.getCurrent() , (int) page.getSize());
@@ -48,12 +49,14 @@ public class PerformanceRecordServiceImpl implements PerformanceRecordService {
     public List<PerformanceRecordEntity> listBySalesRepId(Long salesRepId) {
         LambdaQueryWrapper<PerformanceRecordEntity> wrapper = new LambdaQueryWrapper<>();
         wrapper.eq(PerformanceRecordEntity::getSalesRepId, salesRepId);
+        wrapper.eq(PerformanceRecordEntity::getDeleted, (short) 0);
         return performanceRecordDao.selectList(wrapper);
     }
 
     @Override
     @Transactional
     public PerformanceRecordEntity save(PerformanceRecordEntity entity) {
+        entity.setDeleted((short) 0);
         performanceRecordDao.insert(entity);
         return entity;
     }
@@ -61,7 +64,11 @@ public class PerformanceRecordServiceImpl implements PerformanceRecordService {
     @Override
     @Transactional
     public PerformanceRecordEntity update(PerformanceRecordEntity entity) {
-        performanceRecordDao.updateById(entity);
+        if (entity.getDeleted() != null && entity.getDeleted() == 1) {
+            performanceRecordDao.softDeleteById(entity.getId());
+        } else {
+            performanceRecordDao.updateById(entity);
+        }
         return entity;
     }
 
