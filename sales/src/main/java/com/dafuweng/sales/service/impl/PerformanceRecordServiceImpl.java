@@ -72,6 +72,11 @@ public class PerformanceRecordServiceImpl implements PerformanceRecordService {
     }
 
     @Override
+    public Long getMinUnusedId() {
+        return performanceRecordDao.selectMinUnusedId();
+    }
+
+    @Override
     public PerformanceRecordEntity getByContractId(Long contractId) {
         LambdaQueryWrapper<PerformanceRecordEntity> wrapper = new LambdaQueryWrapper<>();
         wrapper.eq(PerformanceRecordEntity::getContractId, contractId);

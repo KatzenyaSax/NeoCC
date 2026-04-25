@@ -47,4 +47,9 @@ public class CustomerTransferLogController {
         customerTransferLogService.delete(id);
         return Result.success();
     }
+
+    @GetMapping("/min-unused-id")
+    public Result<Long> getMinUnusedId() {
+        return Result.success(customerTransferLogService.getMinUnusedId());
+    }
 }

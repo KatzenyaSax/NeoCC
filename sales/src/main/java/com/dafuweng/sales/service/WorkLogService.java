@@ -27,4 +27,6 @@ public interface WorkLogService {
 
     @Transactional
     void delete(Long id);
+
+    Long getMinUnusedId();
 }

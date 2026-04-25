@@ -59,3 +59,11 @@ export function delZone(id) {
     method: 'delete'
   })
 }
+
+// 获取最小未使用的区域ID
+export function getMinUnusedZoneId() {
+  return request({
+    url: '/sysZone/min-unused-id',
+    method: 'get'
+  })
+}

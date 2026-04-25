@@ -143,6 +143,11 @@ public class ContractServiceImpl implements ContractService {
     }
 
     @Override
+    public Long getMinUnusedId() {
+        return contractDao.selectMinUnusedId();
+    }
+
+    @Override
     public String generateContractNo() {
         String dateStr = LocalDate.now().format(DateTimeFormatter.ofPattern("yyyyMMdd"));
         String prefix = "HT-" + dateStr + "-";

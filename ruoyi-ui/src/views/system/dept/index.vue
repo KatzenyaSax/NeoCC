@@ -110,7 +110,7 @@
 </template>
 
 <script setup>
-import { listDepartment, getDepartment, addDepartment, updateDepartment, delDepartment, listAllDepartment } from "@/api/system/department"
+import { listDepartment, getDepartment, addDepartment, updateDepartment, delDepartment, listAllDepartment, getMinUnusedDeptId } from "@/api/system/department"
 import { listAllZone } from "@/api/system/zone"
 import { listUsersByRoleIds } from "@/api/system/user"
 
@@ -197,7 +197,15 @@ function handleSortChange({ prop, order }) {
   getList()
 }
 
-function handleAdd() { reset(); loadDropdownOptions(); open.value = true; title.value = "新增部门" }
+function handleAdd() {
+  reset()
+  loadDropdownOptions()
+  open.value = true
+  title.value = "新增部门"
+  getMinUnusedDeptId().then(res => {
+    form.value.id = res.data || res
+  })
+}
 
 function handleUpdate(row) {
   reset()
@@ -222,7 +230,7 @@ function submitForm() {
 }
 
 function handleDelete(row) {
-  proxy.$modal.confirm('是否确认删除部门【' + row.deptName + '】？').then(() => delDepartment(row.id)).then(() => {
+  proxy.$modal.confirm('是否确认删除部门【' + row.deptName + '】？').then(() => updateDepartment({ id: row.id, deleted: 1 })).then(() => {
     getList()
     proxy.$modal.msgSuccess("删除成功")
   }).catch(() => {})

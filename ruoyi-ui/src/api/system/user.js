@@ -65,6 +65,11 @@ export function getMinAvailableId() {
   return request({ url: '/sysUser/min-available-id', method: 'get' })
 }
 
+// 获取最小未使用用户ID
+export function getMinUnusedUserId() {
+  return request({ url: '/sysUser/min-unused-id', method: 'get' })
+}
+
 // 获取销售代表列表（支持条件过滤）
 export function listSalesReps(params) {
   return request({ url: '/sysUser/sales-reps', method: 'get', params })

@@ -68,4 +68,9 @@ public class CustomerTransferLogServiceImpl implements CustomerTransferLogServic
     public void delete(Long id) {
         customerTransferLogDao.deleteById(id);
     }
+
+    @Override
+    public Long getMinUnusedId() {
+        return customerTransferLogDao.selectMinUnusedId();
+    }
 }

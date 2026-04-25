@@ -91,4 +91,10 @@ public class SysParamServiceImpl implements SysParamService {
             sysParamDao.deleteById(id);
         }
     }
+
+    @Override
+    public Long getMinUnusedId() {
+        Long minId = sysParamDao.selectMinUnusedId();
+        return minId != null ? minId : 1L;
+    }
 }

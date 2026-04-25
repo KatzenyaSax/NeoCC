@@ -57,4 +57,9 @@ public class WorkLogController {
         workLogService.delete(id);
         return Result.success();
     }
+
+    @GetMapping("/min-unused-id")
+    public Result<Long> getMinUnusedId() {
+        return Result.success(workLogService.getMinUnusedId());
+    }
 }

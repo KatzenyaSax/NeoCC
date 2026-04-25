@@ -106,7 +106,7 @@
 </template>
 
 <script setup>
-import { listRole, getRole, addRole, updateRole, delRole, getRolePermissions, assignRolePermissions } from "@/api/system/role"
+import { listRole, getRole, addRole, updateRole, delRole, getRolePermissions, assignRolePermissions, getMinUnusedRoleId } from "@/api/system/role"
 import { treePermission } from "@/api/system/permission"
 
 const { proxy } = getCurrentInstance()
@@ -154,7 +154,14 @@ function handleSortChange({ prop, order }) {
   getList()
 }
 function resetQuery() { proxy.resetForm && proxy.resetForm("queryRef"); handleQuery() }
-function handleAdd() { reset(); open.value = true; title.value = "新增角色" }
+function handleAdd() {
+  reset()
+  open.value = true
+  title.value = "新增角色"
+  getMinUnusedRoleId().then(res => {
+    form.value.id = res.data || res
+  })
+}
 
 function handleUpdate(row) {
   reset()
@@ -178,7 +185,7 @@ function submitForm() {
 }
 
 function handleDelete(row) {
-  proxy.$modal.confirm('是否确认删除角色【' + row.roleName + '】？').then(() => delRole(row.id)).then(() => {
+  proxy.$modal.confirm('是否确认删除角色【' + row.roleName + '】？').then(() => updateRole({ id: row.id, deleted: 1 })).then(() => {
     getList()
     proxy.$modal.msgSuccess("删除成功")
   }).catch(() => {})

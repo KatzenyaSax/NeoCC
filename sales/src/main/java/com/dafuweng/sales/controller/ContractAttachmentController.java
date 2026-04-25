@@ -47,4 +47,9 @@ public class ContractAttachmentController {
         contractAttachmentService.delete(id);
         return Result.success();
     }
+
+    @GetMapping("/min-unused-id")
+    public Result<Long> getMinUnusedId() {
+        return Result.success(contractAttachmentService.getMinUnusedId());
+    }
 }

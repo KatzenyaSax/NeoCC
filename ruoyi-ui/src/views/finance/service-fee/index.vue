@@ -113,7 +113,7 @@
 </template>
 
 <script setup>
-import { listServiceFeeRecord, getServiceFeeRecord, addServiceFeeRecord, updateServiceFeeRecord, delServiceFeeRecord, confirmPay } from "@/api/finance/serviceFeeRecord"
+import { listServiceFeeRecord, getServiceFeeRecord, addServiceFeeRecord, updateServiceFeeRecord, delServiceFeeRecord, confirmPay, getMinUnusedServiceFeeRecordId } from "@/api/finance/serviceFeeRecord"
 
 const { proxy } = getCurrentInstance()
 const dataList = ref([])
@@ -160,7 +160,14 @@ function handleSortChange({ prop, order }) {
   getList()
 }
 
-function handleAdd() { reset(); open.value = true; title.value = "新增服务费记录" }
+function handleAdd() {
+  reset()
+  getMinUnusedServiceFeeRecordId().then(response => {
+    form.value.id = response.data || response
+    open.value = true
+    title.value = "新增服务费记录"
+  })
+}
 
 function handleUpdate(row) {
   reset()
@@ -199,7 +206,7 @@ function submitPay() {
 }
 
 function handleDelete(row) {
-  proxy.$modal.confirm('是否确认删除该服务费记录？').then(() => delServiceFeeRecord(row.id)).then(() => {
+  proxy.$modal.confirm('是否确认删除该服务费记录？').then(() => updateServiceFeeRecord({ id: row.id, deleted: 1 })).then(() => {
     getList()
     proxy.$modal.msgSuccess("删除成功")
   }).catch(() => {})

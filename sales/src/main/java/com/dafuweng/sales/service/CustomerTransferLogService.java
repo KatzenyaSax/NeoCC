@@ -30,4 +30,6 @@ public interface CustomerTransferLogService {
 
     @Transactional
     void delete(Long id);
+
+    Long getMinUnusedId();
 }

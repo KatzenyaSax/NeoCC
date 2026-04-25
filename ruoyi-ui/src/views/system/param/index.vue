@@ -112,7 +112,7 @@
 </template>
 
 <script setup>
-import { listParam, getParam, addParam, updateParam, delParam } from "@/api/system/param"
+import { listParam, getParam, addParam, updateParam, delParam, getMinUnusedParamId } from "@/api/system/param"
 
 const { proxy } = getCurrentInstance()
 const dataList = ref([])
@@ -157,7 +157,14 @@ function handleSortChange({ prop, order }) {
   getList()
 }
 
-function handleAdd() { reset(); open.value = true; title.value = "新增参数" }
+function handleAdd() {
+  reset()
+  open.value = true
+  title.value = "新增参数"
+  getMinUnusedParamId().then(res => {
+    form.value.id = res.data || res
+  })
+}
 
 function handleUpdate(row) {
   reset()
@@ -187,7 +194,7 @@ function submitForm() {
 }
 
 function handleDelete(row) {
-  proxy.$modal.confirm('是否确认删除参数"' + row.paramKey + '"？').then(() => delParam(row.id)).then(() => {
+  proxy.$modal.confirm('是否确认删除参数"' + row.paramKey + '"？').then(() => updateParam({ id: row.id, deleted: 1 })).then(() => {
     getList()
     proxy.$modal.msgSuccess("删除成功")
   }).catch(() => {})

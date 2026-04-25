@@ -67,3 +67,20 @@ export function getUserNamesByIds(ids) {
     data: ids
   })
 }
+
+// 批量查询客户名称
+export function getCustomerNamesByIds(ids) {
+  return request({
+    url: '/customer/names/by-ids',
+    method: 'post',
+    data: ids
+  })
+}
+
+// 获取最小未使用的客户ID
+export function getMinUnusedCustomerId() {
+  return request({
+    url: '/customer/min-unused-id',
+    method: 'get'
+  })
+}

@@ -68,4 +68,9 @@ public class ContractAttachmentServiceImpl implements ContractAttachmentService 
     public void delete(Long id) {
         contractAttachmentDao.deleteById(id);
     }
+
+    @Override
+    public Long getMinUnusedId() {
+        return contractAttachmentDao.selectMinUnusedId();
+    }
 }

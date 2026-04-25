@@ -29,3 +29,8 @@ export function updatePermission(data) {
 export function delPermission(id) {
   return request({ url: '/sysPermission/' + id, method: 'delete' })
 }
+
+// 获取最小未使用的权限ID
+export function getMinUnusedPermissionId() {
+  return request({ url: '/sysPermission/min-unused-id', method: 'get' })
+}

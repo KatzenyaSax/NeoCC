@@ -68,3 +68,11 @@ export function delParam(id) {
     method: 'delete'
   })
 }
+
+// 获取最小未使用的参数ID
+export function getMinUnusedParamId() {
+  return request({
+    url: '/sysParam/min-unused-id',
+    method: 'get'
+  })
+}

@@ -183,4 +183,10 @@ public class SysDepartmentServiceImpl implements SysDepartmentService {
     public void delete(Long id) {
         sysDepartmentDao.deleteById(id);
     }
+
+    @Override
+    public Long getMinUnusedId() {
+        Long minId = sysDepartmentDao.selectMinUnusedId();
+        return minId != null ? minId : 1L;
+    }
 }

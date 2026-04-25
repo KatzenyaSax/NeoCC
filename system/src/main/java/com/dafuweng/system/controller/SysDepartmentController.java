@@ -85,4 +85,12 @@ public class SysDepartmentController {
     public Result<Map<Long, String>> listDeptNamesByIds(@RequestBody List<Long> ids) {
         return Result.success(sysDepartmentService.listNamesByIds(ids));
     }
+
+    /**
+     * 获取最小未使用的部门ID
+     */
+    @GetMapping("/min-unused-id")
+    public Result<Long> getMinUnusedId() {
+        return Result.success(sysDepartmentService.getMinUnusedId());
+    }
 }

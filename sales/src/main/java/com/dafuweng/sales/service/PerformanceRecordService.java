@@ -31,5 +31,7 @@ public interface PerformanceRecordService {
     @Transactional
     void delete(Long id);
 
+    Long getMinUnusedId();
+
     PerformanceRecordEntity getByContractId(Long contractId);
 }

@@ -103,4 +103,9 @@ public class ServiceFeeRecordServiceImpl implements ServiceFeeRecordService {
             throw new RuntimeException("更新合同服务费支付状态失败");
         }
     }
+
+    @Override
+    public Long getMinUnusedId() {
+        return serviceFeeRecordDao.selectMinUnusedId();
+    }
 }

@@ -66,3 +66,11 @@ export function delDepartment(id) {
     method: 'delete'
   })
 }
+
+// 获取最小未使用的部门ID
+export function getMinUnusedDeptId() {
+  return request({
+    url: '/sysDepartment/min-unused-id',
+    method: 'get'
+  })
+}

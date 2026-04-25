@@ -68,3 +68,11 @@ export function delWorkLog(id) {
     method: 'delete'
   })
 }
+
+// 获取最小未使用ID
+export function getMinUnusedIdWorkLog() {
+  return request({
+    url: '/workLog/min-unused-id',
+    method: 'get'
+  })
+}

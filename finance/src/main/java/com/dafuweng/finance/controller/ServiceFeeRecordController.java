@@ -60,4 +60,9 @@ public class ServiceFeeRecordController {
         );
         return Result.success();
     }
+
+    @GetMapping("/min-unused-id")
+    public Result<Long> getMinUnusedId() {
+        return Result.success(serviceFeeRecordService.getMinUnusedId());
+    }
 }

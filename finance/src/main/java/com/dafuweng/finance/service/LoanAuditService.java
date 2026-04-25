@@ -59,4 +59,6 @@ public interface LoanAuditService {
     /** 终审拒绝（4/5/7→终态） */
     @Transactional
     void reject(Long id, Long operatorId, String operatorName, String operatorRole, String comment);
+
+    Long getMinUnusedId();
 }

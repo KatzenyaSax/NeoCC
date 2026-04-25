@@ -47,4 +47,9 @@ public class BankController {
         bankService.delete(id);
         return Result.success();
     }
+
+    @GetMapping("/min-unused-id")
+    public Result<Long> getMinUnusedId() {
+        return Result.success(bankService.getMinUnusedId());
+    }
 }

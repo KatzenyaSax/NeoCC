@@ -139,4 +139,9 @@ public class LoanAuditController {
         );
         return Result.success();
     }
+
+    @GetMapping("/min-unused-id")
+    public Result<Long> getMinUnusedId() {
+        return Result.success(loanAuditService.getMinUnusedId());
+    }
 }

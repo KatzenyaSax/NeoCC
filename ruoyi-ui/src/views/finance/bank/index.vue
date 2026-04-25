@@ -83,7 +83,7 @@
 </template>
 
 <script setup>
-import { listBank, getBank, addBank, updateBank, delBank } from "@/api/finance/bank"
+import { listBank, getBank, addBank, updateBank, delBank, getMinUnusedBankId } from "@/api/finance/bank"
 
 const { proxy } = getCurrentInstance()
 const dataList = ref([])
@@ -126,7 +126,14 @@ function handleSortChange({ prop, order }) {
   getList()
 }
 
-function handleAdd() { reset(); open.value = true; title.value = "新增银行" }
+function handleAdd() {
+  reset()
+  getMinUnusedBankId().then(response => {
+    form.value.id = response.data || response
+    open.value = true
+    title.value = "新增银行"
+  })
+}
 
 function handleUpdate(row) {
   reset()
@@ -151,7 +158,7 @@ function submitForm() {
 }
 
 function handleDelete(row) {
-  proxy.$modal.confirm('是否确认删除银行"' + row.bankName + '"？').then(() => delBank(row.id)).then(() => {
+  proxy.$modal.confirm('是否确认删除银行"' + row.bankName + '"？').then(() => updateBank({ id: row.id, deleted: 1 })).then(() => {
     getList()
     proxy.$modal.msgSuccess("删除成功")
   }).catch(() => {})

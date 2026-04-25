@@ -129,4 +129,9 @@ public class WorkLogServiceImpl implements WorkLogService {
     public void delete(Long id) {
         workLogDao.deleteById(id);
     }
+
+    @Override
+    public Long getMinUnusedId() {
+        return workLogDao.selectMinUnusedId();
+    }
 }

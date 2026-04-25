@@ -59,4 +59,12 @@ public class SysRoleController {
         sysRoleService.delete(id);
         return Result.success();
     }
+
+    /**
+     * 获取最小未使用的角色ID
+     */
+    @GetMapping("/min-unused-id")
+    public Result<Long> getMinUnusedId() {
+        return Result.success(sysRoleService.getMinUnusedId());
+    }
 }

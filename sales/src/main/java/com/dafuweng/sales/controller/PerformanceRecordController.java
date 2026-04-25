@@ -47,4 +47,9 @@ public class PerformanceRecordController {
         performanceRecordService.delete(id);
         return Result.success();
     }
+
+    @GetMapping("/min-unused-id")
+    public Result<Long> getMinUnusedId() {
+        return Result.success(performanceRecordService.getMinUnusedId());
+    }
 }

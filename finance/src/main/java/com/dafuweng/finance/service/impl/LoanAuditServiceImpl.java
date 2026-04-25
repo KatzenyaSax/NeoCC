@@ -256,4 +256,9 @@ public class LoanAuditServiceImpl implements LoanAuditService {
         loanAuditDao.updateById(audit);
         saveRecord(id, "reject", operatorId, operatorName, operatorRole, comment);
     }
+
+    @Override
+    public Long getMinUnusedId() {
+        return loanAuditDao.selectMinUnusedId();
+    }
 }

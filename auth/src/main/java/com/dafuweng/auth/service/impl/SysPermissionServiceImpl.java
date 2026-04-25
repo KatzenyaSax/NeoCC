@@ -92,6 +92,12 @@ public class SysPermissionServiceImpl implements SysPermissionService {
         sysPermissionDao.deleteById(id);
     }
 
+    @Override
+    public Long getMinUnusedId() {
+        Long minId = sysPermissionDao.selectMinUnusedId();
+        return minId != null ? minId : 1L;
+    }
+
     private void deleteRecursively(Long parentId) {
         List<SysPermissionEntity> children = listByParentId(parentId);
         if (children != null && !children.isEmpty()) {

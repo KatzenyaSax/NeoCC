@@ -86,7 +86,7 @@
 </template>
 
 <script setup>
-import { listDict, getDict, addDict, updateDict, delDict } from "@/api/system/dict"
+import { listDict, getDict, addDict, updateDict, delDict, getMinUnusedDictId } from "@/api/system/dict"
 
 const { proxy } = getCurrentInstance()
 const dataList = ref([])
@@ -131,7 +131,14 @@ function handleSortChange({ prop, order }) {
   getList()
 }
 
-function handleAdd() { reset(); open.value = true; title.value = "新增字典" }
+function handleAdd() {
+  reset()
+  open.value = true
+  title.value = "新增字典"
+  getMinUnusedDictId().then(res => {
+    form.value.id = res.data || res
+  })
+}
 
 function handleUpdate(row) {
   reset()
@@ -156,7 +163,7 @@ function submitForm() {
 }
 
 function handleDelete(row) {
-  proxy.$modal.confirm('是否确认删除字典"' + row.dictLabel + '"？').then(() => delDict(row.id)).then(() => {
+  proxy.$modal.confirm('是否确认删除字典"' + row.dictLabel + '"？').then(() => updateDict({ id: row.id, deleted: 1 })).then(() => {
     getList()
     proxy.$modal.msgSuccess("删除成功")
   }).catch(() => {})

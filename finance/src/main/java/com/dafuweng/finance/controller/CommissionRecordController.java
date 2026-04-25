@@ -60,4 +60,9 @@ public class CommissionRecordController {
         commissionRecordService.grant(id, req.get("grantAccount"), req.getOrDefault("remark", ""));
         return Result.success();
     }
+
+    @GetMapping("/min-unused-id")
+    public Result<Long> getMinUnusedId() {
+        return Result.success(commissionRecordService.getMinUnusedId());
+    }
 }

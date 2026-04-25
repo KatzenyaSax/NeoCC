@@ -84,4 +84,9 @@ public class ContactRecordServiceImpl implements ContactRecordService {
     public void delete(Long id) {
         contactRecordDao.deleteById(id);
     }
+
+    @Override
+    public Long getMinUnusedId() {
+        return contactRecordDao.selectMinUnusedId();
+    }
 }

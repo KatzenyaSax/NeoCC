@@ -30,6 +30,11 @@ export function listAllRoles() {
   return request({ url: '/sysRole/listByStatus', method: 'get', params: { status: 1 } })
 }
 
+// 获取最小未使用的角色ID
+export function getMinUnusedRoleId() {
+  return request({ url: '/sysRole/min-unused-id', method: 'get' })
+}
+
 // 获取角色的权限ID列表
 export function getRolePermissions(id) {
   return request({ url: '/sysRole/' + id + '/permissions', method: 'get' })

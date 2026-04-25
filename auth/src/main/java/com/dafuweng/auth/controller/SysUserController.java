@@ -159,6 +159,14 @@ public class SysUserController {
         return Result.success(sysUserService.selectMinAvailableId());
     }
 
+    /**
+     * 获取最小未使用用户ID
+     */
+    @GetMapping("/min-unused-id")
+    public Result<Long> getMinUnusedId() {
+        return Result.success(sysUserService.selectMinAvailableId());
+    }
+
     // ===== 临时调试接口（开发环境用），后续删除 =====
     @PostMapping("/dev/reset-password")
     public Result<Void> resetPassword(@RequestBody Map<String, Object> req) {

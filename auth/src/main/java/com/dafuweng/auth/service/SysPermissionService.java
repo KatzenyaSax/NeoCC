@@ -23,4 +23,9 @@ public interface SysPermissionService {
     SysPermissionEntity update(SysPermissionEntity entity);
 
     void delete(Long id);
+
+    /**
+     * 获取最小未使用的权限ID
+     */
+    Long getMinUnusedId();
 }

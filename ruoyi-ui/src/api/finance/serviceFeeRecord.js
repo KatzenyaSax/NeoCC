@@ -59,3 +59,11 @@ export function confirmPay(id, data) {
     data: data
   })
 }
+
+// 获取最小未使用的ID
+export function getMinUnusedServiceFeeRecordId() {
+  return request({
+    url: '/serviceFeeRecord/min-unused-id',
+    method: 'get'
+  })
+}

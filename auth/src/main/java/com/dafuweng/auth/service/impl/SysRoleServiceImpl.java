@@ -119,4 +119,10 @@ public class SysRoleServiceImpl implements SysRoleService {
             .filter(Objects::nonNull)
             .collect(Collectors.toList());
     }
+
+    @Override
+    public Long getMinUnusedId() {
+        Long minId = sysRoleDao.selectMinUnusedId();
+        return minId != null ? minId : 1L;
+    }
 }

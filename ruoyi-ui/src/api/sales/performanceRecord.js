@@ -50,3 +50,11 @@ export function delPerformanceRecord(id) {
     method: 'delete'
   })
 }
+
+// 获取最小未使用ID
+export function getMinUnusedIdPerformanceRecord() {
+  return request({
+    url: '/performanceRecord/min-unused-id',
+    method: 'get'
+  })
+}

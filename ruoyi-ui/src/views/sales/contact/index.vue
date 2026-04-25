@@ -134,7 +134,7 @@
 </template>
 
 <script setup>
-import { listContactRecord, getContactRecord, addContactRecord, updateContactRecord, delContactRecord, listContactRecordByRoleConditions } from "@/api/sales/contactRecord"
+import { listContactRecord, getContactRecord, addContactRecord, updateContactRecord, delContactRecord, listContactRecordByRoleConditions, getMinUnusedIdContactRecord } from "@/api/sales/contactRecord"
 import { listCustomer } from "@/api/sales/customer"
 import { listSalesReps } from "@/api/system/user"
 import useUserStore from '@/store/modules/user'
@@ -264,7 +264,7 @@ function handleSortChange({ prop, order }) {
   getList()
 }
 
-function handleAdd() { reset(); loadCustomerOptions(''); loadSalesRepOptions(); open.value = true; title.value = "新增跟进记录" }
+function handleAdd() { reset(); loadCustomerOptions(''); loadSalesRepOptions(); getMinUnusedIdContactRecord().then(res => { form.value.id = res.data; open.value = true; title.value = "新增跟进记录" }) }
 
 function handleUpdate(row) {
   reset()
@@ -353,7 +353,9 @@ function submitForm() {
 }
 
 function handleDelete(row) {
-  proxy.$modal.confirm('是否确认删除该跟进记录？').then(() => delContactRecord(row.id)).then(() => {
+  proxy.$modal.confirm('是否确认删除该跟进记录？').then(() => {
+    return updateContactRecord({ id: row.id, deleted: 1 })
+  }).then(() => {
     getList()
     proxy.$modal.msgSuccess("删除成功")
   }).catch(() => {})

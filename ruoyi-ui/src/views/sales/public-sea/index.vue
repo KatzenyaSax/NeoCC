@@ -246,11 +246,29 @@ function confirmTransfer() {
     proxy.$modal.msgWarning('请选择目标销售代表')
     return
   }
+  // 根据当前用户角色设置转移类型
+  const roles = userStore.roles || []
+  let operateType = 'ASSIGN'
+  let reason = transferForm.value.reason
+  if (roles.some(r => r === 'ROLE_ZONE_DIRECTOR')) {
+    operateType = 'DIRECTOR_ADJUST'
+    reason = '总监调整'
+  } else if (roles.some(r => r === 'ROLE_DEPT_MANAGER')) {
+    operateType = 'MANAGER_ADJUST'
+    reason = '部门经理调整'
+  } else if (roles.some(r => r === 'ROLE_GENERAL_MANAGER')) {
+    operateType = 'GM_ADJUST'
+    reason = '总经理调整'
+  } else if (roles.some(r => r === 'ROLE_SALES_REP')) {
+    operateType = 'CLAIM'
+    reason = '销售代表领取'
+  }
   transferCustomer({
     customerId: transferForm.value.customerId,
     toRepId: transferForm.value.toRepId,
-    reason: transferForm.value.reason,
-    operatorId: userStore.id
+    reason: reason,
+    operatorId: userStore.id,
+    operateType: operateType
   }).then(() => {
     proxy.$modal.msgSuccess('转移成功')
     transferOpen.value = false
@@ -278,7 +296,7 @@ function confirmEdit() {
 /** 删除按钮 */
 function handleDelete(row) {
   proxy.$modal.confirm('是否确认删除客户"' + row.name + '"？').then(() => {
-    return delCustomer(row.id)
+    return updateCustomer({ id: row.id, deleted: 1 })
   }).then(() => {
     getList()
     proxy.$modal.msgSuccess('删除成功')

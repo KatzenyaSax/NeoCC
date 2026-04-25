@@ -47,4 +47,12 @@ public class SysDictController {
         sysDictService.delete(id);
         return Result.success();
     }
+
+    /**
+     * 获取最小未使用的字典ID
+     */
+    @GetMapping("/min-unused-id")
+    public Result<Long> getMinUnusedId() {
+        return Result.success(sysDictService.getMinUnusedId());
+    }
 }

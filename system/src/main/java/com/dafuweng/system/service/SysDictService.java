@@ -30,4 +30,9 @@ public interface SysDictService {
 
     @Transactional
     void delete(Long id);
+
+    /**
+     * 获取最小未使用的字典ID
+     */
+    Long getMinUnusedId();
 }

@@ -101,4 +101,9 @@ public class CommissionRecordServiceImpl implements CommissionRecordService {
         record.setRemark(remark);
         commissionRecordDao.updateById(record);
     }
+
+    @Override
+    public Long getMinUnusedId() {
+        return commissionRecordDao.selectMinUnusedId();
+    }
 }

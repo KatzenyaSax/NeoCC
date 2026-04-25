@@ -43,4 +43,9 @@ public interface SysDepartmentService {
 
     @Transactional
     void delete(Long id);
+
+    /**
+     * 获取最小未使用的部门ID
+     */
+    Long getMinUnusedId();
 }

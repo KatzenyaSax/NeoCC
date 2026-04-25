@@ -50,3 +50,11 @@ export function delCustomerTransfer(id) {
     method: 'delete'
   })
 }
+
+// 获取最小未使用的ID
+export function getMinUnusedTransferId() {
+  return request({
+    url: '/customerTransferLog/min-unused-id',
+    method: 'get'
+  })
+}

@@ -98,7 +98,7 @@
 </template>
 
 <script setup>
-import { listFinanceProduct, getFinanceProduct, addFinanceProduct, updateFinanceProduct, delFinanceProduct } from "@/api/finance/financeProduct"
+import { listFinanceProduct, getFinanceProduct, addFinanceProduct, updateFinanceProduct, delFinanceProduct, getMinUnusedFinanceProductId } from "@/api/finance/financeProduct"
 
 const { proxy } = getCurrentInstance()
 const dataList = ref([])
@@ -142,7 +142,14 @@ function handleSortChange({ prop, order }) {
   getList()
 }
 
-function handleAdd() { reset(); open.value = true; title.value = "新增金融产品" }
+function handleAdd() {
+  reset()
+  getMinUnusedFinanceProductId().then(response => {
+    form.value.id = response.data || response
+    open.value = true
+    title.value = "新增金融产品"
+  })
+}
 
 function handleUpdate(row) {
   reset()
@@ -167,7 +174,7 @@ function submitForm() {
 }
 
 function handleDelete(row) {
-  proxy.$modal.confirm('是否确认删除产品"' + row.productName + '"？').then(() => delFinanceProduct(row.id)).then(() => {
+  proxy.$modal.confirm('是否确认删除产品"' + row.productName + '"？').then(() => updateFinanceProduct({ id: row.id, deleted: 1 })).then(() => {
     getList()
     proxy.$modal.msgSuccess("删除成功")
   }).catch(() => {})

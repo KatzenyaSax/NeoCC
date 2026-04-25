@@ -98,3 +98,11 @@ export function submitToFinance(id) {
     method: 'post'
   })
 }
+
+// 获取最小未使用ID
+export function getMinUnusedIdContract() {
+  return request({
+    url: '/contract/min-unused-id',
+    method: 'get'
+  })
+}

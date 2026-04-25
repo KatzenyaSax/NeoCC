@@ -76,3 +76,11 @@ export function delContactRecord(id) {
     method: 'delete'
   })
 }
+
+// 获取最小未使用ID
+export function getMinUnusedIdContactRecord() {
+  return request({
+    url: '/contactRecord/min-unused-id',
+    method: 'get'
+  })
+}

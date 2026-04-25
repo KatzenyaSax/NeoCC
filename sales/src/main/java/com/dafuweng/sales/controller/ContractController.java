@@ -66,6 +66,11 @@ public class ContractController {
         return Result.success();
     }
 
+    @GetMapping("/min-unused-id")
+    public Result<Long> getMinUnusedId() {
+        return Result.success(contractService.getMinUnusedId());
+    }
+
     /**
      * POST /api/contract/{id}/sign
      * 签署合同并发送事件通知金融部

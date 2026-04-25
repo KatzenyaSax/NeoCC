@@ -58,4 +58,12 @@ public class SysParamController {
         sysParamService.delete(id);
         return Result.success();
     }
+
+    /**
+     * 获取最小未使用的参数ID
+     */
+    @GetMapping("/min-unused-id")
+    public Result<Long> getMinUnusedId() {
+        return Result.success(sysParamService.getMinUnusedId());
+    }
 }

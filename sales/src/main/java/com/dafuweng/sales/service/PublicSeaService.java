@@ -21,8 +21,9 @@ public interface PublicSeaService {
      * @param toRepId    转入销售代表ID
      * @param reason     转移原因
      * @param operatorId 操作人ID
+     * @param operateType 转移类型
      */
-    void transfer(Long customerId, Long toRepId, String reason, Long operatorId);
+    void transfer(Long customerId, Long toRepId, String reason, Long operatorId, String operateType);
 
     /**
      * 获取销售代表列表（下拉用）

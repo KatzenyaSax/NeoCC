@@ -372,7 +372,7 @@
 </template>
 
 <script setup>
-import { listContract, getContract, delContract, addContract, updateContract, signContract, generateNo, getContractDetail, getContractDetailWithNames, payFirstInstallment, submitToFinance } from "@/api/sales/contract"
+import { listContract, getContract, delContract, addContract, updateContract, signContract, generateNo, getContractDetail, getContractDetailWithNames, payFirstInstallment, submitToFinance, getMinUnusedIdContract } from "@/api/sales/contract"
 import { listSalesReps } from "@/api/sales/publicSea"
 import { listCustomer } from "@/api/sales/customer"
 import { listAllDepartment } from "@/api/system/department"
@@ -568,8 +568,9 @@ function handleSign() {
   dialogTitle.value = "签署合同"
   // 预加载客户下拉选项
   loadCustomerOptions('')
-  generateNo().then(response => {
-    form.value.contractNo = response.data || response
+  Promise.all([generateNo(), getMinUnusedIdContract()]).then(([noRes, idRes]) => {
+    form.value.contractNo = noRes.data || noRes
+    form.value.id = idRes.data || idRes
     dialogVisible.value = true
   })
 }
@@ -644,7 +645,7 @@ function submitForm() {
 /** 删除按钮操作 */
 function handleDelete(row) {
   proxy.$modal.confirm('是否确认删除合同"' + row.contractNo + '"？').then(function () {
-    return delContract(row.id)
+    return updateContract({ id: row.id, deleted: 1 })
   }).then(() => {
     getList()
     proxy.$modal.msgSuccess("删除成功")

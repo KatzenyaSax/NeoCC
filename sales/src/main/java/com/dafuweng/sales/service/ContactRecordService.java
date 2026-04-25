@@ -34,4 +34,6 @@ public interface ContactRecordService {
 
     @Transactional
     void delete(Long id);
+
+    Long getMinUnusedId();
 }

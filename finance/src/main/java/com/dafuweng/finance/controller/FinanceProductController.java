@@ -52,4 +52,9 @@ public class FinanceProductController {
         financeProductService.delete(id);
         return Result.success();
     }
+
+    @GetMapping("/min-unused-id")
+    public Result<Long> getMinUnusedId() {
+        return Result.success(financeProductService.getMinUnusedId());
+    }
 }

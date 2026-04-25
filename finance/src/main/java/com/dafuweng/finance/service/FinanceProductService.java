@@ -31,4 +31,6 @@ public interface FinanceProductService {
 
     @Transactional
     void delete(Long id);
+
+    Long getMinUnusedId();
 }

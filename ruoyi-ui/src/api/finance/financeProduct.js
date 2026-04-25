@@ -59,3 +59,11 @@ export function delFinanceProduct(id) {
     method: 'delete'
   })
 }
+
+// 获取最小未使用的ID
+export function getMinUnusedFinanceProductId() {
+  return request({
+    url: '/financeProduct/min-unused-id',
+    method: 'get'
+  })
+}

@@ -132,4 +132,10 @@ public class SysZoneServiceImpl implements SysZoneService {
             }
         });
     }
+
+    @Override
+    public Long getMinUnusedId() {
+        Long minId = sysZoneDao.selectMinUnusedId();
+        return minId != null ? minId : 1L;
+    }
 }

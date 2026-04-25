@@ -92,7 +92,7 @@
 </template>
 
 <script setup>
-import { listZone, getZone, addZone, updateZone, delZone } from "@/api/system/zone"
+import { listZone, getZone, addZone, updateZone, delZone, getMinUnusedZoneId } from "@/api/system/zone"
 import { listUsersByRoleIds } from "@/api/system/user"
 
 const { proxy } = getCurrentInstance()
@@ -154,7 +154,15 @@ function loadDirectorOptions() {
     directorOptions.value = (res.data || []).map(u => ({ id: u.id, name: u.realName }))
   })
 }
-function handleAdd() { reset(); loadDirectorOptions(); open.value = true; title.value = "新增区域" }
+function handleAdd() {
+  reset()
+  loadDirectorOptions()
+  open.value = true
+  title.value = "新增区域"
+  getMinUnusedZoneId().then(res => {
+    form.value.id = res.data || res
+  })
+}
 
 function handleUpdate(row) {
   reset()
@@ -179,7 +187,7 @@ function submitForm() {
 }
 
 function handleDelete(row) {
-  proxy.$modal.confirm('是否确认删除区域【' + row.zoneName + '】？').then(() => delZone(row.id)).then(() => {
+  proxy.$modal.confirm('是否确认删除区域【' + row.zoneName + '】？').then(() => updateZone({ id: row.id, deleted: 1 })).then(() => {
     getList()
     proxy.$modal.msgSuccess("删除成功")
   }).catch(() => {})

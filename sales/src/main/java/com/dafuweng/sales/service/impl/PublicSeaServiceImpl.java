@@ -55,7 +55,7 @@ public class PublicSeaServiceImpl implements PublicSeaService {
 
     @Override
     @Transactional
-    public void transfer(Long customerId, Long toRepId, String reason, Long operatorId) {
+    public void transfer(Long customerId, Long toRepId, String reason, Long operatorId, String operateType) {
         // 1. 校验客户
         CustomerEntity customer = customerDao.selectById(customerId);
         if (customer == null) {
@@ -79,16 +79,34 @@ public class PublicSeaServiceImpl implements PublicSeaService {
         if (isSalesRep && !toRepId.equals(operatorId)) {
             throw new RuntimeException("销售代表只能将公海客户转移给自己");
         }
-        // 3. 更新客户
+        // 3. 获取目标销售代表的部门ID和战区ID
+        Result<?> repRes = authFeignClient.getUserById(toRepId);
+        Long deptId = null;
+        Long zoneId = null;
+        if (repRes != null && repRes.getCode() == 200 && repRes.getData() != null) {
+            @SuppressWarnings("unchecked")
+            Map<String, Object> repUser = (Map<String, Object>) repRes.getData();
+            Object repDeptId = repUser.get("deptId");
+            Object repZoneId = repUser.get("zoneId");
+            if (repDeptId != null) {
+                deptId = Long.parseLong(String.valueOf(repDeptId));
+            }
+            if (repZoneId != null) {
+                zoneId = Long.parseLong(String.valueOf(repZoneId));
+            }
+        }
+        // 4. 更新客户
         customer.setSalesRepId(toRepId);
+        customer.setDeptId(deptId);
+        customer.setZoneId(zoneId);
         customer.setStatus((short) 1);
         customerDao.updateById(customer);
-        // 4. 写入转移日志
+        // 5. 写入转移日志
         CustomerTransferLogEntity log = new CustomerTransferLogEntity();
         log.setCustomerId(customerId);
         log.setFromRepId(null);
         log.setToRepId(toRepId);
-        log.setOperateType(toRepId.equals(operatorId) ? "claim" : "assign");
+        log.setOperateType(operateType);
         log.setReason(reason);
         log.setOperatedBy(operatorId);
         log.setOperatedAt(new Date());

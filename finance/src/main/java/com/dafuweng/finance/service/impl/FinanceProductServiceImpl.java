@@ -75,4 +75,9 @@ public class FinanceProductServiceImpl implements FinanceProductService {
     public void delete(Long id) {
         financeProductDao.deleteById(id);
     }
+
+    @Override
+    public Long getMinUnusedId() {
+        return financeProductDao.selectMinUnusedId();
+    }
 }

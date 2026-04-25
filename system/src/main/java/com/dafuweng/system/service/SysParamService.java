@@ -33,4 +33,9 @@ public interface SysParamService {
 
     @Transactional
     void delete(Long id);
+
+    /**
+     * 获取最小未使用的参数ID
+     */
+    Long getMinUnusedId();
 }

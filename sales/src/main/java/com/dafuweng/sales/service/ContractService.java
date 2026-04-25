@@ -41,6 +41,8 @@ public interface ContractService {
     @Transactional
     void delete(Long id);
 
+    Long getMinUnusedId();
+
     /**
      * 生成新合同编号
      * 格式：HT-YYYYMMDD-XXXX

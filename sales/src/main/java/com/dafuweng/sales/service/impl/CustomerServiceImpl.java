@@ -150,4 +150,19 @@ public class CustomerServiceImpl implements CustomerService {
     public Long count() {
         return customerDao.selectCount(null);
     }
+
+    @Override
+    public Map<Long, String> getCustomerNamesByIds(List<Long> ids) {
+        if (ids == null || ids.isEmpty()) {
+            return new HashMap<>();
+        }
+        List<CustomerEntity> customers = customerDao.selectBatchIds(ids);
+        return customers.stream()
+                .collect(Collectors.toMap(CustomerEntity::getId, c -> c.getName() != null ? c.getName() : ""));
+    }
+
+    @Override
+    public Long getMinUnusedId() {
+        return customerDao.selectMinUnusedId();
+    }
 }

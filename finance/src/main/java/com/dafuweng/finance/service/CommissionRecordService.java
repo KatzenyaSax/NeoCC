@@ -37,4 +37,6 @@ public interface CommissionRecordService {
     /** 发放提成 */
     @Transactional
     void grant(Long id, String grantAccount, String remark);
+
+    Long getMinUnusedId();
 }

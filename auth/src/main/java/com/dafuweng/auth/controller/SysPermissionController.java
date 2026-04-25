@@ -57,4 +57,12 @@ public class SysPermissionController {
         sysPermissionService.delete(id);
         return Result.success();
     }
+
+    /**
+     * 获取最小未使用的权限ID
+     */
+    @GetMapping("/min-unused-id")
+    public Result<Long> getMinUnusedId() {
+        return Result.success(sysPermissionService.getMinUnusedId());
+    }
 }

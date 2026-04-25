@@ -51,3 +51,11 @@ export function delDict(id) {
     method: 'delete'
   })
 }
+
+// 获取最小未使用的字典ID
+export function getMinUnusedDictId() {
+  return request({
+    url: '/sysDict/min-unused-id',
+    method: 'get'
+  })
+}

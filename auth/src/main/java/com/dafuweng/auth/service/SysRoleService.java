@@ -30,4 +30,9 @@ public interface SysRoleService {
     SysRoleEntity update(SysRoleEntity entity);
 
     void delete(Long id);
+
+    /**
+     * 获取最小未使用的角色ID
+     */
+    Long getMinUnusedId();
 }

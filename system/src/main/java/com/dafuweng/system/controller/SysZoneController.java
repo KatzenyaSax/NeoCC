@@ -61,4 +61,12 @@ public class SysZoneController {
     public Result<Map<Long, String>> listZoneNamesByIds(@RequestBody List<Long> ids) {
         return Result.success(sysZoneService.listNamesByIds(ids));
     }
+
+    /**
+     * 获取最小未使用的战区ID
+     */
+    @GetMapping("/min-unused-id")
+    public Result<Long> getMinUnusedId() {
+        return Result.success(sysZoneService.getMinUnusedId());
+    }
 }

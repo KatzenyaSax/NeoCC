@@ -145,7 +145,7 @@
 </template>
 
 <script setup>
-import { listUser, getUser, addUser, updateUser, delUser, getUserRoles, assignUserRoles, changePassword, getMinAvailableId } from "@/api/system/user"
+import { listUser, getUser, addUser, updateUser, delUser, getUserRoles, assignUserRoles, changePassword, getMinUnusedUserId } from "@/api/system/user"
 import { listAllRoles } from "@/api/system/role"
 import { listAllDepartment } from "@/api/system/department"
 
@@ -219,7 +219,7 @@ function handleAdd() {
   reset()
   open.value = true
   title.value = "新增用户"
-  getMinAvailableId().then(res => {
+  getMinUnusedUserId().then(res => {
     form.value.id = res.data || res
   })
   loadAllDeptOptions()
@@ -261,7 +261,7 @@ function submitForm() {
 }
 
 function handleDelete(row) {
-  proxy.$modal.confirm('是否确认删除用户【' + row.username + '】？').then(() => delUser(row.id)).then(() => {
+  proxy.$modal.confirm('是否确认删除用户【' + row.username + '】？').then(() => updateUser({ id: row.id, deleted: 1 })).then(() => {
     getList()
     proxy.$modal.msgSuccess("删除成功")
   }).catch(() => {})

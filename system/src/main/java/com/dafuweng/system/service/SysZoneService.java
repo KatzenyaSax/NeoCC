@@ -28,6 +28,11 @@ public interface SysZoneService {
     void delete(Long id);
 
     /**
+     * 获取最小未使用的战区ID
+     */
+    Long getMinUnusedId();
+
+    /**
      * 根据战区ID列表查询战区名称
      */
     Map<Long, String> listNamesByIds(List<Long> ids);

@@ -74,4 +74,10 @@ public class SysDictServiceImpl implements SysDictService {
     public void delete(Long id) {
         sysDictDao.deleteById(id);
     }
+
+    @Override
+    public Long getMinUnusedId() {
+        Long minId = sysDictDao.selectMinUnusedId();
+        return minId != null ? minId : 1L;
+    }
 }

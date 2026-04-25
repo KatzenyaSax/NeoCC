@@ -28,7 +28,7 @@ public class PublicSeaController {
      * 转移公海客户
      * PUT /api/customer/public-sea/transfer
      *
-     * @param req { customerId, toRepId, reason, operatorId }
+     * @param req { customerId, toRepId, reason, operatorId, operateType }
      */
     @PutMapping("/public-sea/transfer")
     public Result<?> transfer(@RequestBody Map<String, Object> req) {
@@ -36,7 +36,8 @@ public class PublicSeaController {
         Long toRepId = ((Number) req.get("toRepId")).longValue();
         String reason = (String) req.getOrDefault("reason", "");
         Long operatorId = ((Number) req.get("operatorId")).longValue();
-        publicSeaService.transfer(customerId, toRepId, reason, operatorId);
+        String operateType = (String) req.getOrDefault("operateType", "ASSIGN");
+        publicSeaService.transfer(customerId, toRepId, reason, operatorId, operateType);
         return Result.success("转移成功");
     }
 

@@ -70,4 +70,9 @@ public class BankServiceImpl implements BankService {
     public void delete(Long id) {
         bankDao.deleteById(id);
     }
+
+    @Override
+    public Long getMinUnusedId() {
+        return bankDao.selectMinUnusedId();
+    }
 }

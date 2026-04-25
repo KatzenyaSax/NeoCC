@@ -51,3 +51,11 @@ export function delBank(id) {
     method: 'delete'
   })
 }
+
+// 获取最小未使用的ID
+export function getMinUnusedBankId() {
+  return request({
+    url: '/bank/min-unused-id',
+    method: 'get'
+  })
+}

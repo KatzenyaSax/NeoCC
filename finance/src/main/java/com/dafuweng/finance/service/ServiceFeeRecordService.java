@@ -33,4 +33,6 @@ public interface ServiceFeeRecordService {
     /** 确认收款 */
     @Transactional
     void confirmPay(Long id, String paymentMethod, String paymentAccount, String receiptNo, String remark);
+
+    Long getMinUnusedId();
 }

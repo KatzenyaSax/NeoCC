@@ -9,6 +9,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
+import java.util.Map;
 
 @RestController
 @RequestMapping("/api/customer")
@@ -76,5 +77,24 @@ public class CustomerController {
     @GetMapping("/count")
     public Result<Long> count() {
         return Result.success(customerService.count());
+    }
+
+    /**
+     * 批量查询客户名称
+     * POST /api/customer/names/by-ids
+     */
+    @PostMapping("/names/by-ids")
+    public Result<Map<Long, String>> getCustomerNamesByIds(@RequestBody List<Long> ids) {
+        Map<Long, String> nameMap = customerService.getCustomerNamesByIds(ids);
+        return Result.success(nameMap);
+    }
+
+    /**
+     * 获取最小未使用的客户ID
+     * GET /api/customer/min-unused-id
+     */
+    @GetMapping("/min-unused-id")
+    public Result<Long> getMinUnusedId() {
+        return Result.success(customerService.getMinUnusedId());
     }
 }

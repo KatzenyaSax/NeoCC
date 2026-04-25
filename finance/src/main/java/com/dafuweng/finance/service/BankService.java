@@ -29,4 +29,6 @@ public interface BankService {
 
     @Transactional
     void delete(Long id);
+
+    Long getMinUnusedId();
 }

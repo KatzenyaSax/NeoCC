@@ -137,7 +137,7 @@
 </template>
 
 <script setup>
-import { listPerformanceRecord, getPerformanceRecord, addPerformanceRecord, updatePerformanceRecord, delPerformanceRecord } from "@/api/sales/performanceRecord"
+import { listPerformanceRecord, getPerformanceRecord, addPerformanceRecord, updatePerformanceRecord, delPerformanceRecord, getMinUnusedIdPerformanceRecord } from "@/api/sales/performanceRecord"
 
 const { proxy } = getCurrentInstance()
 const dataList = ref([])
@@ -200,7 +200,7 @@ function handleSortChange({ prop, order }) {
   getList()
 }
 
-function handleAdd() { reset(); open.value = true; title.value = "新增业绩记录" }
+function handleAdd() { reset(); getMinUnusedIdPerformanceRecord().then(res => { form.value.id = res.data; open.value = true; title.value = "新增业绩记录" }) }
 
 function handleUpdate(row) {
   reset()
@@ -224,7 +224,9 @@ function submitForm() {
 }
 
 function handleDelete(row) {
-  proxy.$modal.confirm('是否确认删除该业绩记录？').then(() => delPerformanceRecord(row.id)).then(() => {
+  proxy.$modal.confirm('是否确认删除该业绩记录？').then(() => {
+    return updatePerformanceRecord({ id: row.id, deleted: 1 })
+  }).then(() => {
     getList()
     proxy.$modal.msgSuccess("删除成功")
   }).catch(() => {})

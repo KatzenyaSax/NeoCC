@@ -176,7 +176,7 @@
 </template>
 
 <script setup>
-import { listCustomer, getCustomer, delCustomer, addCustomer, updateCustomer, getUserNamesByIds } from "@/api/sales/customer"
+import { listCustomer, getCustomer, delCustomer, addCustomer, updateCustomer, getUserNamesByIds, getMinUnusedCustomerId } from "@/api/sales/customer"
 import { listSalesReps } from "@/api/system/user"
 import { listAllDepartment } from "@/api/system/department"
 import { listAllZone } from "@/api/system/zone"
@@ -408,8 +408,11 @@ function handleAdd() {
   reset()
   loadDeptOptions()
   loadZoneOptions()
-  open.value = true
-  title.value = "添加客户"
+  getMinUnusedCustomerId().then(res => {
+    form.value.id = res.data
+    open.value = true
+    title.value = "添加客户"
+  })
 }
 
 /** 修改按钮操作 */
@@ -433,17 +436,39 @@ function submitForm() {
         // 修改前先获取原始客户信息，检查销售代表是否变化
         getCustomer(form.value.id).then(originalRes => {
           const originalCustomer = originalRes.data || originalRes
+          // 如果销售代表发生变化，获取新销售代表的deptId和zoneId
+          if (originalCustomer.salesRepId !== form.value.salesRepId) {
+            const newSalesRep = salesRepOptions.value.find(r => r.id === form.value.salesRepId)
+            if (newSalesRep) {
+              form.value.deptId = newSalesRep.deptId
+              form.value.zoneId = newSalesRep.zoneId
+            }
+          }
           // 调用更新接口
           updateCustomer(form.value).then(response => {
             // 如果销售代表发生了变化，创建转移日志
             if (originalCustomer.salesRepId !== form.value.salesRepId) {
+              // 根据当前用户角色设置转移类型和原因
+              const roles = userStore.roles || []
+              let operateType = "ADJUST"
+              let reason = "客户管理修改"
+              if (roles.some(r => r === 'ROLE_ZONE_DIRECTOR')) {
+                operateType = "DIRECTOR_ADJUST"
+                reason = "总监调整"
+              } else if (roles.some(r => r === 'ROLE_DEPT_MANAGER')) {
+                operateType = "MANAGER_ADJUST"
+                reason = "部门经理调整"
+              } else if (roles.some(r => r === 'ROLE_GENERAL_MANAGER')) {
+                operateType = "GM_ADJUST"
+                reason = "总经理调整"
+              }
               // 创建转移日志
               addCustomerTransfer({
                 customerId: form.value.id,
                 fromRepId: originalCustomer.salesRepId,
                 toRepId: form.value.salesRepId,
-                operateType: "ADJUST",
-                reason: "客户管理修改",
+                operateType: operateType,
+                reason: reason,
                 operatedBy: userStore.id
               }).then(() => {
                 // 转移日志创建成功
@@ -470,7 +495,7 @@ function submitForm() {
 /** 删除按钮操作 */
 function handleDelete(row) {
   proxy.$modal.confirm('是否确认删除客户"' + row.name + '"？').then(function () {
-    return delCustomer(row.id)
+    return updateCustomer({ id: row.id, deleted: 1 })
   }).then(() => {
     getList()
     proxy.$modal.msgSuccess("删除成功")

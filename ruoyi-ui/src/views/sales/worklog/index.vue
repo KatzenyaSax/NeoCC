@@ -124,7 +124,7 @@
 </template>
 
 <script setup>
-import { listWorkLog, getWorkLog, addWorkLog, updateWorkLog, delWorkLog, checkDuplicate, listWorkLogBySalesRepIds } from "@/api/sales/workLog"
+import { listWorkLog, getWorkLog, addWorkLog, updateWorkLog, delWorkLog, checkDuplicate, listWorkLogBySalesRepIds, getMinUnusedIdWorkLog } from "@/api/sales/workLog"
 import { listSalesReps } from "@/api/system/user"
 import { listUserIdsByDeptId, listUserIdsByZoneId } from "@/api/system/user"
 import useUserStore from '@/store/modules/user'
@@ -272,8 +272,11 @@ function handleAdd() {
     return
   }
   reset()
-  open.value = true
-  title.value = "新增工作日志"
+  getMinUnusedIdWorkLog().then(res => {
+    form.value.id = res.data
+    open.value = true
+    title.value = "新增工作日志"
+  })
 }
 
 function handleUpdate(row) {
@@ -326,7 +329,9 @@ function submitForm() {
 }
 
 function handleDelete(row) {
-  proxy.$modal.confirm('是否确认删除该工作日志？').then(() => delWorkLog(row.id)).then(() => {
+  proxy.$modal.confirm('是否确认删除该工作日志？').then(() => {
+    return updateWorkLog({ id: row.id, deleted: 1 })
+  }).then(() => {
     getList()
     proxy.$modal.msgSuccess("删除成功")
   }).catch(() => {})
