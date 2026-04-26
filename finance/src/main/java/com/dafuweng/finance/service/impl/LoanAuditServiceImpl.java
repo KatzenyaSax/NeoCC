@@ -64,7 +64,7 @@ public class LoanAuditServiceImpl implements LoanAuditService {
         } else {
             wrapper.orderByDesc(LoanAuditEntity::getCreatedAt);
         }
-        IPage<LoanAuditEntity> result = loanAuditDao.selectPage(page, wrapper);
+        IPage<LoanAuditEntity> result = loanAuditDao.selectPageWithNames(page);
         return PageResponse.of(result.getTotal(), result.getRecords(),
             (int) page.getCurrent() , (int) page.getSize());
     }

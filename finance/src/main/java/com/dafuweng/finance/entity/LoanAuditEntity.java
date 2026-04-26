@@ -1,5 +1,6 @@
 package com.dafuweng.finance.entity;
 
+import com.baomidou.mybatisplus.annotation.TableField;
 import com.baomidou.mybatisplus.annotation.TableId;
 import com.baomidou.mybatisplus.annotation.TableName;
 import lombok.Data;
@@ -18,6 +19,18 @@ public class LoanAuditEntity implements Serializable {
     private Long id;
 
     private Long contractId;
+
+    @TableField(exist = false)
+    private Long customerId;
+
+    @TableField(exist = false)
+    private String customerName;
+
+    @TableField(exist = false)
+    private Long salesRepId;
+
+    @TableField(exist = false)
+    private String salesRepName;
 
     private Long financeSpecialistId;
 

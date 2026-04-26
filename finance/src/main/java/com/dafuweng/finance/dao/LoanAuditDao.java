@@ -1,6 +1,7 @@
 package com.dafuweng.finance.dao;
 
 import com.baomidou.mybatisplus.core.mapper.BaseMapper;
+import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.dafuweng.finance.entity.LoanAuditEntity;
 import org.apache.ibatis.annotations.Mapper;
 import org.apache.ibatis.annotations.Param;
@@ -17,4 +18,13 @@ public interface LoanAuditDao extends BaseMapper<LoanAuditEntity> {
 
     @Update("UPDATE loan_audit SET deleted = 1 WHERE id = #{id}")
     int softDeleteById(@Param("id") Long id);
+
+    @Select("SELECT la.*, c.customer_id AS customerId, cu.name AS customerName, c.sales_rep_id AS salesRepId, u.real_name AS salesRepName " +
+            "FROM loan_audit la " +
+            "LEFT JOIN contract c ON la.contract_id = c.id " +
+            "LEFT JOIN customer cu ON c.customer_id = cu.id " +
+            "LEFT JOIN sys_user u ON c.sales_rep_id = u.id " +
+            "WHERE la.deleted = 0 " +
+            "ORDER BY la.created_at DESC")
+    IPage<LoanAuditEntity> selectPageWithNames(@Param("page") IPage<LoanAuditEntity> page);
 }
