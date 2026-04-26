@@ -24,7 +24,7 @@
 
     <el-table v-loading="loading" :data="dataList" :row-key="row => row.id" @sort-change="handleSortChange">
       <el-table-column label="ID" align="center" prop="id" width="80" sortable />
-      <el-table-column label="合同ID" align="center" prop="contractId" width="100" />
+      <el-table-column label="合同" align="center" prop="contractNo" />
       <el-table-column label="费用类型" align="center" prop="feeType" width="100">
         <template #default="scope">
           <el-tag :type="scope.row.feeType === 1 ? 'primary' : 'warning'">

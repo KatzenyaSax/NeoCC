@@ -2,9 +2,8 @@ package com.dafuweng.finance.controller;
 
 import com.dafuweng.common.entity.Result;
 import com.dafuweng.common.entity.PageResponse;
-import com.dafuweng.common.entity.vo.ContractDetailVO;
 import com.dafuweng.finance.service.ContractAuditService;
-import com.dafuweng.sales.entity.ContractEntity;
+import com.dafuweng.sales.entity.vo.ContractDetailVO;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 
@@ -18,19 +17,19 @@ public class ContractAuditController {
     private ContractAuditService contractAuditService;
 
     /**
-     * GET /api/finance/contract-audit/page
-     * 分页查询审核中的合同（status = 4）
+     * GET /api/contractAudit/page
+     * 分页查询审核中的合同（status = 4，含关联名称）
      */
     @GetMapping("/page")
-    public Result<PageResponse<ContractEntity>> pageList(
+    public Result<PageResponse<ContractDetailVO>> pageList(
             @RequestParam(defaultValue = "1") int pageNum,
             @RequestParam(defaultValue = "10") int pageSize) {
         return Result.success(contractAuditService.pageList(pageNum, pageSize, (short) 4));
     }
 
     /**
-     * GET /api/finance/contract-audit/{contractId}/detail
-     * 获取合同详情（含关联信息）
+     * GET /api/contractAudit/{contractId}/detail
+     * 获取合同详情（含关联信息和名称）
      */
     @GetMapping("/{contractId}/detail")
     public Result<ContractDetailVO> getDetail(@PathVariable Long contractId) {
@@ -38,7 +37,7 @@ public class ContractAuditController {
     }
 
     /**
-     * POST /api/finance/contract-audit/{contractId}/approve
+     * POST /api/contractAudit/{contractId}/approve
      * 通过审核，将合同状态从 4 改为 5
      */
     @PostMapping("/{contractId}/approve")
@@ -49,7 +48,7 @@ public class ContractAuditController {
     }
 
     /**
-     * POST /api/finance/contract-audit/{contractId}/reject
+     * POST /api/contractAudit/{contractId}/reject
      * 拒绝审核，将合同状态从 4 改为 6
      */
     @PostMapping("/{contractId}/reject")

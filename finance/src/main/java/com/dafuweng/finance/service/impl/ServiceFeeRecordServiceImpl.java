@@ -11,13 +11,16 @@ import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.dafuweng.common.entity.PageRequest;
 import com.dafuweng.common.entity.PageResponse;
 import com.dafuweng.common.entity.Result;
+import com.dafuweng.common.entity.vo.ContractVO;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.StringUtils;
 
 import java.util.Date;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 @Service
 public class ServiceFeeRecordServiceImpl implements ServiceFeeRecordService {
@@ -51,8 +54,25 @@ public class ServiceFeeRecordServiceImpl implements ServiceFeeRecordService {
             wrapper.orderByDesc(ServiceFeeRecordEntity::getCreatedAt);
         }
         IPage<ServiceFeeRecordEntity> result = serviceFeeRecordDao.selectPage(page, wrapper);
-        return PageResponse.of(result.getTotal(), result.getRecords(),
+        List<ServiceFeeRecordEntity> records = result.getRecords();
+        fillContractNo(records);
+        return PageResponse.of(result.getTotal(), records,
             (int) page.getCurrent() , (int) page.getSize());
+    }
+
+    private void fillContractNo(List<ServiceFeeRecordEntity> records) {
+        Map<Long, String> contractNoMap = new HashMap<>();
+        for (ServiceFeeRecordEntity record : records) {
+            if (record.getContractId() != null && !contractNoMap.containsKey(record.getContractId())) {
+                Result<ContractVO> res = salesFeignClient.getContractById(record.getContractId());
+                if (res != null && res.getCode() == 200 && res.getData() != null) {
+                    contractNoMap.put(record.getContractId(), res.getData().getContractNo());
+                }
+            }
+        }
+        for (ServiceFeeRecordEntity record : records) {
+            record.setContractNo(contractNoMap.get(record.getContractId()));
+        }
     }
 
     @Override

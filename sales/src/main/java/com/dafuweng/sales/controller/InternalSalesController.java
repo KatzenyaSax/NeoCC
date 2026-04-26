@@ -23,6 +23,29 @@ public class InternalSalesController {
     private ContractService contractService;
 
     /**
+     * 按状态分页查询合同（含关联名称）
+     */
+    @GetMapping("/contracts/status/{status}/page-with-names")
+    public Result<PageResponse<com.dafuweng.sales.entity.vo.ContractDetailVO>> pageContractsByStatusWithNames(
+            @RequestParam("pageNum") int pageNum,
+            @RequestParam("pageSize") int pageSize,
+            @PathVariable("status") Short status) {
+        return Result.success(contractService.pageListByStatusWithNames(pageNum, pageSize, status));
+    }
+
+    /**
+     * 获取合同详情（含关联名称，供内部调用）
+     */
+    @GetMapping("/contracts/{id}/with-names")
+    public Result<com.dafuweng.sales.entity.vo.ContractDetailVO> getContractWithNames(@PathVariable Long id) {
+        com.dafuweng.sales.entity.vo.ContractDetailVO vo = contractService.getDetailWithNames(id);
+        if (vo == null) {
+            return Result.error("合同不存在");
+        }
+        return Result.success(vo);
+    }
+
+    /**
      * POST /sales/internal/performances/create
      * 创建业绩记录（供 finance 服务调用）
      *

@@ -29,6 +29,15 @@ public interface SalesFeignClient {
                                                                @RequestParam("pageSize") int pageSize,
                                                                @PathVariable("status") Short status);
 
+    @GetMapping("/sales/internal/contracts/status/{status}/page-with-names")
+    Result<PageResponse<com.dafuweng.sales.entity.vo.ContractDetailVO>> pageContractsByStatusWithNames(
+            @RequestParam("pageNum") int pageNum,
+            @RequestParam("pageSize") int pageSize,
+            @PathVariable("status") Short status);
+
+    @GetMapping("/sales/internal/contracts/{id}/with-names")
+    Result<com.dafuweng.sales.entity.vo.ContractDetailVO> getContractWithNames(@PathVariable("id") Long id);
+
     @GetMapping("/sales/internal/contracts/{id}")
     Result<ContractVO> getContractById(@PathVariable Long id);
 

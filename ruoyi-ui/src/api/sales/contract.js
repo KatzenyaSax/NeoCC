@@ -9,6 +9,15 @@ export function listContract(query) {
   })
 }
 
+// 查询合同列表（用于下拉选择，支持搜索）
+export function listContractForSelect(params) {
+  return request({
+    url: '/contract/page',
+    method: 'get',
+    params: { ...params, size: 50 }
+  })
+}
+
 // 查询合同详细
 export function getContract(id) {
   return request({

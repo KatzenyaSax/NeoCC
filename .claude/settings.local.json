@@ -86,7 +86,9 @@
       "Bash(javac -version)",
       "Bash(python3 -c ' *)",
       "Read(//c/Users/a1829/.m2/repository/**)",
-      "Bash(javac -d /tmp/test_compile -cp \"src/main/java;target/classes;$\\(find ~/.m2/repository -name '*.jar')"
+      "Bash(javac -d /tmp/test_compile -cp \"src/main/java;target/classes;$\\(find ~/.m2/repository -name '*.jar')",
+      "Skill(review)",
+      "Bash(python3 -m json.tool)"
     ]
   }
 }

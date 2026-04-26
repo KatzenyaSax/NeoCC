@@ -111,50 +111,6 @@ public class LoanAuditServiceImpl implements LoanAuditService {
         }
     }
 
-@Service
-public class LoanAuditServiceImpl implements LoanAuditService {
-
-    @Autowired
-    private LoanAuditDao loanAuditDao;
-
-    @Autowired
-    private LoanAuditRecordService loanAuditRecordService;
-
-    @Autowired
-    private FinanceProductService financeProductService;
-
-    @Autowired
-    private SalesFeignClient salesFeignClient;
-
-    @Override
-    public LoanAuditEntity getById(Long id) {
-        return loanAuditDao.selectById(id);
-    }
-
-    @Override
-    public LoanAuditEntity getByContractId(Long contractId) {
-        return loanAuditDao.selectByContractId(contractId);
-    }
-
-    @Override
-    public PageResponse<LoanAuditEntity> pageList(PageRequest request) {
-        IPage<LoanAuditEntity> page = new Page<>(request.getPage(), request.getSize());
-        LambdaQueryWrapper<LoanAuditEntity> wrapper = new LambdaQueryWrapper<>();
-        wrapper.eq(LoanAuditEntity::getDeleted, (short) 0);
-        if (StringUtils.hasText(request.getSortField())) {
-            if ("asc".equalsIgnoreCase(request.getSortOrder())) {
-                wrapper.orderByAsc(LoanAuditEntity::getId);
-            } else {
-                wrapper.orderByDesc(LoanAuditEntity::getId);
-            }
-        } else {
-            wrapper.orderByDesc(LoanAuditEntity::getCreatedAt);
-        }
-        IPage<LoanAuditEntity> result = loanAuditDao.selectPageWithNames(page);
-        return PageResponse.of(result.getTotal(), result.getRecords(),
-            (int) page.getCurrent() , (int) page.getSize());
-    }
-
     @Override
     public List<LoanAuditEntity> listByFinanceSpecialistId(Long financeSpecialistId) {
         LambdaQueryWrapper<LoanAuditEntity> wrapper = new LambdaQueryWrapper<>();
@@ -284,7 +240,6 @@ public class LoanAuditServiceImpl implements LoanAuditService {
         if (audit.getAuditStatus() != 6) {
             throw new IllegalStateException("当前状态不允许终审，当前状态：" + audit.getAuditStatus());
         }
-        // audit_status=6 已经是终审通过，这里仅记录终审意见和放款信息
         audit.setActualLoanAmount(actualLoanAmount);
         audit.setActualInterestRate(actualInterestRate);
         audit.setLoanGrantedDate(loanGrantedDate);
@@ -293,7 +248,6 @@ public class LoanAuditServiceImpl implements LoanAuditService {
 
         saveRecord(id, "approve", operatorId, operatorName, operatorRole, comment);
 
-        // 触发 OpenFeign 通知 sales 创建业绩
         Result<ContractVO> contractResult = salesFeignClient.getContract(audit.getContractId());
         if (contractResult == null || contractResult.getData() == null) {
             throw new RuntimeException("无法获取合同信息，无法创建业绩");
@@ -308,7 +262,6 @@ public class LoanAuditServiceImpl implements LoanAuditService {
         perfDto.setZoneId(contract.getZoneId());
         perfDto.setContractAmount(contract.getContractAmount());
 
-        // 查询金融产品获取提成比例
         if (contract.getProductId() != null) {
             FinanceProductEntity product = financeProductService.getById(contract.getProductId());
             if (product != null && product.getCommissionRate() != null) {
@@ -330,7 +283,6 @@ public class LoanAuditServiceImpl implements LoanAuditService {
             throw new RuntimeException("创建业绩记录失败: " + (perfResult != null ? perfResult.getMessage() : "未知错误"));
         }
 
-        // 更新合同状态 → 已放款（status=7）
         salesFeignClient.updateContractStatus(audit.getContractId(), (short) 7);
     }
 
@@ -341,7 +293,6 @@ public class LoanAuditServiceImpl implements LoanAuditService {
         if (audit == null) {
             throw new IllegalArgumentException("审核记录不存在");
         }
-        // 终审拒绝：可以是 4(银行通过) / 5(银行拒绝) / 7(终审拒绝后重新申请)
         if (audit.getAuditStatus() != 4 && audit.getAuditStatus() != 5 && audit.getAuditStatus() != 7) {
             throw new IllegalStateException("当前状态不允许终审拒绝，当前状态：" + audit.getAuditStatus());
         }

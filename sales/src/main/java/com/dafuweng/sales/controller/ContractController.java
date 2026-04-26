@@ -36,8 +36,9 @@ public class ContractController {
             @RequestParam(required = false) String filterRole,
             @RequestParam(required = false) Long userId,
             @RequestParam(required = false) Long deptId,
-            @RequestParam(required = false) Long zoneId) {
-        return Result.success(contractService.pageList(request, filterRole, userId, deptId, zoneId));
+            @RequestParam(required = false) Long zoneId,
+            @RequestParam(required = false) String contractNo) {
+        return Result.success(contractService.pageList(request, filterRole, userId, deptId, zoneId, contractNo));
     }
 
     @GetMapping("/listBySalesRepId/{salesRepId}")

@@ -6,16 +6,15 @@ import com.dafuweng.finance.feign.AuthFeignClient;
 import com.dafuweng.finance.feign.SalesFeignClient;
 import com.dafuweng.finance.service.CommissionRecordService;
 import com.dafuweng.finance.dao.CommissionRecordDao;
-import com.dafuweng.finance.entity.CommissionRecordEntity;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.dafuweng.common.entity.PageRequest;
 import com.dafuweng.common.entity.PageResponse;
+import com.dafuweng.common.entity.vo.ContractVO;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-import org.springframework.util.StringUtils;
 
 import java.util.Date;
 import java.util.HashMap;
@@ -66,7 +65,7 @@ public class CommissionRecordServiceImpl implements CommissionRecordService {
                 }
             }
             if (record.getContractId() != null && !contractNoMap.containsKey(record.getContractId())) {
-                Result<ContractEntity> res = salesFeignClient.getContractById(record.getContractId());
+                Result<ContractVO> res = salesFeignClient.getContractById(record.getContractId());
                 if (res != null && res.getCode() == 200 && res.getData() != null) {
                     contractNoMap.put(record.getContractId(), res.getData().getContractNo());
                 }

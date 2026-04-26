@@ -60,14 +60,14 @@
           <el-col :span="12">
             <el-form-item label="转出销售" prop="fromRepId">
               <el-select v-model="form.fromRepId" placeholder="请选择转出销售" style="width:100%" filterable>
-                <el-option v-for="item in salesRepOptions" :key="item.userId" :label="item.nickName" :value="item.userId" />
+                <el-option v-for="item in salesRepOptions" :key="item.id" :label="item.realName" :value="item.id" />
               </el-select>
             </el-form-item>
           </el-col>
           <el-col :span="12">
             <el-form-item label="转入销售" prop="toRepId">
               <el-select v-model="form.toRepId" placeholder="请选择转入销售" style="width:100%" filterable>
-                <el-option v-for="item in salesRepOptions" :key="item.userId" :label="item.nickName" :value="item.userId" />
+                <el-option v-for="item in salesRepOptions" :key="item.id" :label="item.realName" :value="item.id" />
               </el-select>
             </el-form-item>
           </el-col>
@@ -104,14 +104,14 @@
           <el-col :span="12">
             <el-form-item label="转出销售">
               <el-select v-model="form.fromRepId" placeholder="请选择转出销售" style="width:100%">
-                <el-option v-for="item in salesRepOptions" :key="item.userId" :label="item.nickName" :value="item.userId" />
+                <el-option v-for="item in salesRepOptions" :key="item.id" :label="item.realName" :value="item.id" />
               </el-select>
             </el-form-item>
           </el-col>
           <el-col :span="12">
             <el-form-item label="转入销售">
               <el-select v-model="form.toRepId" placeholder="请选择转入销售" style="width:100%">
-                <el-option v-for="item in salesRepOptions" :key="item.userId" :label="item.nickName" :value="item.userId" />
+                <el-option v-for="item in salesRepOptions" :key="item.id" :label="item.realName" :value="item.id" />
               </el-select>
             </el-form-item>
           </el-col>
@@ -288,8 +288,8 @@ function handleUpdate(row) {
   }).then(response => {
     form.value = response.data || response
     // 设置操作人名称
-    const rep = salesRepOptions.value.find(s => s.userId === form.value.operatedBy)
-    form.value.operatedByName = rep ? rep.nickName : (form.value.operatedBy || userStore.nickName)
+    const rep = salesRepOptions.value.find(s => s.id === form.value.operatedBy)
+    form.value.operatedByName = rep ? rep.realName : (form.value.operatedBy || userStore.realName)
     open.value = true
     title.value = "修改客户转移记录"
   })
@@ -300,8 +300,8 @@ function handleDetail(row) {
   loadSalesRepOptions()
   getCustomerTransfer(row.id).then(response => {
     form.value = response.data || response
-    const rep = salesRepOptions.value.find(s => s.userId === form.value.operatedBy)
-    form.value.operatedByName = rep ? rep.nickName : (form.value.operatedBy || userStore.nickName)
+    const rep = salesRepOptions.value.find(s => s.id === form.value.operatedBy)
+    form.value.operatedByName = rep ? rep.realName : (form.value.operatedBy || userStore.realName)
     detailOpen.value = true
     detailTitle.value = "客户转移记录详情"
   })

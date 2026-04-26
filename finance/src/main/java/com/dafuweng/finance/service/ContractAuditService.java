@@ -1,7 +1,7 @@
 package com.dafuweng.finance.service;
 
 import com.dafuweng.common.entity.PageResponse;
-import com.dafuweng.common.entity.vo.ContractDetailVO;
+import com.dafuweng.sales.entity.vo.ContractDetailVO;
 import com.dafuweng.sales.entity.ContractEntity;
 
 /**
@@ -11,12 +11,12 @@ import com.dafuweng.sales.entity.ContractEntity;
 public interface ContractAuditService {
 
     /**
-     * 分页查询审核中的合同（status = 4）
+     * 分页查询审核中的合同（status = 4，含关联名称）
      */
-    PageResponse<ContractEntity> pageList(int pageNum, int pageSize, Short status);
+    PageResponse<ContractDetailVO> pageList(int pageNum, int pageSize, Short status);
 
     /**
-     * 获取合同详情（含关联信息）
+     * 获取合同详情（含关联信息和名称）
      */
     ContractDetailVO getContractDetail(Long contractId);
 

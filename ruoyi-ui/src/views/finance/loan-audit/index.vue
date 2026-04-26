@@ -15,8 +15,12 @@
     <el-table v-loading="loading" :data="contractList" :row-key="row => row.id" @sort-change="handleSortChange">
       <el-table-column label="ID" align="center" prop="id" width="80" sortable />
       <el-table-column label="合同编号" align="center" prop="contractNo" />
-      <el-table-column label="客户" align="center" prop="customerName" />
-      <el-table-column label="销售代表" align="center" prop="salesRepName" />
+      <el-table-column label="客户" align="center" prop="customerName">
+        <template #default="scope">{{ scope.row.customerName || scope.row.customerId }}</template>
+      </el-table-column>
+      <el-table-column label="销售代表" align="center" prop="salesRepName">
+        <template #default="scope">{{ scope.row.salesRepName || scope.row.salesRepId }}</template>
+      </el-table-column>
       <el-table-column label="合同金额" align="center" prop="contractAmount" />
       <el-table-column label="状态" align="center" prop="status">
         <template #default="scope">
@@ -38,27 +42,27 @@
     <!-- 详情对话框 -->
     <el-dialog title="合同详情" v-model="detailVisible" width="800px" append-to-body>
       <el-descriptions :column="2" border>
-        <el-descriptions-item label="合同编号">{{ detailForm.contract?.contractNo }}</el-descriptions-item>
+        <el-descriptions-item label="合同编号">{{ detailForm.contractNo }}</el-descriptions-item>
         <el-descriptions-item label="状态">
-          <el-tag :type="getStatusType(detailForm.contract?.status)">{{ getStatusLabel(detailForm.contract?.status) }}</el-tag>
+          <el-tag :type="getStatusType(detailForm.status)">{{ getStatusLabel(detailForm.status) }}</el-tag>
         </el-descriptions-item>
-        <el-descriptions-item label="客户ID">{{ detailForm.customerId }}</el-descriptions-item>
-        <el-descriptions-item label="销售代表ID">{{ detailForm.salesRepId }}</el-descriptions-item>
-        <el-descriptions-item label="部门ID">{{ detailForm.deptId }}</el-descriptions-item>
-        <el-descriptions-item label="战区ID">{{ detailForm.zoneId }}</el-descriptions-item>
-        <el-descriptions-item label="合同金额">{{ detailForm.contract?.contractAmount }}</el-descriptions-item>
-        <el-descriptions-item label="实际贷款金额">{{ detailForm.contract?.actualLoanAmount }}</el-descriptions-item>
-        <el-descriptions-item label="服务费率">{{ detailForm.contract?.serviceFeeRate }}</el-descriptions-item>
-        <el-descriptions-item label="服务费1">{{ detailForm.contract?.serviceFee1 }}</el-descriptions-item>
-        <el-descriptions-item label="服务费2">{{ detailForm.contract?.serviceFee2 }}</el-descriptions-item>
-        <el-descriptions-item label="服务费1已付">{{ detailForm.contract?.serviceFee1Paid === 1 ? '是' : '否' }}</el-descriptions-item>
-        <el-descriptions-item label="服务费2已付">{{ detailForm.contract?.serviceFee2Paid === 1 ? '是' : '否' }}</el-descriptions-item>
-        <el-descriptions-item label="签署日期">{{ detailForm.contract?.signDate }}</el-descriptions-item>
-        <el-descriptions-item label="纸质合同编号">{{ detailForm.contract?.paperContractNo }}</el-descriptions-item>
-        <el-descriptions-item label="贷款用途" :span="2">{{ detailForm.contract?.loanUse }}</el-descriptions-item>
-        <el-descriptions-item label="担保信息" :span="2">{{ detailForm.contract?.guaranteeInfo }}</el-descriptions-item>
-        <el-descriptions-item label="拒绝原因" :span="2">{{ detailForm.contract?.rejectReason }}</el-descriptions-item>
-        <el-descriptions-item label="备注" :span="2">{{ detailForm.contract?.remark }}</el-descriptions-item>
+        <el-descriptions-item label="客户">{{ detailForm.customerName || detailForm.customerId }}</el-descriptions-item>
+        <el-descriptions-item label="销售代表">{{ detailForm.salesRepName || detailForm.salesRepId }}</el-descriptions-item>
+        <el-descriptions-item label="部门">{{ detailForm.deptName || detailForm.deptId }}</el-descriptions-item>
+        <el-descriptions-item label="战区">{{ detailForm.zoneName || detailForm.zoneId }}</el-descriptions-item>
+        <el-descriptions-item label="合同金额">{{ detailForm.contractAmount }}</el-descriptions-item>
+        <el-descriptions-item label="实际贷款金额">{{ detailForm.actualLoanAmount }}</el-descriptions-item>
+        <el-descriptions-item label="服务费率">{{ detailForm.serviceFeeRate }}</el-descriptions-item>
+        <el-descriptions-item label="服务费1">{{ detailForm.serviceFee1 }}</el-descriptions-item>
+        <el-descriptions-item label="服务费2">{{ detailForm.serviceFee2 }}</el-descriptions-item>
+        <el-descriptions-item label="服务费1已付">{{ detailForm.serviceFee1Paid === 1 ? '是' : '否' }}</el-descriptions-item>
+        <el-descriptions-item label="服务费2已付">{{ detailForm.serviceFee2Paid === 1 ? '是' : '否' }}</el-descriptions-item>
+        <el-descriptions-item label="签署日期">{{ detailForm.signDate }}</el-descriptions-item>
+        <el-descriptions-item label="纸质合同编号">{{ detailForm.paperContractNo }}</el-descriptions-item>
+        <el-descriptions-item label="贷款用途" :span="2">{{ detailForm.loanUse }}</el-descriptions-item>
+        <el-descriptions-item label="担保信息" :span="2">{{ detailForm.guaranteeInfo }}</el-descriptions-item>
+        <el-descriptions-item label="拒绝原因" :span="2">{{ detailForm.rejectReason }}</el-descriptions-item>
+        <el-descriptions-item label="备注" :span="2">{{ detailForm.remark }}</el-descriptions-item>
       </el-descriptions>
       <template #footer>
         <div class="dialog-footer">

@@ -19,6 +19,9 @@ public class ServiceFeeRecordEntity implements Serializable {
 
     private Long contractId;
 
+    @com.baomidou.mybatisplus.annotation.TableField(exist = false)
+    private String contractNo;
+
     private Short feeType;
 
     private BigDecimal amount;

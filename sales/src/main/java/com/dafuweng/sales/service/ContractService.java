@@ -21,7 +21,7 @@ public interface ContractService {
 
     ContractEntity getByContractNo(String contractNo);
 
-    PageResponse<ContractEntity> pageList(PageRequest request, String filterRole, Long userId, Long deptId, Long zoneId);
+    PageResponse<ContractEntity> pageList(PageRequest request, String filterRole, Long userId, Long deptId, Long zoneId, String contractNo);
 
     List<ContractEntity> listBySalesRepId(Long salesRepId);
 
@@ -31,6 +31,11 @@ public interface ContractService {
      * 按状态分页查询合同
      */
     PageResponse<ContractEntity> pageListByStatus(int pageNum, int pageSize, Short status);
+
+    /**
+     * 按状态分页查询合同（含关联名称）
+     */
+    PageResponse<ContractDetailVO> pageListByStatusWithNames(int pageNum, int pageSize, Short status);
 
     @Transactional
     ContractEntity save(ContractEntity entity);
@@ -80,4 +85,7 @@ public interface ContractService {
      * status=3 -> status=4
      */
     void submitToFinance(Long id);
+
+    @Transactional
+    void bankLoan(Long id);
 }

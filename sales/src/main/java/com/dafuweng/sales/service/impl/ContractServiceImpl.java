@@ -56,7 +56,7 @@ public class ContractServiceImpl implements ContractService {
     }
 
     @Override
-    public PageResponse<ContractEntity> pageList(PageRequest request, String filterRole, Long userId, Long deptId, Long zoneId) {
+    public PageResponse<ContractEntity> pageList(PageRequest request, String filterRole, Long userId, Long deptId, Long zoneId, String contractNo) {
         IPage<ContractEntity> page = new Page<>(request.getPage(), request.getSize());
         LambdaQueryWrapper<ContractEntity> wrapper = new LambdaQueryWrapper<>();
 
@@ -78,6 +78,11 @@ public class ContractServiceImpl implements ContractService {
             if (userId != null) {
                 wrapper.eq(ContractEntity::getSalesRepId, userId);
             }
+        }
+
+        // 按合同编号搜索
+        if (StringUtils.hasText(contractNo)) {
+            wrapper.like(ContractEntity::getContractNo, contractNo);
         }
 
         if (StringUtils.hasText(request.getSortField())) {
@@ -109,6 +114,86 @@ public class ContractServiceImpl implements ContractService {
         wrapper.eq(ContractEntity::getStatus, status);
         wrapper.eq(ContractEntity::getDeleted, (short) 0);
         return contractDao.selectList(wrapper);
+    }
+
+    @Override
+    public PageResponse<ContractDetailVO> pageListByStatusWithNames(int pageNum, int pageSize, Short status) {
+        IPage<ContractEntity> page = new Page<>(pageNum, pageSize);
+        LambdaQueryWrapper<ContractEntity> wrapper = new LambdaQueryWrapper<>();
+
+        if (status != null) {
+            wrapper.eq(ContractEntity::getStatus, status);
+        }
+
+        wrapper.eq(ContractEntity::getDeleted, (short) 0);
+        wrapper.orderByDesc(ContractEntity::getCreatedAt);
+        IPage<ContractEntity> result = contractDao.selectPage(page, wrapper);
+
+        // 转换为VO并填充名称
+        List<ContractDetailVO> voList = result.getRecords().stream()
+                .map(this::convertToDetailVOWithNames)
+                .collect(java.util.stream.Collectors.toList());
+
+        return PageResponse.of(result.getTotal(), voList,
+            (int) result.getCurrent(), (int) result.getSize());
+    }
+
+    /**
+     * 将ContractEntity转换为ContractDetailVO并填充名称
+     */
+    private ContractDetailVO convertToDetailVOWithNames(ContractEntity entity) {
+        ContractDetailVO vo = new ContractDetailVO();
+        org.springframework.beans.BeanUtils.copyProperties(entity, vo);
+
+        // 填充客户名称
+        if (entity.getCustomerId() != null) {
+            CustomerEntity customer = customerDao.selectById(entity.getCustomerId());
+            if (customer != null) {
+                vo.setCustomerName(customer.getName());
+            }
+        }
+
+        // 填充销售代表名称
+        if (entity.getSalesRepId() != null) {
+            Result<?> res = authFeignClient.getUserById(entity.getSalesRepId());
+            if (res != null && res.getCode() == 200 && res.getData() != null) {
+                @SuppressWarnings("unchecked")
+                java.util.Map<String, Object> user = (java.util.Map<String, Object>) res.getData();
+                vo.setSalesRepName((String) user.get("realName"));
+            }
+        }
+
+        // 填充部门名称
+        if (entity.getDeptId() != null) {
+            Result<?> res = systemFeignClient.getDepartmentById(entity.getDeptId());
+            if (res != null && res.getCode() == 200 && res.getData() != null) {
+                @SuppressWarnings("unchecked")
+                java.util.Map<String, Object> dept = (java.util.Map<String, Object>) res.getData();
+                vo.setDeptName((String) dept.get("deptName"));
+            }
+        }
+
+        // 填充战区位名称
+        if (entity.getZoneId() != null) {
+            Result<?> res = systemFeignClient.getZoneById(entity.getZoneId());
+            if (res != null && res.getCode() == 200 && res.getData() != null) {
+                @SuppressWarnings("unchecked")
+                java.util.Map<String, Object> zone = (java.util.Map<String, Object>) res.getData();
+                vo.setZoneName((String) zone.get("zoneName"));
+            }
+        }
+
+        // 填充产品名称
+        if (entity.getProductId() != null) {
+            Result<?> res = financeFeignClient.getById(entity.getProductId());
+            if (res != null && res.getCode() == 200 && res.getData() != null) {
+                @SuppressWarnings("unchecked")
+                java.util.Map<String, Object> product = (java.util.Map<String, Object>) res.getData();
+                vo.setProductName((String) product.get("productName"));
+            }
+        }
+
+        return vo;
     }
 
     @Override
@@ -295,6 +380,7 @@ public class ContractServiceImpl implements ContractService {
             throw new IllegalStateException("当前状态不允许操作，状态：" + contract.getStatus());
         }
         contract.setStatus((short) 3);
+        contract.setServiceFee1Paid((short) 1);
         contractDao.updateById(contract);
     }
 
@@ -312,8 +398,8 @@ public class ContractServiceImpl implements ContractService {
         contractDao.updateById(contract);
     }
 
-    @Override
     @Transactional
+    @Override
     public void bankLoan(Long id) {
         ContractEntity contract = contractDao.selectById(id);
         if (contract == null) {
@@ -322,8 +408,9 @@ public class ContractServiceImpl implements ContractService {
         if (contract.getStatus() != 5) {
             throw new IllegalStateException("当前状态不允许操作，状态：" + contract.getStatus());
         }
-        // 更新合同状态为已放款
+        // 更新合同状态为已放款，并标记服务费2已支付
         contract.setStatus((short) 7);
+        contract.setServiceFee2Paid((short) 1);
         contractDao.updateById(contract);
 
         // 创建提成记录（serviceFee2）

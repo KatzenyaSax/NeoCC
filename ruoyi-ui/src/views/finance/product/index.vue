@@ -26,7 +26,7 @@
       <el-table-column label="ID" align="center" prop="id" width="80" sortable />
       <el-table-column label="产品代码" align="center" prop="productCode" width="120" />
       <el-table-column label="产品名称" align="center" prop="productName" />
-      <el-table-column label="银行ID" align="center" prop="bankId" width="90" />
+      <el-table-column label="银行" align="center" prop="bankName" width="120" />
       <el-table-column label="金额范围" align="center" width="180">
         <template #default="scope">{{ scope.row.minAmount }} ~ {{ scope.row.maxAmount }}</template>
       </el-table-column>
@@ -58,8 +58,10 @@
         <el-form-item label="产品名称" prop="productName">
           <el-input v-model="form.productName" placeholder="请输入产品名称" />
         </el-form-item>
-        <el-form-item label="银行ID" prop="bankId">
-          <el-input v-model="form.bankId" placeholder="请输入银行ID" />
+        <el-form-item label="银行" prop="bankId">
+          <el-select v-model="form.bankId" placeholder="请选择银行" clearable>
+            <el-option v-for="bank in bankList" :key="bank.id" :label="bank.bankName" :value="bank.id" />
+          </el-select>
         </el-form-item>
         <el-form-item label="最低金额" prop="minAmount">
           <el-input v-model="form.minAmount" placeholder="请输入最低金额" />
@@ -99,6 +101,7 @@
 
 <script setup>
 import { listFinanceProduct, getFinanceProduct, addFinanceProduct, updateFinanceProduct, delFinanceProduct, getMinUnusedFinanceProductId } from "@/api/finance/financeProduct"
+import { listBank } from "@/api/finance/bank"
 
 const { proxy } = getCurrentInstance()
 const dataList = ref([])
@@ -107,6 +110,13 @@ const showSearch = ref(true)
 const total = ref(0)
 const title = ref("")
 const open = ref(false)
+const bankList = ref([])
+
+function loadBanks() {
+  listBank({ pageNum: 1, pageSize: 9999 }).then(response => {
+    bankList.value = response.data?.records || response.records || []
+  })
+}
 
 const data = reactive({
   form: {},
@@ -114,7 +124,7 @@ const data = reactive({
   rules: {
     productCode: [{ required: true, message: "产品代码不能为空", trigger: "blur" }],
     productName: [{ required: true, message: "产品名称不能为空", trigger: "blur" }],
-    bankId: [{ required: true, message: "银行ID不能为空", trigger: "blur" }]
+    bankId: [{ required: true, message: "银行不能为空", trigger: "change" }]
   }
 })
 const { queryParams, form, rules } = toRefs(data)
@@ -144,6 +154,7 @@ function handleSortChange({ prop, order }) {
 
 function handleAdd() {
   reset()
+  loadBanks()
   getMinUnusedFinanceProductId().then(response => {
     form.value.id = response.data || response
     open.value = true
@@ -153,6 +164,7 @@ function handleAdd() {
 
 function handleUpdate(row) {
   reset()
+  loadBanks()
   getFinanceProduct(row.id).then(response => {
     form.value = response.data || response
     open.value = true

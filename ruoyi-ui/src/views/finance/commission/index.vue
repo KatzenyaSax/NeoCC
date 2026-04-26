@@ -29,6 +29,7 @@
       <el-table-column label="创建时间" align="center" prop="createdAt" width="180" />
       <el-table-column label="操作" align="center" class-name="small-padding fixed-width">
         <template #default="scope">
+          <el-button link type="primary" icon="Edit" @click="handleEdit(scope.row)" v-if="scope.row.status === 0">修改</el-button>
           <el-button link type="primary" icon="Check" @click="handleConfirm(scope.row)" v-if="scope.row.status === 0">确认</el-button>
           <el-button link type="primary" icon="Money" @click="handleGrant(scope.row)" v-if="scope.row.status === 1">发放</el-button>
         </template>
@@ -36,6 +37,54 @@
     </el-table>
 
     <pagination v-show="total > 0" :total="total" v-model:page="queryParams.pageNum" v-model:limit="queryParams.pageSize" @pagination="getList" />
+
+    <!-- 修改对话框 -->
+    <el-dialog title="修改提成记录" v-model="editOpen" width="600px" append-to-body>
+      <el-form ref="editRef" :model="editForm" label-width="100px">
+        <el-form-item label="销售代表">
+          <el-select
+            v-model="editForm.salesRepId"
+            filterable
+            remote
+            reserve-keyword
+            placeholder="请输入销售代表名称搜索"
+            :remote-method="searchSalesReps"
+            :loading="salesRepLoading"
+            @focus="loadSalesReps"
+            style="width: 100%">
+            <el-option
+              v-for="item in salesRepOptions"
+              :key="item.id"
+              :label="item.realName"
+              :value="item.id" />
+          </el-select>
+        </el-form-item>
+        <el-form-item label="合同">
+          <el-select
+            v-model="editForm.contractId"
+            filterable
+            remote
+            reserve-keyword
+            placeholder="请输入合同编号搜索"
+            :remote-method="searchContracts"
+            :loading="contractLoading"
+            @focus="loadContracts"
+            style="width: 100%">
+            <el-option
+              v-for="item in contractOptions"
+              :key="item.id"
+              :label="item.contractNo"
+              :value="item.id" />
+          </el-select>
+        </el-form-item>
+      </el-form>
+      <template #footer>
+        <div class="dialog-footer">
+          <el-button type="primary" @click="submitEdit">确 定</el-button>
+          <el-button @click="editOpen = false">取 消</el-button>
+        </div>
+      </template>
+    </el-dialog>
 
     <!-- 发放对话框 -->
     <el-dialog title="发放佣金" v-model="grantOpen" width="500px" append-to-body>
@@ -58,7 +107,9 @@
 </template>
 
 <script setup>
-import { listCommission, getCommission, confirmCommission, grantCommission } from "@/api/finance/commission"
+import { listCommission, getCommission, updateCommission, confirmCommission, grantCommission } from "@/api/finance/commission"
+import { listSalesReps } from "@/api/system/user"
+import { listContractForSelect } from "@/api/sales/contract"
 
 const { proxy } = getCurrentInstance()
 
@@ -66,6 +117,16 @@ const commissionList = ref([])
 const loading = ref(true)
 const showSearch = ref(true)
 const total = ref(0)
+
+// 修改对话框
+const editOpen = ref(false)
+const editForm = ref({})
+const salesRepOptions = ref([])
+const contractOptions = ref([])
+const salesRepLoading = ref(false)
+const contractLoading = ref(false)
+
+// 发放对话框
 const grantOpen = ref(false)
 const grantForm = ref({})
 const currentId = ref(null)
@@ -123,6 +184,74 @@ function handleSortChange({ prop, order }) {
 function resetQuery() {
   proxy.resetForm("queryRef")
   handleQuery()
+}
+
+/** 修改按钮 */
+function handleEdit(row) {
+  editForm.value = {
+    id: row.id,
+    salesRepId: row.salesRepId,
+    contractId: row.contractId
+  }
+  salesRepOptions.value = []
+  contractOptions.value = []
+  editOpen.value = true
+}
+
+/** 加载销售代表列表 */
+function loadSalesReps() {
+  listSalesReps({}).then(response => {
+    salesRepOptions.value = response.data || []
+  })
+}
+
+/** 搜索销售代表 */
+function searchSalesReps(query) {
+  if (query === '') {
+    loadSalesReps()
+    return
+  }
+  salesRepLoading.value = true
+  listSalesReps({}).then(response => {
+    const all = response.data || []
+    if (query) {
+      salesRepOptions.value = all.filter(item =>
+        item.realName && item.realName.toLowerCase().includes(query.toLowerCase())
+      )
+    } else {
+      salesRepOptions.value = all
+    }
+    salesRepLoading.value = false
+  })
+}
+
+/** 加载合同列表 */
+function loadContracts() {
+  listContractForSelect({}).then(response => {
+    contractOptions.value = response.data?.records || response.records || []
+  })
+}
+
+/** 搜索合同 */
+function searchContracts(query) {
+  if (query === '') {
+    loadContracts()
+    return
+  }
+  contractLoading.value = true
+  listContractForSelect({ contractNo: query }).then(response => {
+    contractOptions.value = response.data?.records || response.records || []
+    contractLoading.value = false
+  })
+}
+
+/** 提交修改 */
+function submitEdit() {
+  updateCommission(editForm.value).then(() => {
+    proxy.$modal.msgSuccess("修改成功")
+    editOpen.value = false
+    getList()
+  })
 }
 
 /** 确认佣金 */
