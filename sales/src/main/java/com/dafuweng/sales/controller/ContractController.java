@@ -145,4 +145,14 @@ public class ContractController {
         contractService.submitToFinance(id);
         return Result.success();
     }
+
+    /**
+     * POST /api/contract/{id}/bank-loan
+     * 银行已放款：更新状态为已放款，并创建提成记录
+     */
+    @PostMapping("/{id}/bank-loan")
+    public Result<Void> bankLoan(@PathVariable Long id) {
+        contractService.bankLoan(id);
+        return Result.success();
+    }
 }
