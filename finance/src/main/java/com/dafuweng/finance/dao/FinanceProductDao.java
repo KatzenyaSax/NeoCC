@@ -1,6 +1,7 @@
 package com.dafuweng.finance.dao;
 
 import com.baomidou.mybatisplus.core.mapper.BaseMapper;
+import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.dafuweng.finance.entity.FinanceProductEntity;
 import org.apache.ibatis.annotations.Mapper;
 import org.apache.ibatis.annotations.Param;
@@ -19,4 +20,11 @@ public interface FinanceProductDao extends BaseMapper<FinanceProductEntity> {
 
     @Update("UPDATE finance_product SET deleted = 1 WHERE id = #{id}")
     int softDeleteById(@Param("id") Long id);
+
+    @Select("SELECT fp.*, b.bank_name AS bankName " +
+            "FROM finance_product fp " +
+            "LEFT JOIN bank b ON fp.bank_id = b.id " +
+            "WHERE fp.deleted = 0 " +
+            "ORDER BY fp.created_at DESC")
+    IPage<FinanceProductEntity> selectPageWithBank(@Param("page") IPage<FinanceProductEntity> page);
 }
