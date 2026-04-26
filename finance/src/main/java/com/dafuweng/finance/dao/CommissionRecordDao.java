@@ -1,6 +1,7 @@
 package com.dafuweng.finance.dao;
 
 import com.baomidou.mybatisplus.core.mapper.BaseMapper;
+import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.dafuweng.finance.entity.CommissionRecordEntity;
 import org.apache.ibatis.annotations.Mapper;
 import org.apache.ibatis.annotations.Param;
@@ -19,4 +20,12 @@ public interface CommissionRecordDao extends BaseMapper<CommissionRecordEntity> 
 
     @Update("UPDATE commission_record SET deleted = 1 WHERE id = #{id}")
     int softDeleteById(@Param("id") Long id);
+
+    @Select("SELECT cr.*, u.real_name AS salesRepName, c.contract_no AS contractNo " +
+            "FROM commission_record cr " +
+            "LEFT JOIN sys_user u ON cr.sales_rep_id = u.id " +
+            "LEFT JOIN contract c ON cr.contract_id = c.id " +
+            "WHERE cr.deleted = 0 " +
+            "ORDER BY cr.created_at DESC")
+    IPage<CommissionRecordEntity> selectPageWithNames(@Param("page") IPage<CommissionRecordEntity> page);
 }
