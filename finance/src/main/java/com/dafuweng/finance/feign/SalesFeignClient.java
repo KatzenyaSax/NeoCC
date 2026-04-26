@@ -29,6 +29,9 @@ public interface SalesFeignClient {
                                                                @RequestParam("pageSize") int pageSize,
                                                                @PathVariable("status") Short status);
 
+    @GetMapping("/sales/internal/contracts/{id}")
+    Result<ContractVO> getContractById(@PathVariable Long id);
+
     @PutMapping("/sales/internal/contracts/{id}/status-with-reason")
     Result<?> updateContractStatusWithReason(@PathVariable Long id,
                                             @RequestParam Short status,
