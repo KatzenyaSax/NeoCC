@@ -1,6 +1,7 @@
 package com.dafuweng.sales.dao;
 
 import com.baomidou.mybatisplus.core.mapper.BaseMapper;
+import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.dafuweng.sales.entity.ContractEntity;
 import org.apache.ibatis.annotations.Mapper;
 import org.apache.ibatis.annotations.Param;
@@ -17,4 +18,12 @@ public interface ContractDao extends BaseMapper<ContractEntity> {
 
     @Update("UPDATE contract SET deleted = 1 WHERE id = #{id}")
     int softDeleteById(@Param("id") Long id);
+
+    @Select("SELECT c.*, cu.name AS customerName, u.real_name AS salesRepName " +
+            "FROM contract c " +
+            "LEFT JOIN customer cu ON c.customer_id = cu.id " +
+            "LEFT JOIN sys_user u ON c.sales_rep_id = u.id " +
+            "WHERE c.deleted = 0 " +
+            "ORDER BY c.created_at DESC")
+    IPage<ContractEntity> selectPageAuditWithNames(@Param("page") IPage<ContractEntity> page);
 }
