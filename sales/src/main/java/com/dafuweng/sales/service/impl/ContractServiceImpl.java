@@ -6,6 +6,7 @@ import com.dafuweng.sales.service.ContractService;
 import com.dafuweng.sales.dao.ContractDao;
 import com.dafuweng.sales.feign.AuthFeignClient;
 import com.dafuweng.sales.feign.FinanceFeignClient;
+import com.dafuweng.finance.entity.CommissionRecordEntity;
 import com.dafuweng.sales.feign.SystemFeignClient;
 import com.dafuweng.sales.entity.CustomerEntity;
 import com.dafuweng.sales.dao.CustomerDao;
@@ -309,5 +310,30 @@ public class ContractServiceImpl implements ContractService {
         contract.setStatus((short) 4);
         contract.setFinanceSendTime(new Date());
         contractDao.updateById(contract);
+    }
+
+    @Override
+    @Transactional
+    public void bankLoan(Long id) {
+        ContractEntity contract = contractDao.selectById(id);
+        if (contract == null) {
+            throw new IllegalArgumentException("合同不存在");
+        }
+        if (contract.getStatus() != 5) {
+            throw new IllegalStateException("当前状态不允许操作，状态：" + contract.getStatus());
+        }
+        // 更新合同状态为已放款
+        contract.setStatus((short) 7);
+        contractDao.updateById(contract);
+
+        // 创建提成记录（serviceFee2）
+        CommissionRecordEntity record = new CommissionRecordEntity();
+        record.setId(financeFeignClient.getMinUnusedCommissionRecordId().getData());
+        record.setSalesRepId(contract.getSalesRepId());
+        record.setContractId(contract.getId());
+        record.setCommissionAmount(contract.getServiceFee2());
+        record.setStatus((short) 0);
+        record.setDeleted((short) 0);
+        financeFeignClient.createCommissionRecord(record);
     }
 }
