@@ -42,6 +42,7 @@
           <el-button link type="success" icon="Check" @click="handleSignRow(scope.row)" v-if="scope.row.status === 1 && (isSuperAdmin || isZoneDirector || isSalesRep)">正式签署</el-button>
           <el-button link type="warning" icon="Money" @click="handlePayFirstInstallment(scope.row)" v-if="scope.row.status === 2 && isSalesRep">已支付首期</el-button>
           <el-button link type="warning" icon="Promotion" @click="handleSubmitToFinance(scope.row)" v-if="scope.row.status === 3 && (isSuperAdmin || isZoneDirector)">提交金融部</el-button>
+          <el-button link type="warning" icon="Money" @click="handleBankLoan(scope.row)" v-if="scope.row.status === 5 && (isSuperAdmin || isZoneDirector)">银行已放款</el-button>
         </template>
       </el-table-column>
     </el-table>
@@ -372,7 +373,7 @@
 </template>
 
 <script setup>
-import { listContract, getContract, delContract, addContract, updateContract, signContract, generateNo, getContractDetail, getContractDetailWithNames, payFirstInstallment, submitToFinance, getMinUnusedIdContract } from "@/api/sales/contract"
+import { listContract, getContract, delContract, addContract, updateContract, signContract, generateNo, getContractDetail, getContractDetailWithNames, payFirstInstallment, submitToFinance, bankLoanContract, getMinUnusedIdContract } from "@/api/sales/contract"
 import { listSalesReps } from "@/api/sales/publicSea"
 import { listCustomer } from "@/api/sales/customer"
 import { listAllDepartment } from "@/api/system/department"
@@ -666,6 +667,16 @@ function handlePayFirstInstallment(row) {
 function handleSubmitToFinance(row) {
   proxy.$modal.confirm('是否确认将合同"' + row.contractNo + '"提交至金融部？').then(function () {
     return submitToFinance(row.id)
+  }).then(() => {
+    getList()
+    proxy.$modal.msgSuccess("操作成功")
+  }).catch(() => {})
+}
+
+/** 银行已放款按钮 */
+function handleBankLoan(row) {
+  proxy.$modal.confirm('是否确认合同"' + row.contractNo + '"银行已放款？').then(function () {
+    return bankLoanContract(row.id)
   }).then(() => {
     getList()
     proxy.$modal.msgSuccess("操作成功")
