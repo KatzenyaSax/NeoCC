@@ -11,7 +11,6 @@ import com.dafuweng.common.entity.PageResponse;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-import org.springframework.util.StringUtils;
 
 import java.util.List;
 
@@ -29,18 +28,7 @@ public class FinanceProductServiceImpl implements FinanceProductService {
     @Override
     public PageResponse<FinanceProductEntity> pageList(PageRequest request) {
         IPage<FinanceProductEntity> page = new Page<>(request.getPage(), request.getSize());
-        LambdaQueryWrapper<FinanceProductEntity> wrapper = new LambdaQueryWrapper<>();
-        wrapper.eq(FinanceProductEntity::getDeleted, (short) 0);
-        if (StringUtils.hasText(request.getSortField())) {
-            if ("asc".equalsIgnoreCase(request.getSortOrder())) {
-                wrapper.orderByAsc(FinanceProductEntity::getId);
-            } else {
-                wrapper.orderByDesc(FinanceProductEntity::getId);
-            }
-        } else {
-            wrapper.orderByDesc(FinanceProductEntity::getCreatedAt);
-        }
-        IPage<FinanceProductEntity> result = financeProductDao.selectPage(page, wrapper);
+        IPage<FinanceProductEntity> result = financeProductDao.selectPageWithBank(page);
         return PageResponse.of(result.getTotal(), result.getRecords(),
             (int) page.getCurrent() , (int) page.getSize());
     }
