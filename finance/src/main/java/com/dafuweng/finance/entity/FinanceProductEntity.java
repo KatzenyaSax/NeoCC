@@ -25,6 +25,9 @@ public class FinanceProductEntity implements Serializable {
 
     private Long bankId;
 
+    @TableField(exist = false)
+    private String bankName;
+
     private BigDecimal minAmount;
 
     private BigDecimal maxAmount;
