@@ -88,7 +88,9 @@
       "Read(//c/Users/a1829/.m2/repository/**)",
       "Bash(javac -d /tmp/test_compile -cp \"src/main/java;target/classes;$\\(find ~/.m2/repository -name '*.jar')",
       "Skill(review)",
-      "Bash(python3 -m json.tool)"
+      "Bash(python3 -m json.tool)",
+      "Bash(./mvnw test *)",
+      "Bash(mvn spring-boot:run -pl sales -am -Dspring-boot.run.main-class=\"com.dafuweng.sales.SalesApplication\")"
     ]
   }
 }
