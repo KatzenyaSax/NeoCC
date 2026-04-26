@@ -3,9 +3,12 @@ package com.dafuweng.sales.service.impl;
 import com.dafuweng.common.entity.Result;
 import com.dafuweng.sales.dao.ContractDao;
 import com.dafuweng.sales.entity.ContractEntity;
+import com.dafuweng.sales.entity.PerformanceRecordEntity;
 import com.dafuweng.sales.feign.FinanceFeignClient;
+import com.dafuweng.sales.service.PerformanceRecordService;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.ArgumentCaptor;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
@@ -23,6 +26,9 @@ class ContractServiceImplTest {
 
     @Mock
     private FinanceFeignClient financeFeignClient;
+
+    @Mock
+    private PerformanceRecordService performanceRecordService;
 
     @InjectMocks
     private ContractServiceImpl contractService;
@@ -79,11 +85,14 @@ class ContractServiceImplTest {
         contract.setContractAmount(new BigDecimal("100000"));
         contract.setServiceFee1(new BigDecimal("5000"));
         contract.setServiceFee2(new BigDecimal("3000"));
+        contract.setDeptId(2L);
+        contract.setZoneId(3L);
 
         when(contractDao.selectById(1L)).thenReturn(contract);
         when(financeFeignClient.getMinUnusedServiceFeeRecordId()).thenReturn(Result.success(200L));
         when(financeFeignClient.createServiceFeeRecord(anyMap())).thenReturn(Result.success(null));
-        when(financeFeignClient.getMinUnusedCommissionRecordId()).thenReturn(Result.success(300L));
+        when(performanceRecordService.getMinUnusedId()).thenReturn(300L);
+        when(financeFeignClient.getMinUnusedCommissionRecordId()).thenReturn(Result.success(400L));
         when(financeFeignClient.createCommissionRecord(anyMap())).thenReturn(Result.success(null));
 
         // 执行测试
@@ -98,6 +107,8 @@ class ContractServiceImplTest {
         verify(financeFeignClient).createServiceFeeRecord(anyMap());
         verify(financeFeignClient).getMinUnusedCommissionRecordId();
         verify(financeFeignClient).createCommissionRecord(anyMap());
+        verify(performanceRecordService).getMinUnusedId();
+        verify(performanceRecordService).save(any(PerformanceRecordEntity.class));
     }
 
     @Test
@@ -110,11 +121,14 @@ class ContractServiceImplTest {
         contract.setContractAmount(new BigDecimal("100000"));
         contract.setServiceFee1(new BigDecimal("5000"));
         contract.setServiceFee2(new BigDecimal("3000"));
+        contract.setDeptId(2L);
+        contract.setZoneId(3L);
 
         when(contractDao.selectById(1L)).thenReturn(contract);
         when(financeFeignClient.getMinUnusedServiceFeeRecordId()).thenReturn(Result.success(200L));
         when(financeFeignClient.createServiceFeeRecord(anyMap())).thenReturn(Result.success(null));
-        when(financeFeignClient.getMinUnusedCommissionRecordId()).thenReturn(Result.success(300L));
+        when(performanceRecordService.getMinUnusedId()).thenReturn(300L);
+        when(financeFeignClient.getMinUnusedCommissionRecordId()).thenReturn(Result.success(400L));
         when(financeFeignClient.createCommissionRecord(anyMap())).thenReturn(Result.success(null));
 
         // 执行测试
@@ -122,10 +136,11 @@ class ContractServiceImplTest {
 
         // 验证提成金额计算是否正确：100000 * 0.015 = 1500
         BigDecimal expectedCommission = new BigDecimal("1500.00");
-        verify(financeFeignClient).createCommissionRecord(argThat(map -> {
-            BigDecimal actualCommission = new BigDecimal(map.get("commissionAmount").toString());
-            return actualCommission.compareTo(expectedCommission) == 0;
-        }));
+        ArgumentCaptor<PerformanceRecordEntity> captor = ArgumentCaptor.forClass(PerformanceRecordEntity.class);
+        verify(performanceRecordService).save(captor.capture());
+        assertEquals(0, expectedCommission.compareTo(captor.getValue().getCommissionAmount()));
+        verify(financeFeignClient).getMinUnusedCommissionRecordId();
+        verify(financeFeignClient).createCommissionRecord(anyMap());
     }
 
     @Test
