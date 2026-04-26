@@ -26,4 +26,16 @@ public interface FinanceFeignClient {
      */
     @GetMapping("/api/commissionRecord/min-unused-id")
     Result<Long> getMinUnusedCommissionRecordId();
+
+    /**
+     * 创建服务费记录
+     */
+    @PostMapping("/api/serviceFeeRecord")
+    Result<?> createServiceFeeRecord(@RequestBody Map<String, Object> record);
+
+    /**
+     * 获取最小未使用服务费记录ID
+     */
+    @GetMapping("/api/serviceFeeRecord/min-unused-id")
+    Result<Long> getMinUnusedServiceFeeRecordId();
 }

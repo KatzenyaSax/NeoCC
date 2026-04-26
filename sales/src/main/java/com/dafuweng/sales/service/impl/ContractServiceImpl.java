@@ -24,6 +24,7 @@ import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
 import java.util.Date;
 import java.util.HashMap;
+import java.math.BigDecimal;
 import java.util.List;
 import java.util.Map;
 
@@ -371,6 +372,7 @@ public class ContractServiceImpl implements ContractService {
     }
 
     @Override
+    @Transactional
     public void payFirstInstallment(Long id) {
         ContractEntity contract = contractDao.selectById(id);
         if (contract == null) {
@@ -382,6 +384,17 @@ public class ContractServiceImpl implements ContractService {
         contract.setStatus((short) 3);
         contract.setServiceFee1Paid((short) 1);
         contractDao.updateById(contract);
+
+        // 创建二期服务费记录
+        Map<String, Object> serviceFeeRecord = new HashMap<>();
+        serviceFeeRecord.put("id", financeFeignClient.getMinUnusedServiceFeeRecordId().getData());
+        serviceFeeRecord.put("contractId", contract.getId());
+        serviceFeeRecord.put("feeType", (short) 2);
+        serviceFeeRecord.put("amount", contract.getServiceFee2());
+        serviceFeeRecord.put("shouldAmount", contract.getServiceFee2());
+        serviceFeeRecord.put("paymentStatus", (short) 0);
+        serviceFeeRecord.put("deleted", (short) 0);
+        financeFeignClient.createServiceFeeRecord(serviceFeeRecord);
     }
 
     @Override
@@ -408,17 +421,37 @@ public class ContractServiceImpl implements ContractService {
         if (contract.getStatus() != 5) {
             throw new IllegalStateException("当前状态不允许操作，状态：" + contract.getStatus());
         }
-        // 更新合同状态为已放款，并标记服务费2已支付
+        // 计算实际放款金额：合同金额 - 服务费1 - 服务费2
+        BigDecimal actualLoanAmount = contract.getContractAmount()
+                .subtract(contract.getServiceFee1() != null ? contract.getServiceFee1() : BigDecimal.ZERO)
+                .subtract(contract.getServiceFee2() != null ? contract.getServiceFee2() : BigDecimal.ZERO);
+
+        // 更新合同状态为已放款，并标记服务费2已支付，设置实际放款金额
         contract.setStatus((short) 7);
         contract.setServiceFee2Paid((short) 1);
+        contract.setActualLoanAmount(actualLoanAmount);
         contractDao.updateById(contract);
 
-        // 创建提成记录（serviceFee2）
+        // 创建首期服务费记录
+        Map<String, Object> serviceFeeRecord = new HashMap<>();
+        serviceFeeRecord.put("id", financeFeignClient.getMinUnusedServiceFeeRecordId().getData());
+        serviceFeeRecord.put("contractId", contract.getId());
+        serviceFeeRecord.put("feeType", (short) 1);
+        serviceFeeRecord.put("amount", contract.getServiceFee1());
+        serviceFeeRecord.put("shouldAmount", contract.getServiceFee1());
+        serviceFeeRecord.put("paymentStatus", (short) 0);
+        serviceFeeRecord.put("deleted", (short) 0);
+        financeFeignClient.createServiceFeeRecord(serviceFeeRecord);
+
+        // 创建提成记录（合同金额 * 0.015）
+        BigDecimal commissionAmount = contract.getContractAmount().multiply(new BigDecimal("0.015"));
         Map<String, Object> record = new HashMap<>();
         record.put("id", financeFeignClient.getMinUnusedCommissionRecordId().getData());
         record.put("salesRepId", contract.getSalesRepId());
         record.put("contractId", contract.getId());
-        record.put("commissionAmount", contract.getServiceFee2());
+        record.put("contractAmount", contract.getContractAmount());
+        record.put("commissionRate", new BigDecimal("0.015"));
+        record.put("commissionAmount", commissionAmount);
         record.put("status", (short) 0);
         record.put("deleted", (short) 0);
         financeFeignClient.createCommissionRecord(record);

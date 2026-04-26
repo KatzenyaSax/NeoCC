@@ -426,7 +426,7 @@ function initRoles() {
   isSuperAdmin.value = roles.some(r => ['ROLE_SUPER_ADMIN', 'SUPER_ADMIN'].includes(r))
   isDeptManager.value = roles.some(r => ['ROLE_DEPT_MANAGER', 'DEPT_MANAGER'].includes(r))
   isZoneDirector.value = roles.some(r => ['ROLE_ZONE_DIRECTOR', 'ZONE_DIRECTOR'].includes(r))
-  isSalesRep.value = roles.some(r => ['ROLE_SALES_REP', 'SALES_REP'].includes(r))
+  isSalesRep.value = roles.some(r => ['ROLE_SALES_REP', 'SALES_REP','ROLE_SUPER_ADMIN'].includes(r))
 }
 
 initRoles()
