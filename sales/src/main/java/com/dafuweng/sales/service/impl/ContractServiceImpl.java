@@ -400,7 +400,7 @@ public class ContractServiceImpl implements ContractService {
         serviceFeeRecord.put("amount", contract.getServiceFee2());
         serviceFeeRecord.put("shouldAmount", contract.getServiceFee2());
         serviceFeeRecord.put("paymentStatus", (short) 1); // 支付状态：1-已支付
-        serviceFeeRecord.put("paymentDate", new Date()); // 设置支付日期
+        serviceFeeRecord.put("paymentDate", Date.from(ZonedDateTime.now(ZoneId.of("Asia/Shanghai")).toInstant())); // 设置支付日期（北京时间）
         serviceFeeRecord.put("accountantId", 1); // 会计ID，必填字段，默认值为1
         serviceFeeRecord.put("deleted", (short) 0);
         financeFeignClient.createServiceFeeRecord(serviceFeeRecord);
