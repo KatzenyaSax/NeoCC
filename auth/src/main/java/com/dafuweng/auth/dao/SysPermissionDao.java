@@ -19,7 +19,7 @@ public interface SysPermissionDao extends BaseMapper<SysPermissionEntity> {
      */
     List<String> selectPermCodesByRoleId(@Param("roleId") Long roleId);
 
-    @Select("SELECT MIN(t1.id + 1) FROM sys_permission t1 WHERE NOT EXISTS (SELECT 1 FROM sys_permission t2 WHERE t2.id = t1.id + 1 AND t2.deleted = 0)")
+    @Select("SELECT MIN(t1.id + 1) FROM sys_permission t1 WHERE NOT EXISTS (SELECT 1 FROM sys_permission t2 WHERE t2.id = t1.id + 1)")
     Long selectMinUnusedId();
 
     @Update("UPDATE sys_permission SET deleted = 1 WHERE id = #{id}")

@@ -15,7 +15,7 @@ public interface PerformanceRecordDao extends BaseMapper<PerformanceRecordEntity
 
     PerformanceRecordEntity selectOne(Wrapper<PerformanceRecordEntity> wrapper);
 
-    @Select("SELECT COALESCE(MIN(t.id + 1), 1) FROM (SELECT 1 as id UNION SELECT MAX(id) + 1 FROM performance_record) t WHERE NOT EXISTS (SELECT 1 FROM performance_record c WHERE c.id = t.id AND c.deleted = 0)")
+    @Select("SELECT COALESCE(MIN(t.id), 1) FROM (SELECT 1 as id UNION SELECT MAX(id) + 1 FROM performance_record) t WHERE NOT EXISTS (SELECT 1 FROM performance_record c WHERE c.id = t.id)")
     Long selectMinUnusedId();
 
     @Update("UPDATE performance_record SET deleted = 1 WHERE id = #{id}")

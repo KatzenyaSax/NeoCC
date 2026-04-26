@@ -13,7 +13,7 @@ public interface LoanAuditDao extends BaseMapper<LoanAuditEntity> {
 
     LoanAuditEntity selectByContractId(@Param("contractId") Long contractId);
 
-    @Select("SELECT COALESCE(MIN(t.id + 1), 1) FROM (SELECT 1 as id UNION SELECT MAX(id) + 1 FROM loan_audit) t WHERE NOT EXISTS (SELECT 1 FROM loan_audit l WHERE l.id = t.id AND l.deleted = 0)")
+    @Select("SELECT COALESCE(MIN(t.id), 1) FROM (SELECT 1 as id UNION SELECT MAX(id) + 1 FROM loan_audit) t WHERE NOT EXISTS (SELECT 1 FROM loan_audit l WHERE l.id = t.id)")
     Long selectMinUnusedId();
 
     @Update("UPDATE loan_audit SET deleted = 1 WHERE id = #{id}")

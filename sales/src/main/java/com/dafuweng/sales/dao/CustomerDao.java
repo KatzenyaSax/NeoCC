@@ -18,7 +18,7 @@ public interface CustomerDao extends BaseMapper<CustomerEntity> {
 
     List<CustomerEntity> selectCustomerToPublicSea(@Param("publicSeaDays") Integer publicSeaDays);
 
-    @Select("SELECT COALESCE(MIN(t.id + 1), 1) FROM (SELECT 1 as id UNION SELECT MAX(id) + 1 FROM customer) t WHERE NOT EXISTS (SELECT 1 FROM customer c WHERE c.id = t.id AND c.deleted = 0)")
+    @Select("SELECT COALESCE(MIN(t.id), 1) FROM (SELECT 1 as id UNION SELECT MAX(id) + 1 FROM customer) t WHERE NOT EXISTS (SELECT 1 FROM customer c WHERE c.id = t.id)")
     Long selectMinUnusedId();
 
     @Update("UPDATE customer SET deleted = 1 WHERE id = #{id}")

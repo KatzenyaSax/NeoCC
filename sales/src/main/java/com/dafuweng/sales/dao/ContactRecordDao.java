@@ -16,7 +16,7 @@ public interface ContactRecordDao extends BaseMapper<ContactRecordEntity> {
 
     List<ContactRecordEntity> selectBySalesRepId(@Param("salesRepId") Long salesRepId);
 
-    @Select("SELECT COALESCE(MIN(t.id + 1), 1) FROM (SELECT 1 as id UNION SELECT MAX(id) + 1 FROM contact_record) t WHERE NOT EXISTS (SELECT 1 FROM contact_record c WHERE c.id = t.id AND c.deleted = 0)")
+    @Select("SELECT COALESCE(MIN(t.id), 1) FROM (SELECT 1 as id UNION SELECT MAX(id) + 1 FROM contact_record) t WHERE NOT EXISTS (SELECT 1 FROM contact_record c WHERE c.id = t.id)")
     Long selectMinUnusedId();
 
     @Update("UPDATE contact_record SET deleted = 1 WHERE id = #{id}")

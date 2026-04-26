@@ -14,7 +14,7 @@ public interface CustomerTransferLogDao extends BaseMapper<CustomerTransferLogEn
 
     List<CustomerTransferLogEntity> selectByCustomerId(@Param("customerId") Long customerId);
 
-    @Select("SELECT COALESCE(MIN(t.id + 1), 1) FROM (SELECT id FROM customer_transfer_log UNION ALL SELECT 0) t WHERE NOT EXISTS (SELECT 1 FROM customer_transfer_log c WHERE c.id = t.id + 1 AND c.deleted = 0) LIMIT 1")
+    @Select("SELECT COALESCE(MIN(t.id + 1), 1) FROM (SELECT id FROM customer_transfer_log UNION ALL SELECT 0) t WHERE NOT EXISTS (SELECT 1 FROM customer_transfer_log c WHERE c.id = t.id + 1) LIMIT 1")
     Long selectMinUnusedId();
 
     @Update("UPDATE customer_transfer_log SET deleted = 1 WHERE id = #{id}")

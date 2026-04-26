@@ -14,7 +14,7 @@ public interface SysDictDao extends BaseMapper<SysDictEntity> {
 
     List<SysDictEntity> selectByDictType(@Param("dictType") String dictType);
 
-    @Select("SELECT MIN(t1.id + 1) FROM sys_dict t1 WHERE NOT EXISTS (SELECT 1 FROM sys_dict t2 WHERE t2.id = t1.id + 1 AND t2.deleted = 0)")
+    @Select("SELECT MIN(t1.id + 1) FROM sys_dict t1 WHERE NOT EXISTS (SELECT 1 FROM sys_dict t2 WHERE t2.id = t1.id + 1)")
     Long selectMinUnusedId();
 
     @Update("UPDATE sys_dict SET deleted = 1 WHERE id = #{id}")
