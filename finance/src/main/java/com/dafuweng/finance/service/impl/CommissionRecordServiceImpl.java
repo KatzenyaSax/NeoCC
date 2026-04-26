@@ -30,18 +30,7 @@ public class CommissionRecordServiceImpl implements CommissionRecordService {
     @Override
     public PageResponse<CommissionRecordEntity> pageList(PageRequest request) {
         IPage<CommissionRecordEntity> page = new Page<>(request.getPage(), request.getSize());
-        LambdaQueryWrapper<CommissionRecordEntity> wrapper = new LambdaQueryWrapper<>();
-        wrapper.eq(CommissionRecordEntity::getDeleted, (short) 0);
-        if (StringUtils.hasText(request.getSortField())) {
-            if ("asc".equalsIgnoreCase(request.getSortOrder())) {
-                wrapper.orderByAsc(CommissionRecordEntity::getId);
-            } else {
-                wrapper.orderByDesc(CommissionRecordEntity::getId);
-            }
-        } else {
-            wrapper.orderByDesc(CommissionRecordEntity::getCreatedAt);
-        }
-        IPage<CommissionRecordEntity> result = commissionRecordDao.selectPage(page, wrapper);
+        IPage<CommissionRecordEntity> result = commissionRecordDao.selectPageWithNames(page);
         return PageResponse.of(result.getTotal(), result.getRecords(),
             (int) page.getCurrent() , (int) page.getSize());
     }
