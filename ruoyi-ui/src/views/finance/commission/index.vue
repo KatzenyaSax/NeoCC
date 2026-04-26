@@ -16,8 +16,8 @@
 
     <el-table v-loading="loading" :data="commissionList" :row-key="row => row.id" @sort-change="handleSortChange">
       <el-table-column label="ID" align="center" prop="id" width="80" sortable />
-      <el-table-column label="销售代表ID" align="center" prop="salesRepId" />
-      <el-table-column label="合同ID" align="center" prop="contractId" />
+      <el-table-column label="销售代表" align="center" prop="salesRepName" />
+      <el-table-column label="合同" align="center" prop="contractNo" />
       <el-table-column label="佣金金额" align="center" prop="commissionAmount" />
       <el-table-column label="状态" align="center" prop="status">
         <template #default="scope">
