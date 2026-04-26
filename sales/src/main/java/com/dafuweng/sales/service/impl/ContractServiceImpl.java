@@ -392,13 +392,13 @@ public class ContractServiceImpl implements ContractService {
         contract.setServiceFee1Paid((short) 1);
         contractDao.updateById(contract);
 
-        // 创建二期服务费记录
+        // 创建首期服务费记录
         Map<String, Object> serviceFeeRecord = new HashMap<>();
         serviceFeeRecord.put("id", financeFeignClient.getMinUnusedServiceFeeRecordId().getData());
         serviceFeeRecord.put("contractId", contract.getId());
-        serviceFeeRecord.put("feeType", (short) 2);
-        serviceFeeRecord.put("amount", contract.getServiceFee2());
-        serviceFeeRecord.put("shouldAmount", contract.getServiceFee2());
+        serviceFeeRecord.put("feeType", (short) 1);
+        serviceFeeRecord.put("amount", contract.getServiceFee1());
+        serviceFeeRecord.put("shouldAmount", contract.getServiceFee1());
         serviceFeeRecord.put("paymentStatus", (short) 1); // 支付状态：1-已支付
         serviceFeeRecord.put("paymentDate", Date.from(ZonedDateTime.now(ZoneId.of("Asia/Shanghai")).toInstant())); // 设置支付日期（北京时间）
         serviceFeeRecord.put("accountantId", 1); // 会计ID，必填字段，默认值为1
@@ -443,13 +443,13 @@ public class ContractServiceImpl implements ContractService {
 
         Date now = Date.from(ZonedDateTime.now(ZoneId.of("Asia/Shanghai")).toInstant());
 
-        // 创建首期服务费记录
+        // 创建二期服务费记录
         Map<String, Object> serviceFeeRecord = new HashMap<>();
         serviceFeeRecord.put("id", financeFeignClient.getMinUnusedServiceFeeRecordId().getData());
         serviceFeeRecord.put("contractId", contract.getId());
-        serviceFeeRecord.put("feeType", (short) 1);
-        serviceFeeRecord.put("amount", contract.getServiceFee1());
-        serviceFeeRecord.put("shouldAmount", contract.getServiceFee1());
+        serviceFeeRecord.put("feeType", (short) 2);
+        serviceFeeRecord.put("amount", contract.getServiceFee2());
+        serviceFeeRecord.put("shouldAmount", contract.getServiceFee2());
         serviceFeeRecord.put("paymentStatus", (short) 1);
         serviceFeeRecord.put("paymentDate", now);
         serviceFeeRecord.put("accountantId", 1);
