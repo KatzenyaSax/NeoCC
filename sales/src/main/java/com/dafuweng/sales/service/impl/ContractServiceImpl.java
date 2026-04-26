@@ -3,11 +3,13 @@ package com.dafuweng.sales.service.impl;
 import com.dafuweng.sales.entity.ContractEntity;
 import com.dafuweng.sales.entity.vo.ContractDetailVO;
 import com.dafuweng.sales.service.ContractService;
+import com.dafuweng.sales.service.PerformanceRecordService;
 import com.dafuweng.sales.dao.ContractDao;
 import com.dafuweng.sales.feign.AuthFeignClient;
 import com.dafuweng.sales.feign.FinanceFeignClient;
 import com.dafuweng.sales.feign.SystemFeignClient;
 import com.dafuweng.sales.entity.CustomerEntity;
+import com.dafuweng.sales.entity.PerformanceRecordEntity;
 import com.dafuweng.sales.dao.CustomerDao;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.core.metadata.IPage;
@@ -21,6 +23,8 @@ import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.StringUtils;
 
 import java.time.LocalDate;
+import java.time.ZoneId;
+import java.time.ZonedDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.Date;
 import java.util.HashMap;
@@ -45,6 +49,9 @@ public class ContractServiceImpl implements ContractService {
 
     @Autowired
     private FinanceFeignClient financeFeignClient;
+
+    @Autowired
+    private PerformanceRecordService performanceRecordService;
 
     @Override
     public ContractEntity getById(Long id) {
@@ -392,7 +399,9 @@ public class ContractServiceImpl implements ContractService {
         serviceFeeRecord.put("feeType", (short) 2);
         serviceFeeRecord.put("amount", contract.getServiceFee2());
         serviceFeeRecord.put("shouldAmount", contract.getServiceFee2());
-        serviceFeeRecord.put("paymentStatus", (short) 0);
+        serviceFeeRecord.put("paymentStatus", (short) 1); // 支付状态：1-已支付
+        serviceFeeRecord.put("paymentDate", new Date()); // 设置支付日期
+        serviceFeeRecord.put("accountantId", 1); // 会计ID，必填字段，默认值为1
         serviceFeeRecord.put("deleted", (short) 0);
         financeFeignClient.createServiceFeeRecord(serviceFeeRecord);
     }
@@ -432,6 +441,8 @@ public class ContractServiceImpl implements ContractService {
         contract.setActualLoanAmount(actualLoanAmount);
         contractDao.updateById(contract);
 
+        Date now = Date.from(ZonedDateTime.now(ZoneId.of("Asia/Shanghai")).toInstant());
+
         // 创建首期服务费记录
         Map<String, Object> serviceFeeRecord = new HashMap<>();
         serviceFeeRecord.put("id", financeFeignClient.getMinUnusedServiceFeeRecordId().getData());
@@ -439,21 +450,39 @@ public class ContractServiceImpl implements ContractService {
         serviceFeeRecord.put("feeType", (short) 1);
         serviceFeeRecord.put("amount", contract.getServiceFee1());
         serviceFeeRecord.put("shouldAmount", contract.getServiceFee1());
-        serviceFeeRecord.put("paymentStatus", (short) 0);
+        serviceFeeRecord.put("paymentStatus", (short) 1);
+        serviceFeeRecord.put("paymentDate", now);
+        serviceFeeRecord.put("accountantId", 1);
         serviceFeeRecord.put("deleted", (short) 0);
         financeFeignClient.createServiceFeeRecord(serviceFeeRecord);
 
-        // 创建提成记录（合同金额 * 0.015）
+        // 创建业绩记录（提成记录）：提成金额为合同金额的 1.5%
         BigDecimal commissionAmount = contract.getContractAmount().multiply(new BigDecimal("0.015"));
-        Map<String, Object> record = new HashMap<>();
-        record.put("id", financeFeignClient.getMinUnusedCommissionRecordId().getData());
-        record.put("salesRepId", contract.getSalesRepId());
-        record.put("contractId", contract.getId());
-        record.put("contractAmount", contract.getContractAmount());
-        record.put("commissionRate", new BigDecimal("0.015"));
-        record.put("commissionAmount", commissionAmount);
-        record.put("status", (short) 0);
-        record.put("deleted", (short) 0);
-        financeFeignClient.createCommissionRecord(record);
+        PerformanceRecordEntity performanceRecord = new PerformanceRecordEntity();
+        performanceRecord.setId(performanceRecordService.getMinUnusedId());
+        performanceRecord.setContractId(contract.getId());
+        performanceRecord.setSalesRepId(contract.getSalesRepId());
+        performanceRecord.setDeptId(contract.getDeptId());
+        performanceRecord.setZoneId(contract.getZoneId());
+        performanceRecord.setContractAmount(contract.getContractAmount());
+        performanceRecord.setCommissionRate(new BigDecimal("0.015"));
+        performanceRecord.setCommissionAmount(commissionAmount);
+        performanceRecord.setStatus((short) 1);
+        performanceRecord.setCalculateTime(now);
+        performanceRecord.setDeleted((short) 0);
+        performanceRecordService.save(performanceRecord);
+
+        // 创建提成发放记录：ID 从 commission_record 表查询，performance_id 绑定业绩记录 ID
+        Map<String, Object> commissionRecord = new HashMap<>();
+        commissionRecord.put("id", financeFeignClient.getMinUnusedCommissionRecordId().getData());
+        commissionRecord.put("performanceId", performanceRecord.getId());
+        commissionRecord.put("salesRepId", contract.getSalesRepId());
+        commissionRecord.put("contractId", contract.getId());
+        commissionRecord.put("commissionAmount", commissionAmount);
+        commissionRecord.put("commissionRate", new BigDecimal("0.015"));
+        commissionRecord.put("status", (short) 1);
+        commissionRecord.put("createdAt", now);
+        commissionRecord.put("deleted", (short) 0);
+        financeFeignClient.createCommissionRecord(commissionRecord);
     }
 }
