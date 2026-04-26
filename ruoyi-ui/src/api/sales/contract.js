@@ -106,3 +106,11 @@ export function getMinUnusedIdContract() {
     method: 'get'
   })
 }
+
+// 银行已放款
+export function bankLoanContract(id) {
+  return request({
+    url: '/contract/' + id + '/bank-loan',
+    method: 'post'
+  })
+}
