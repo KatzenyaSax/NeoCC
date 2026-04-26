@@ -1,5 +1,6 @@
 package com.dafuweng.finance.entity;
 
+import com.baomidou.mybatisplus.annotation.TableField;
 import com.baomidou.mybatisplus.annotation.TableId;
 import com.baomidou.mybatisplus.annotation.TableName;
 import lombok.Data;
@@ -22,6 +23,12 @@ public class CommissionRecordEntity implements Serializable {
     private Long salesRepId;
 
     private Long contractId;
+
+    @TableField(exist = false)
+    private String salesRepName;
+
+    @TableField(exist = false)
+    private String contractNo;
 
     private BigDecimal commissionAmount;
 
