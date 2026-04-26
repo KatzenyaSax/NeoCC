@@ -2,7 +2,10 @@ package com.dafuweng.sales.service.impl;
 
 import com.dafuweng.sales.dao.PerformanceRecordDao;
 import com.dafuweng.sales.entity.PerformanceRecordEntity;
+import com.dafuweng.sales.feign.AuthFeignClient;
+import com.dafuweng.sales.feign.SystemFeignClient;
 import com.dafuweng.sales.service.PerfSummaryService;
+import com.dafuweng.common.entity.Result;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -19,6 +22,12 @@ public class PerfSummaryServiceImpl implements PerfSummaryService {
 
     @Autowired
     private PerformanceRecordDao performanceRecordDao;
+
+    @Autowired
+    private AuthFeignClient authFeignClient;
+
+    @Autowired
+    private SystemFeignClient systemFeignClient;
 
     @Override
     public Map<String, Object> summary(String beginTime, String endTime,
@@ -125,6 +134,59 @@ public class PerfSummaryServiceImpl implements PerfSummaryService {
                 row.put("commissionAmount", sumCommissionAmount(entry.getValue()));
                 row.put("count", entry.getValue().size());
                 groupedList.add(row);
+            }
+        }
+
+        // ========== 4.5. 解析维度名称（通过 Feign 远程调用） ==========
+        for (Map<String, Object> row : groupedList) {
+            Object dim = row.get("dimension");
+            if (dim == null) continue;
+            try {
+                if ("sales_rep".equals(groupBy)) {
+                    Long userId = ((Number) dim).longValue();
+                    try {
+                        Result<?> res = authFeignClient.getUserById(userId);
+                        if (res != null && res.getCode() == 200 && res.getData() != null) {
+                            @SuppressWarnings("unchecked")
+                            Map<String, Object> user = (Map<String, Object>) res.getData();
+                            Object name = user.get("realName");
+                            if (name == null) name = user.get("real_name");
+                            row.put("dimensionName", name != null ? name.toString() : "未知(" + userId + ")");
+                        }
+                    } catch (Exception e) {
+                        row.put("dimensionName", "销售(" + userId + ")");
+                    }
+                } else if ("dept".equals(groupBy)) {
+                    Long departmentId = ((Number) dim).longValue();
+                    try {
+                        Result<?> res = systemFeignClient.getDepartmentById(departmentId);
+                        if (res != null && res.getCode() == 200 && res.getData() != null) {
+                            @SuppressWarnings("unchecked")
+                            Map<String, Object> dept = (Map<String, Object>) res.getData();
+                            Object name = dept.get("deptName");
+                            if (name == null) name = dept.get("dept_name");
+                            row.put("dimensionName", name != null ? name.toString() : "未知(" + departmentId + ")");
+                        }
+                    } catch (Exception e) {
+                        row.put("dimensionName", "部门(" + departmentId + ")");
+                    }
+                } else if ("zone".equals(groupBy)) {
+                    Long regionZoneId = ((Number) dim).longValue();
+                    try {
+                        Result<?> res = systemFeignClient.getZoneById(regionZoneId);
+                        if (res != null && res.getCode() == 200 && res.getData() != null) {
+                            @SuppressWarnings("unchecked")
+                            Map<String, Object> zone = (Map<String, Object>) res.getData();
+                            Object name = zone.get("zoneName");
+                            if (name == null) name = zone.get("zone_name");
+                            row.put("dimensionName", name != null ? name.toString() : "未知(" + regionZoneId + ")");
+                        }
+                    } catch (Exception e) {
+                        row.put("dimensionName", "战区(" + regionZoneId + ")");
+                    }
+                }
+            } catch (Exception e) {
+                // 非数字类型的 dimension（如 month），不做转换
             }
         }
 

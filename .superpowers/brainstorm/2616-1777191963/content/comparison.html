@@ -1,0 +1,76 @@
+<h2>ry/ vs ruoyi-ui/ 功能对比</h2>
+<p class="subtitle">后端接口已完全就绪，差异仅在前端 UI 层次</p>
+
+<div class="section">
+  <h3>业绩汇总 (perf-summary)</h3>
+  <div class="split">
+    <div class="mockup">
+      <div class="mockup-header">✅ ry/ 版本（功能完整）</div>
+      <div class="mockup-body">
+        <div class="placeholder" style="background: linear-gradient(135deg, #667eea, #764ba2); color: #fff; padding: 12px; border-radius: 6px; margin-bottom: 8px; font-size: 12px;">统计卡片：合同金额 / 提成 / 合同数</div>
+        <div class="placeholder" style="background: #f0f4ff; border: 2px solid #5470c6; padding: 10px; border-radius: 6px; margin-bottom: 4px; font-size: 11px; color: #333;">📊 ECharts 柱状图（业绩对比 TOP10）</div>
+        <div class="placeholder" style="background: #f0f4ff; border: 2px solid #91cc75; padding: 10px; border-radius: 6px; margin-bottom: 4px; font-size: 11px; color: #333;">🥧 ECharts 饼图（合同金额占比）</div>
+        <div class="placeholder" style="background: #f5f5f5; padding: 10px; border-radius: 6px; font-size: 11px; color: #666;">📋 分组明细表格（含占比列）</div>
+      </div>
+    </div>
+    <div class="mockup">
+      <div class="mockup-header">⚠️ ruoyi-ui/ 版本（缺少图表）</div>
+      <div class="mockup-body">
+        <div class="placeholder" style="background: linear-gradient(135deg, #667eea, #764ba2); color: #fff; padding: 12px; border-radius: 6px; margin-bottom: 8px; font-size: 12px;">统计卡片：合同金额 / 提成 / 合同数</div>
+        <div class="placeholder" style="background: #fff3f3; border: 2px dashed #f56c6c; padding: 10px; border-radius: 6px; margin-bottom: 4px; font-size: 11px; color: #f56c6c;">❌ 缺少 ECharts 柱状图</div>
+        <div class="placeholder" style="background: #fff3f3; border: 2px dashed #f56c6c; padding: 10px; border-radius: 6px; margin-bottom: 4px; font-size: 11px; color: #f56c6c;">❌ 缺少 ECharts 饼图</div>
+        <div class="placeholder" style="background: #f5f5f5; padding: 10px; border-radius: 6px; font-size: 11px; color: #666;">📋 分组明细表格（含占比列）</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="section">
+  <h3>业绩排名 (perf-ranking)</h3>
+  <div class="split">
+    <div class="mockup">
+      <div class="mockup-header">✅ ry/ 版本（功能完整）</div>
+      <div class="mockup-body">
+        <div class="placeholder" style="background: #f5f5f5; padding: 10px; border-radius: 6px; margin-bottom: 8px; font-size: 11px; color: #666;">统计卡片：人数 / TOP1金额 / TOP1提成 / 合同数</div>
+        <div class="placeholder" style="background: #f0f4ff; border: 2px solid #409eff; padding: 10px; border-radius: 6px; margin-bottom: 4px; font-size: 11px; color: #333;">📊 ECharts 横向柱状图 TOP10</div>
+        <div class="placeholder" style="background: #f5f5f5; padding: 10px; border-radius: 6px; font-size: 11px; color: #666;">📋 排名表格（圆形排名徽章 + 占比列）</div>
+      </div>
+    </div>
+    <div class="mockup">
+      <div class="mockup-header">⚠️ ruoyi-ui/ 版本（缺少图表）</div>
+      <div class="mockup-body">
+        <div class="placeholder" style="background: #f5f5f5; padding: 10px; border-radius: 6px; margin-bottom: 8px; font-size: 11px; color: #666;">统计卡片：人数 / TOP1金额 / TOP1提成 / 合同数</div>
+        <div class="placeholder" style="background: #fff3f3; border: 2px dashed #f56c6c; padding: 10px; border-radius: 6px; margin-bottom: 4px; font-size: 11px; color: #f56c6c;">❌ 缺少 ECharts 横向柱状图</div>
+        <div class="placeholder" style="background: #f5f5f5; padding: 10px; border-radius: 6px; font-size: 11px; color: #666;">📋 排名表格（el-tag 排名标签）</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="section">
+  <h3>后端接口状态</h3>
+  <table style="width:100%;border-collapse:collapse;">
+    <tr style="background:#f0f4ff;">
+      <th style="padding:8px;text-align:left;border:1px solid #ddd;">接口</th>
+      <th style="padding:8px;text-align:left;border:1px solid #ddd;">路径</th>
+      <th style="padding:8px;text-align:center;border:1px solid #ddd;">Controller</th>
+      <th style="padding:8px;text-align:center;border:1px solid #ddd;">Gateway</th>
+      <th style="padding:8px;text-align:center;border:1px solid #ddd;">request.js</th>
+    </tr>
+    <tr>
+      <td style="padding:8px;border:1px solid #ddd;">业绩汇总</td>
+      <td style="padding:8px;border:1px solid #ddd;font-family:monospace;">GET /api/perfSummary/summary</td>
+      <td style="padding:8px;border:1px solid #ddd;text-align:center;color:#67c23a;">✅</td>
+      <td style="padding:8px;border:1px solid #ddd;text-align:center;color:#67c23a;">✅</td>
+      <td style="padding:8px;border:1px solid #ddd;text-align:center;color:#67c23a;">✅</td>
+    </tr>
+    <tr>
+      <td style="padding:8px;border:1px solid #ddd;">业绩排名</td>
+      <td style="padding:8px;border:1px solid #ddd;font-family:monospace;">GET /api/perfRanking/list</td>
+      <td style="padding:8px;border:1px solid #ddd;text-align:center;color:#67c23a;">✅</td>
+      <td style="padding:8px;border:1px solid #ddd;text-align:center;color:#67c23a;">✅</td>
+      <td style="padding:8px;border:1px solid #ddd;text-align:center;color:#67c23a;">✅</td>
+    </tr>
+  </table>
+  <p style="margin-top:12px;color:#67c23a;font-weight:bold;">结论：后端无需任何修改，前端只需补充 ECharts 图表功能。</p>
+</div>
