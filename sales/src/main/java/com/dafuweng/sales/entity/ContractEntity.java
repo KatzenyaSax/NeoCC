@@ -24,6 +24,12 @@ public class ContractEntity implements Serializable {
 
     private Long salesRepId;
 
+    @TableField(exist = false)
+    private String customerName;
+
+    @TableField(exist = false)
+    private String salesRepName;
+
     private Long deptId;
 
 
