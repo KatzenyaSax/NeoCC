@@ -6,7 +6,6 @@ import com.dafuweng.sales.service.ContractService;
 import com.dafuweng.sales.dao.ContractDao;
 import com.dafuweng.sales.feign.AuthFeignClient;
 import com.dafuweng.sales.feign.FinanceFeignClient;
-import com.dafuweng.finance.entity.CommissionRecordEntity;
 import com.dafuweng.sales.feign.SystemFeignClient;
 import com.dafuweng.sales.entity.CustomerEntity;
 import com.dafuweng.sales.dao.CustomerDao;
@@ -24,6 +23,7 @@ import org.springframework.util.StringUtils;
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
 import java.util.Date;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
@@ -327,13 +327,13 @@ public class ContractServiceImpl implements ContractService {
         contractDao.updateById(contract);
 
         // 创建提成记录（serviceFee2）
-        CommissionRecordEntity record = new CommissionRecordEntity();
-        record.setId(financeFeignClient.getMinUnusedCommissionRecordId().getData());
-        record.setSalesRepId(contract.getSalesRepId());
-        record.setContractId(contract.getId());
-        record.setCommissionAmount(contract.getServiceFee2());
-        record.setStatus((short) 0);
-        record.setDeleted((short) 0);
+        Map<String, Object> record = new HashMap<>();
+        record.put("id", financeFeignClient.getMinUnusedCommissionRecordId().getData());
+        record.put("salesRepId", contract.getSalesRepId());
+        record.put("contractId", contract.getId());
+        record.put("commissionAmount", contract.getServiceFee2());
+        record.put("status", (short) 0);
+        record.put("deleted", (short) 0);
         financeFeignClient.createCommissionRecord(record);
     }
 }

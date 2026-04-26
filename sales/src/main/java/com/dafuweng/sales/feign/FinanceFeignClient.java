@@ -1,9 +1,10 @@
 package com.dafuweng.sales.feign;
 
 import com.dafuweng.common.entity.Result;
-import com.dafuweng.finance.entity.CommissionRecordEntity;
 import org.springframework.cloud.openfeign.FeignClient;
 import org.springframework.web.bind.annotation.*;
+
+import java.util.Map;
 
 @FeignClient(name = "finance", contextId = "financeProductClientForSales", url = "http://localhost:8084")
 public interface FinanceFeignClient {
@@ -18,7 +19,7 @@ public interface FinanceFeignClient {
      * 创建提成记录
      */
     @PostMapping("/api/commissionRecord")
-    Result<CommissionRecordEntity> createCommissionRecord(@RequestBody CommissionRecordEntity entity);
+    Result<?> createCommissionRecord(@RequestBody Map<String, Object> record);
 
     /**
      * 获取最小未使用提成记录ID
