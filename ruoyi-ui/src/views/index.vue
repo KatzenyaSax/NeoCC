@@ -137,10 +137,10 @@ const currentDate = computed(() => {
 
 // 统计卡片
 const statCards = reactive([
-  { key: 'customer', label: '客户总数', value: 0, loading: true, icon: 'User', color: 'blue', path: '/customer-list' },
-  { key: 'contract', label: '合同总数', value: 0, loading: true, icon: 'Document', color: 'green', path: '/contract-list' },
-  { key: 'loan', label: '待审贷款', value: 0, loading: true, icon: 'Finished', color: 'orange', path: '/loan-audit' },
-  { key: 'role', label: '员工数量', value: 0, loading: true, icon: 'Avatar', color: 'purple', path: '/user' },
+  { key: 'customer', label: '客户总数', value: 0, loading: true, icon: 'User', color: 'rose', path: '/customer-list' },
+  { key: 'contract', label: '合同总数', value: 0, loading: true, icon: 'Document', color: 'brick', path: '/contract-list' },
+  { key: 'loan', label: '待审贷款', value: 0, loading: true, icon: 'Finished', color: 'terra', path: '/loan-audit' },
+  { key: 'role', label: '员工数量', value: 0, loading: true, icon: 'Avatar', color: 'mauve', path: '/user' },
 ])
 
 // 加载统计数据
@@ -248,14 +248,14 @@ onMounted(() => {
 
   /* ===== 欢迎横幅 ===== */
   .welcome-banner {
-    background: linear-gradient(135deg, #1a1f5e 0%, #2d3592 60%, #4a54d2 100%);
+    background: linear-gradient(135deg, #6b3a3a 0%, #8b5e5e 60%, #a07878 100%);
     border-radius: 12px;
     padding: 28px 32px;
     margin-bottom: 20px;
     display: flex;
     align-items: center;
     justify-content: space-between;
-    box-shadow: 0 4px 20px rgba(74, 84, 210, 0.3);
+    box-shadow: 0 4px 20px rgba(139, 94, 94, 0.3);
     color: #fff;
 
     .banner-title {
@@ -338,10 +338,10 @@ onMounted(() => {
         font-size: 18px;
       }
 
-      &--blue   { background: linear-gradient(135deg, #4facfe 0%, #00d4ff 100%); box-shadow: 0 4px 15px rgba(79,172,254,0.4); }
-      &--green  { background: linear-gradient(135deg, #43e97b 0%, #38f9d7 100%); box-shadow: 0 4px 15px rgba(67,233,123,0.4); }
-      &--orange { background: linear-gradient(135deg, #f6d365 0%, #fda085 100%); box-shadow: 0 4px 15px rgba(253,160,133,0.4); }
-      &--purple { background: linear-gradient(135deg, #a18cd1 0%, #fbc2eb 100%); box-shadow: 0 4px 15px rgba(161,140,209,0.4); }
+      &--rose  { background: linear-gradient(135deg, #c99e9e 0%, #ae6e6e 100%); box-shadow: 0 4px 15px rgba(174,110,110,0.3); }
+      &--brick { background: linear-gradient(135deg, #bf9688 0%, #a07260 100%); box-shadow: 0 4px 15px rgba(160,114,96,0.3); }
+      &--terra { background: linear-gradient(135deg, #c49a8a 0%, #a87060 100%); box-shadow: 0 4px 15px rgba(168,112,96,0.3); }
+      &--mauve { background: linear-gradient(135deg, #c09ca0 0%, #a07078 100%); box-shadow: 0 4px 15px rgba(160,112,120,0.3); }
     }
   }
 
@@ -356,7 +356,7 @@ onMounted(() => {
       font-size: 15px;
       font-weight: 600;
       color: #303133;
-      .el-icon { color: #409eff; font-size: 17px; }
+      .el-icon { color: var(--el-color-primary, #c2410c); font-size: 17px; }
     }
 
     /* 快捷功能 */

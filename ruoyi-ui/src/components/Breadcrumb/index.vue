@@ -90,7 +90,7 @@ getBreadcrumb()
   line-height: 50px;
 
   .no-redirect {
-    color: #97a8be;
+    color: var(--sidebar-text, #a8a29e);
     cursor: text;
   }
 }

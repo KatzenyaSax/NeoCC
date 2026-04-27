@@ -140,6 +140,7 @@ const open = ref(false)
 const salesRepOptions = ref([])
 const salesRepMap = ref({})
 const salesRepLoading = ref(false)
+const isEdit = ref(false)
 
 const data = reactive({
   form: {},
@@ -272,6 +273,7 @@ function handleAdd() {
     return
   }
   reset()
+  isEdit.value = false
   getMinUnusedIdWorkLog().then(res => {
     form.value.id = res.data
     open.value = true
@@ -281,6 +283,7 @@ function handleAdd() {
 
 function handleUpdate(row) {
   reset()
+  isEdit.value = true
   getWorkLog(row.id).then(response => {
     form.value = response.data || response
     open.value = true
@@ -294,7 +297,7 @@ function submitForm() {
 
     // 如果是销售代表角色，新增时自动填充当前用户的ID，修改时保留选择的值
     if (isSalesRepRole()) {
-      if (!form.value.id) { // 新增时
+      if (!isEdit.value) { // 新增时
         form.value.salesRepId = userStore.id
       }
     } else {
@@ -303,7 +306,7 @@ function submitForm() {
       return
     }
 
-    if (form.value.id) {
+    if (isEdit.value) {
       // 修改
       updateWorkLog(form.value).then(() => {
         proxy.$modal.msgSuccess("修改成功")

@@ -137,6 +137,9 @@ public class CustomerServiceImpl implements CustomerService {
     @Transactional
     public CustomerEntity save(CustomerEntity entity) {
         entity.setDeleted((short) 0);
+        if (StringUtils.hasText(entity.getIdCard()) && customerDao.countByIdCard(entity.getIdCard()) > 0) {
+            throw new IllegalArgumentException("身份证号已存在");
+        }
         customerDao.insert(entity);
         return entity;
     }

@@ -182,6 +182,7 @@ const detailForm = ref({})
 const salesRepOptions = ref([])
 const deptOptions = ref([])
 const zoneOptions = ref([])
+const isEdit = ref(false)
 
 const data = reactive({
   form: {},
@@ -193,7 +194,8 @@ const data = reactive({
     sortOrder: 'asc'
   },
   rules: {
-    name: [{ required: true, message: "客户名称不能为空", trigger: "blur" }]
+    name: [{ required: true, message: "客户名称不能为空", trigger: "blur" }],
+    idCard: [{ required: true, message: "身份证号不能为空", trigger: "blur" }]
   }
 })
 
@@ -387,6 +389,7 @@ function resetQuery() {
 /** 新增按钮操作 */
 function handleAdd() {
   reset()
+  isEdit.value = false
   loadDeptOptions()
   loadZoneOptions()
   getMinUnusedCustomerId().then(res => {
@@ -399,6 +402,7 @@ function handleAdd() {
 /** 修改按钮操作 */
 function handleUpdate(row) {
   reset()
+  isEdit.value = true
   loadDeptOptions()
   loadZoneOptions()
   const id = row.id
@@ -413,7 +417,7 @@ function handleUpdate(row) {
 function submitForm() {
   proxy.$refs["customerRef"].validate(valid => {
     if (valid) {
-      if (form.value.id != undefined) {
+      if (isEdit.value) {
         // 修改前先获取原始客户信息，检查销售代表是否变化
         getCustomer(form.value.id).then(originalRes => {
           const originalCustomer = originalRes.data || originalRes
@@ -490,6 +494,12 @@ function submitForm() {
           })
         })
       } else {
+        // 新增时，从销售代表处获取deptId和zoneId
+        const selectedRep = salesRepOptions.value.find(r => r.id === form.value.salesRepId)
+        if (selectedRep) {
+          form.value.deptId = selectedRep.deptId
+          form.value.zoneId = selectedRep.zoneId
+        }
         addCustomer(form.value).then(response => {
           proxy.$modal.msgSuccess("新增成功")
           open.value = false

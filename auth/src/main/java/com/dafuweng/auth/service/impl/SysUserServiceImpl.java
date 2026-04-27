@@ -316,6 +316,12 @@ public class SysUserServiceImpl implements SysUserService {
     @Transactional
     public SysUserEntity save(SysUserEntity entity) {
         entity.setDeleted((short) 0);
+        if (StringUtils.hasText(entity.getUsername()) && sysUserDao.countByUsername(entity.getUsername()) > 0) {
+            throw new IllegalArgumentException("用户名已存在");
+        }
+        if (StringUtils.hasText(entity.getPassword())) {
+            entity.setPassword(passwordEncoder.encode(entity.getPassword()));
+        }
         sysUserDao.insert(entity);
         return entity;
     }

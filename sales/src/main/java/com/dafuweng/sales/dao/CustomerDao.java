@@ -23,4 +23,7 @@ public interface CustomerDao extends BaseMapper<CustomerEntity> {
 
     @Update("UPDATE customer SET deleted = 1 WHERE id = #{id}")
     int softDeleteById(@Param("id") Long id);
+
+    @Select("SELECT COUNT(*) FROM customer WHERE id_card = #{idCard} AND deleted = 0")
+    int countByIdCard(@Param("idCard") String idCard);
 }

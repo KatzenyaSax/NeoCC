@@ -31,4 +31,7 @@ public interface SysUserDao extends BaseMapper<SysUserEntity> {
 
     @Update("UPDATE sys_user SET deleted = 1 WHERE id = #{id}")
     int softDeleteById(@Param("id") Long id);
+
+    @Select("SELECT COUNT(*) FROM sys_user WHERE username = #{username} AND deleted = 0")
+    int countByUsername(@Param("username") String username);
 }

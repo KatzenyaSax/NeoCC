@@ -626,15 +626,15 @@ onBeforeUnmount(() => {
 
 .collapse-button {
   font-size: 20px;
-  color: #909399;
+  color: var(--el-text-color-secondary, #78716c);
   cursor: pointer;
   padding: 4px;
   border-radius: 4px;
   transition: all 0.2s;
-  
+
   &:hover {
-    color: #409eff;
-    background: #ecf5ff;
+    color: var(--el-color-primary, #c2410c);
+    background: var(--el-color-primary-light-9, #fff7ed);
   }
 }
 
@@ -644,14 +644,14 @@ onBeforeUnmount(() => {
   justify-content: space-between;
   padding: 0 10px;
   height: 40px;
-  border-bottom: 1px solid #e8eaed;
-  background: #f7f8fa;
+  border-bottom: 1px solid var(--card-border, #e7e5e4);
+  background: var(--table-header-bg, #fafaf9);
   flex-shrink: 0;
 
   .tree-title {
     font-size: 13px;
     font-weight: 600;
-    color: #303133;
+    color: var(--el-text-color-primary, #1c1917);
     white-space: nowrap;
     overflow: hidden;
     display: flex;
@@ -659,7 +659,7 @@ onBeforeUnmount(() => {
     gap: 5px;
 
     .el-icon {
-      color: #409eff;
+      color: var(--el-color-primary, #c2410c);
       font-size: 16px;
     }
   }
@@ -674,15 +674,15 @@ onBeforeUnmount(() => {
 
 .tree-action-icon {
   font-size: 20px;
-  color: #909399;
+  color: var(--el-text-color-secondary, #78716c);
   cursor: pointer;
   padding: 4px;
   border-radius: 4px;
   transition: all 0.2s;
 
   &:hover {
-    color: #409eff;
-    background: #ecf5ff;
+    color: var(--el-color-primary, #c2410c);
+    background: var(--el-color-primary-light-9, #fff7ed);
   }
 }
 
@@ -705,11 +705,11 @@ onBeforeUnmount(() => {
   }
 
   &::-webkit-scrollbar-thumb {
-    background: #dcdfe6;
+    background: var(--card-border, #e7e5e4);
     border-radius: 4px;
-    
+
     &:hover {
-      background: #c0c4cc;
+      background: var(--sidebar-text, #a8a29e);
     }
   }
 
@@ -719,17 +719,17 @@ onBeforeUnmount(() => {
     margin-bottom: 1px;
 
     &:hover {
-      background: #f0f7ff;
+      background: var(--el-color-primary-light-9, #fff7ed);
     }
   }
 
   :deep(.el-tree-node.is-current > .el-tree-node__content) {
-    background: #e6f0fd;
-    color: #409eff;
+    background: var(--el-color-primary-light-9, #fff7ed);
+    color: var(--el-color-primary, #c2410c);
     font-weight: 600;
 
     .node-icon {
-      color: #409eff !important;
+      color: var(--el-color-primary, #c2410c) !important;
     }
   }
 }

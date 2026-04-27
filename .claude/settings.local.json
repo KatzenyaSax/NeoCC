@@ -97,7 +97,8 @@
       "Read(//c/Users/a1829/**)",
       "Bash(python3 -c \"import pymysql; print\\('pymysql available'\\)\")",
       "Bash(python3 -c \"import mysql.connector; print\\('mysql-connector available'\\)\")",
-      "Bash(python3 *)"
+      "Bash(python3 *)",
+      "Bash(C:\\\\Users\\\\a1829\\\\.claude\\\\plugins\\\\cache\\\\claude-plugins-official\\\\superpowers\\\\5.0.7\\\\skills\\\\brainstorming\\\\scripts\\\\start-server.sh *)"
     ]
   }
 }

@@ -382,10 +382,10 @@ $tags-bar-height: 34px;
   overflow: hidden;
 
   $btn-width: 28px;
-  $btn-color: #71717a;
-  $btn-hover-bg: #f0f2f5;
-  $btn-hover-color: #303133;
-  $btn-disabled-color: #c0c4cc;
+  $btn-color: var(--sidebar-group-label, #78716c);
+  $btn-hover-bg: var(--sidebar-hover-bg, #f5f5f4);
+  $btn-hover-color: var(--el-text-color-primary, #1c1917);
+  $btn-disabled-color: var(--sidebar-text, #a8a29e);
   $divider: 1px solid var(--tags-item-border, #d8dce5);
 
   .tags-nav-btn {
@@ -444,9 +444,9 @@ $tags-bar-height: 34px;
   }
 
   &:not(.tags-view-container--chrome) .tags-view-wrapper .tags-view-item.active {
-    background-color: #42b983;
-    color: #fff;
-    border-color: #42b983;
+    background-color: var(--tag-active-bg, #c2410c);
+    color: var(--tag-active-text, #fff);
+    border-color: var(--tag-active-bg, #c2410c);
 
     &::before {
       content: '';

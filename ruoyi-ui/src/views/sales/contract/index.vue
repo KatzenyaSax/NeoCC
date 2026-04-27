@@ -58,7 +58,7 @@
           <el-col :span="12">
             <el-form-item label="销售代表" prop="salesRepId">
               <el-select
-                v-model="form.salesRepName"
+                v-model="form.salesRepId"
                 placeholder="请搜索销售代表"
                 filterable
                 remote
@@ -77,7 +77,7 @@
           <el-col :span="12">
             <el-form-item label="部门" prop="deptId">
               <el-select
-                v-model="form.deptName"
+                v-model="form.deptId"
                 placeholder="请搜索部门"
                 filterable
                 remote
@@ -96,7 +96,7 @@
           <el-col :span="12">
             <el-form-item label="战区" prop="zoneId">
               <el-select
-                v-model="form.zoneName"
+                v-model="form.zoneId"
                 placeholder="请搜索战区"
                 filterable
                 remote
@@ -115,7 +115,7 @@
           <el-col :span="12">
             <el-form-item label="产品" prop="productId">
               <el-select
-                v-model="form.productName"
+                v-model="form.productId"
                 placeholder="请搜索产品"
                 filterable
                 remote
@@ -626,7 +626,7 @@ function submitForm() {
         proxy.$modal.msgError("您不是销售代表！")
         return
       }
-      if (form.value.id != undefined) {
+      if (isEdit.value) {
         updateContract(form.value).then(response => {
           proxy.$modal.msgSuccess("修改成功")
           dialogVisible.value = false

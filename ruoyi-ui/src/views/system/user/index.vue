@@ -68,7 +68,7 @@
             </el-form-item>
           </el-col>
         </el-row>
-        <el-row v-if="!form.id">
+        <el-row v-if="!isEdit">
           <el-col :span="12">
             <el-form-item label="初始密码" prop="password">
               <el-input v-model="form.password" placeholder="请输入初始密码" type="password" show-password />
@@ -162,6 +162,7 @@ const allRoles = ref([])
 const selectedRoleIds = ref([])
 const currentUser = ref({})
 const allDeptOptions = ref([])
+const isEdit = ref(false)
 
 const data = reactive({
   form: {},
@@ -198,7 +199,7 @@ function getList() {
 
 function cancel() { open.value = false; reset() }
 function reset() {
-  form.value = { id: undefined, username: undefined, realName: undefined, password: undefined, phone: undefined, email: undefined, deptId: undefined, status: 1 }
+  form.value = { id: undefined, username: undefined, realName: undefined, password: 'admin123', phone: undefined, email: undefined, deptId: undefined, status: 1 }
   proxy.resetForm && proxy.resetForm("formRef")
 }
 
@@ -217,6 +218,7 @@ function loadAllDeptOptions() {
 
 function handleAdd() {
   reset()
+  isEdit.value = false
   loadAllDeptOptions()
   getMinUnusedUserId().then(res => {
     form.value.id = res.data || res
@@ -227,6 +229,7 @@ function handleAdd() {
 
 function handleUpdate(row) {
   reset()
+  isEdit.value = true
   getUser(row.id).then(response => {
     form.value = response.data || response
     open.value = true
