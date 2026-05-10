@@ -26,7 +26,7 @@ public interface SysUserDao extends BaseMapper<SysUserEntity> {
     @Select("<script>SELECT id, real_name FROM sys_user WHERE deleted = 0 AND id IN <foreach collection='ids' item='id' open='(' separator=',' close=')'>#{id}</foreach></script>")
     List<Map<String, Object>> selectIdAndRealNamesByIds(@Param("ids") List<Long> ids);
 
-    @Select("SELECT MIN(t1.id + 1) FROM sys_user t1 WHERE NOT EXISTS (SELECT 1 FROM sys_user t2 WHERE t2.id = t1.id + 1 AND t2.deleted = 0)")
+    @Select("SELECT MIN(t1.id + 1) FROM sys_user t1 WHERE NOT EXISTS (SELECT 1 FROM sys_user t2 WHERE t2.id = t1.id + 1)")
     Long selectMinAvailableId();
 
     @Update("UPDATE sys_user SET deleted = 1 WHERE id = #{id}")
